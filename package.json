@@ -1,5 +1,5 @@
 {
-	"name": "@3sixty/identity",
+	"name": "3sixty-identity",
 	"version": "0.0.0",
 	"description": "Repository of identity models, connectors, service contracts, and tooling for decentralised identifier workflows.",
 	"repository": {
