@@ -43,9 +43,9 @@
 		"@3sixty/standards-w3c-did": "next",
 		"@3sixty/vault-models": "next",
 		"@3sixty/web": "next",
-		"@iota/identity-wasm": "1.9.6-beta.1",
+		"@iota/identity-wasm": "1.9.7-beta.1",
 		"@iota/iota-interaction-ts": "0.14.0",
-		"@iota/iota-sdk": "1.15.0"
+		"@iota/iota-sdk": "1.17.0"
 	},
 	"devDependencies": {
 		"@3sixty/crypto": "next",
