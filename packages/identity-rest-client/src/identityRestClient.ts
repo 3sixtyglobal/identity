@@ -1,8 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { BaseRestClient } from "@3sixty/api-core";
 import type { IBaseRestClientConfig, INoContentResponse } from "@3sixty/api-models";
-import { Coerce, Guards, Is } from "@3sixty/core";
+import { Coerce, Guards, Is, NotSupportedError } from "@3sixty/core";
 import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import {
 	DocumentHelper,
@@ -90,6 +91,16 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 		);
 
 		return response.body;
+	}
+
+	/**
+	 * Create a new identity controlled by its own DID.
+	 * There is no HTTP route for this. Adoption calls the in-process service.
+	 * @returns The created identity document.
+	 * @throws NotSupportedError Always.
+	 */
+	public async identityCreateSelf(): Promise<IDidDocument> {
+		throw new NotSupportedError(IdentityRestClient.CLASS_NAME, "identityCreateSelfNotSupported");
 	}
 
 	/**

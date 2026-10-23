@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	ArrayHelper,
@@ -249,6 +250,47 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			};
 
 			await this.updateDocument(controller, didDocument);
+
+			return didDocument;
+		} catch (error) {
+			throw new GeneralError(
+				EntityStorageIdentityConnector.CLASS_NAME,
+				"createDocumentFailed",
+				undefined,
+				error
+			);
+		}
+	}
+
+	/**
+	 * Create a new document controlled by its own DID.
+	 * @returns The new document.
+	 */
+	public async createSelfControlledDocument(): Promise<IDidDocument> {
+		try {
+			const did = `did:${EntityStorageIdentityConnector.NAMESPACE}:${Converter.bytesToHex(RandomHelper.generate(32), true)}`;
+
+			await this._vaultConnector.createKey(
+				EntityStorageIdentityConnector.buildVaultKey(did, "did"),
+				VaultKeyType.Ed25519
+			);
+
+			const bitString = new BitString(EntityStorageIdentityConnector._REVOCATION_BITS_SIZE);
+			const compressed = await Compression.compress(bitString.getBits(), CompressionType.Gzip);
+
+			const didDocument: IDidDocument = {
+				"@context": DidContexts.Context,
+				id: did,
+				service: [
+					{
+						id: `${did}#revocation`,
+						type: "BitstringStatusList",
+						serviceEndpoint: `data:application/octet-stream;base64,${Converter.bytesToBase64Url(compressed)}`
+					}
+				]
+			};
+
+			await this.updateDocument(did, didDocument);
 
 			return didDocument;
 		} catch (error) {

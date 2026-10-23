@@ -28,6 +28,7 @@
 			"checkingVerifiableCredentialFailed": "Checking the verifiable credential failed",
 			"checkingVerifiablePresentationFailed": "Checking the verifiable presentation failed",
 			"createDocumentFailed": "Creating the document failed",
+			"createSelfControlledDocumentNotSupported": "Creating a self-controlled document is not supported by the IOTA connector",
 			"createProofFailed": "Creating the signature for the data failed",
 			"createVerifiableCredentialFailed": "Creating the verifiable credential failed",
 			"createVerifiablePresentationFailed": "Creating the verifiable presentation failed",
