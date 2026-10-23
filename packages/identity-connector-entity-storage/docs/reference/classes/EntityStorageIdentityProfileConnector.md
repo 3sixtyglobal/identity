@@ -4,11 +4,11 @@ Class which implements the identity profile connector contract.
 
 ## Type Parameters
 
-### T
+### T {#t}
 
 `T` *extends* `IJsonLdDocument` = `IJsonLdDocument`
 
-### U
+### U {#u}
 
 `U` *extends* `IJsonLdDocument` = `IJsonLdDocument`
 
@@ -126,13 +126,13 @@ The identity of the item to get.
 
 ##### publicPropertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The public properties to get for the profile, defaults to all.
 
 ##### privatePropertyNames?
 
-keyof `U`[]
+(keyof `U`)[]
 
 The private properties to get for the profile, defaults to all.
 
@@ -234,13 +234,13 @@ The filters to apply to the identities private profiles.
 
 ##### publicPropertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The public properties to get for the profile, defaults to all.
 
 ##### privatePropertyNames?
 
-keyof `U`[]
+(keyof `U`)[]
 
 The private properties to get for the profile, defaults to all.
 
