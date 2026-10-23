@@ -44,7 +44,7 @@ export class CLI extends CLIBase {
 			{
 				title: "3Sixty Identity",
 				appName: "3sixty-identity",
-				version: "0.20.0-next.0", // x-release-please-version
+				version: "0.20.0-next.1", // x-release-please-version
 				icon: "🌍",
 				supportsEnvFiles: true,
 				overrideOutputWidth: options?.overrideOutputWidth,

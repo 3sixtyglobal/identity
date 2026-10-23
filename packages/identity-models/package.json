@@ -1,6 +1,6 @@
 {
 	"name": "@3sixty/identity-models",
-	"version": "0.20.0-next.0",
+	"version": "0.20.0-next.1",
 	"description": "Shared identity models and contracts for consistent data structures across services, connectors, and clients.",
 	"repository": {
 		"type": "git",
