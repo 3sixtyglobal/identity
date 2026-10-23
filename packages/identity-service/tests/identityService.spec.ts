@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { HealthCategory, HealthStatus, type IHealth } from "@3sixty/api-models";
 import { ContextIdKeys, ContextIdStore, type IContextIds } from "@3sixty/context";
@@ -123,6 +124,29 @@ describe("IdentityService", () => {
 						"data:application/octet-stream;base64,H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
 				}
 			]
+		});
+	});
+
+	test("Can create a self-controlled identity", async () => {
+		const service = new IdentityService();
+
+		// The shared store already holds the document created from the first deterministic id.
+		RandomHelper.generate(1);
+
+		const identity = await service.identityCreateSelf();
+
+		expect(identity.id.startsWith("did:entity-storage:")).toEqual(true);
+
+		const stored = await identityDocumentEntityStorage.get(identity.id);
+		expect(stored?.controller).toEqual(identity.id);
+	});
+
+	test("Creating an identity still requires a controller", async () => {
+		const service = new IdentityService();
+
+		await expect(service.identityCreate(undefined, undefined)).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string"
 		});
 	});
 

@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	HealthCategory,
@@ -17,6 +18,7 @@ import {
 	Is,
 	LruCache,
 	NotFoundError,
+	NotSupportedError,
 	ObjectHelper,
 	RandomHelper,
 	TimeoutHelper,
@@ -361,6 +363,20 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	public async stop(nodeLoggingComponentType?: string): Promise<void> {
 		this._didResolutionCache?.destroy();
 		this._identityClientReadOnly = undefined;
+	}
+
+	/**
+	 * Create a new document controlled by its own DID.
+	 * Publishing on IOTA needs an existing identity to sign the transaction, so a first
+	 * self-controlled document cannot be created here.
+	 * @returns The new document.
+	 * @throws NotSupportedError Always, until a self-owned publish exists.
+	 */
+	public async createSelfControlledDocument(): Promise<IDidDocument> {
+		throw new NotSupportedError(
+			IotaIdentityConnector.CLASS_NAME,
+			"createSelfControlledDocumentNotSupported"
+		);
 	}
 
 	/**

@@ -1,1 +1,7 @@
-{}
+{
+	"error": {
+		"identityRestClient": {
+			"identityCreateSelfNotSupported": "Creating a self-controlled identity is not supported by the REST client"
+		}
+	}
+}

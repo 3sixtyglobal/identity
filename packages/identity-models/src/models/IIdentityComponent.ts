@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IComponent } from "@3sixty/core";
 import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
@@ -24,6 +25,12 @@ export interface IIdentityComponent extends IComponent {
 	 * @returns The created identity document.
 	 */
 	identityCreate(namespace?: string, controller?: string): Promise<IDidDocument>;
+
+	/**
+	 * Create a new identity controlled by its own DID.
+	 * @returns The created identity document.
+	 */
+	identityCreateSelf(): Promise<IDidDocument>;
 
 	/**
 	 * Remove an identity.
