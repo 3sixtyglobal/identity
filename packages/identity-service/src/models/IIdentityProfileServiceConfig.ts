@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 
 /**
@@ -6,14 +7,20 @@
  */
 export interface IIdentityProfileServiceConfig {
 	/**
-	 * The public and private profile properties which can only be added, changed or removed by callers with an admin scope.
+	 * The public and private profile properties which can only be added, changed or removed by callers with escalated privilege or permitted to execute the admin update operation.
 	 * @default []
 	 */
 	selfUpdateDeniedProperties?: string[];
 
 	/**
-	 * The scopes which allow the denied properties to be modified, any one is sufficient.
-	 * @default ["user-admin", "global-admin"]
+	 * The role that grants escalated privilege, callers holding it can always modify the denied properties.
+	 * @default global-admin
 	 */
-	adminScopes?: string[];
+	escalatedPrivilegeRole?: string;
+
+	/**
+	 * The authorization model ID used to check permissions.
+	 * @default system
+	 */
+	authorizationModelId?: string;
 }

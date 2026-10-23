@@ -1,7 +1,9 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
-import { HttpContextIdKeys } from "@3sixty/api-models";
+import type { IAuthorizationComponent } from "@3sixty/authorization-models";
 import { ContextIdKeys, ContextIdStore } from "@3sixty/context";
+import { ComponentFactory } from "@3sixty/core";
 import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
@@ -20,6 +22,8 @@ const TEST_ADMIN = "did:entity-storage:admin";
 const DENIED_CONFIG = { config: { selfUpdateDeniedProperties: ["roles", "spatial"] } };
 
 let identityProfileEntityStorage: MemoryEntityStorageConnector<IdentityProfile>;
+let callerRoles: { [identity: string]: string[] };
+let mockAuthorizationComponent: IAuthorizationComponent;
 
 const basePublicProfile: IJsonLdDocument = {
 	"@context": "https://schema.org",
@@ -27,8 +31,10 @@ const basePublicProfile: IJsonLdDocument = {
 	name: "Jane Doe"
 };
 
-const asUser = async <T>(user: string, method: () => Promise<T>, scope?: string): Promise<T> =>
-	ContextIdStore.run({ [ContextIdKeys.User]: user, [HttpContextIdKeys.Scope]: scope }, method);
+const asUser = async <T>(user: string, method: () => Promise<T>, roles?: string): Promise<T> => {
+	callerRoles[user] = roles?.split(",") ?? [];
+	return ContextIdStore.run({ [ContextIdKeys.User]: user }, method);
+};
 
 describe("IdentityProfileService", () => {
 	beforeAll(async () => {
@@ -45,10 +51,26 @@ describe("IdentityProfileService", () => {
 			"identity-profile",
 			() => new EntityStorageIdentityProfileConnector()
 		);
+
+		callerRoles = {};
+		mockAuthorizationComponent = {
+			hasRoleForSubject: vi.fn(
+				async (modelId: string, subject: string, role: string) =>
+					callerRoles[subject]?.includes(role) ?? false
+			),
+			check: vi.fn(
+				async (modelId: string, subject: string, object: string, action: string) =>
+					object === IdentityProfileService.ADMIN_UPDATE_OPERATION_ID &&
+					action === "execute" &&
+					(callerRoles[subject]?.includes(IdentityProfileService.DEFAULT_ADMIN_ROLE) ?? false)
+			)
+		} as unknown as IAuthorizationComponent;
+		ComponentFactory.register("authorization", () => mockAuthorizationComponent);
 	});
 
 	afterEach(async () => {
 		await identityProfileEntityStorage.teardown();
+		ComponentFactory.unregister("authorization");
 	});
 
 	test("Can not add denied properties when creating own profile", async () => {
@@ -86,7 +108,7 @@ describe("IdentityProfileService", () => {
 					undefined,
 					TEST_USER
 				),
-			"user-admin"
+			"identity-profile-admin"
 		);
 
 		for (const publicProfile of [
@@ -121,7 +143,7 @@ describe("IdentityProfileService", () => {
 					undefined,
 					TEST_USER
 				),
-			"user-admin"
+			"identity-profile-admin"
 		);
 
 		await asUser(TEST_USER, async () =>
@@ -148,7 +170,7 @@ describe("IdentityProfileService", () => {
 		});
 	});
 
-	test("Can assign denied properties on another user's profile with the admin scope", async () => {
+	test("Can assign denied properties on another user's profile with the admin role", async () => {
 		const service = new IdentityProfileService(DENIED_CONFIG);
 		await service.create(basePublicProfile, undefined, TEST_USER);
 
@@ -166,7 +188,7 @@ describe("IdentityProfileService", () => {
 					undefined,
 					TEST_USER
 				),
-			"user-admin"
+			"identity-profile-admin"
 		);
 
 		expect((await identityProfileEntityStorage.getStore())[0].publicProfile).toEqual({
@@ -219,7 +241,7 @@ describe("IdentityProfileService", () => {
 		await asUser(
 			TEST_ADMIN,
 			async () => service.create(basePublicProfile, privateProfile, TEST_USER),
-			"user-admin"
+			"identity-profile-admin"
 		);
 
 		await expect(
@@ -265,7 +287,7 @@ describe("IdentityProfileService", () => {
 		});
 	});
 
-	test("Can modify denied properties on own profile with the admin scope", async () => {
+	test("Can modify denied properties on own profile with the admin role", async () => {
 		const service = new IdentityProfileService(DENIED_CONFIG);
 		await service.create(basePublicProfile, undefined, TEST_ADMIN);
 
@@ -273,7 +295,7 @@ describe("IdentityProfileService", () => {
 			TEST_ADMIN,
 			async () =>
 				service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN),
-			"user-admin"
+			"identity-profile-admin"
 		);
 
 		expect((await identityProfileEntityStorage.getStore())[0].publicProfile).toEqual({
@@ -282,7 +304,7 @@ describe("IdentityProfileService", () => {
 		});
 	});
 
-	test("Can modify denied properties on own profile with the global admin scope", async () => {
+	test("Can modify denied properties on own profile with the global admin role", async () => {
 		const service = new IdentityProfileService(DENIED_CONFIG);
 		await service.create(basePublicProfile, undefined, TEST_ADMIN);
 
@@ -298,9 +320,53 @@ describe("IdentityProfileService", () => {
 		});
 	});
 
-	test("Can configure the admin scopes", async () => {
+	test("Can configure the authorization model used to check permissions", async () => {
 		const service = new IdentityProfileService({
-			config: { selfUpdateDeniedProperties: ["roles"], adminScopes: ["profile-admin"] }
+			config: { selfUpdateDeniedProperties: ["roles"], authorizationModelId: "custom-model" }
+		});
+		await service.create(basePublicProfile, undefined, TEST_ADMIN);
+
+		await asUser(
+			TEST_ADMIN,
+			async () =>
+				service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN),
+			"identity-profile-admin"
+		);
+
+		expect(mockAuthorizationComponent.hasRoleForSubject).toHaveBeenCalledWith(
+			"custom-model",
+			TEST_ADMIN,
+			IdentityProfileService.DEFAULT_ESCALATED_PRIVILEGE_ROLE
+		);
+		expect(mockAuthorizationComponent.check).toHaveBeenCalledWith(
+			"custom-model",
+			TEST_ADMIN,
+			IdentityProfileService.ADMIN_UPDATE_OPERATION_ID,
+			"execute"
+		);
+	});
+
+	test("Can modify denied properties with escalated privilege without checking the admin permission", async () => {
+		const service = new IdentityProfileService(DENIED_CONFIG);
+		await service.create(basePublicProfile, undefined, TEST_ADMIN);
+
+		await asUser(
+			TEST_ADMIN,
+			async () =>
+				service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN),
+			"global-admin"
+		);
+
+		expect(mockAuthorizationComponent.check).not.toHaveBeenCalled();
+		expect((await identityProfileEntityStorage.getStore())[0].publicProfile).toEqual({
+			...basePublicProfile,
+			roles: ["auditor"]
+		});
+	});
+
+	test("Can configure the escalated privilege role", async () => {
+		const service = new IdentityProfileService({
+			config: { selfUpdateDeniedProperties: ["roles"], escalatedPrivilegeRole: "super-admin" }
 		});
 		await service.create(basePublicProfile, undefined, TEST_ADMIN);
 
@@ -309,7 +375,7 @@ describe("IdentityProfileService", () => {
 				TEST_ADMIN,
 				async () =>
 					service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN),
-				"user-admin"
+				"global-admin"
 			)
 		).rejects.toMatchObject({ name: "UnauthorizedError" });
 
@@ -317,7 +383,7 @@ describe("IdentityProfileService", () => {
 			TEST_ADMIN,
 			async () =>
 				service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN),
-			"user-admin,profile-admin"
+			"super-admin"
 		);
 
 		expect((await identityProfileEntityStorage.getStore())[0].publicProfile).toEqual({
@@ -326,28 +392,28 @@ describe("IdentityProfileService", () => {
 		});
 	});
 
-	describe("scope and property change matrix", () => {
+	describe("role and property change matrix", () => {
 		const withRoles = { ...basePublicProfile, roles: ["user"] };
 
-		const scopeCases: {
+		const roleCases: {
 			label: string;
 			isAdmin: boolean;
 			run: <T>(method: () => Promise<T>) => Promise<T>;
 		}[] = [
 			{ label: "no context", isAdmin: false, run: async method => method() },
-			{ label: "no scope", isAdmin: false, run: async method => asUser(TEST_USER, method) },
+			{ label: "no roles", isAdmin: false, run: async method => asUser(TEST_USER, method) },
 			{
-				label: "non admin scopes",
+				label: "non admin roles",
 				isAdmin: false,
-				run: async method => asUser(TEST_USER, method, "user,profile-read")
+				run: async method => asUser(TEST_USER, method, "user,identity-profile-read")
 			},
 			{
-				label: "user-admin scope",
+				label: "identity-profile-admin role",
 				isAdmin: true,
-				run: async method => asUser(TEST_USER, method, "user-admin")
+				run: async method => asUser(TEST_USER, method, "identity-profile-admin")
 			},
 			{
-				label: "global-admin amongst other scopes",
+				label: "global-admin amongst other roles",
 				isAdmin: true,
 				run: async method => asUser(TEST_USER, method, "user,global-admin")
 			}
@@ -398,14 +464,14 @@ describe("IdentityProfileService", () => {
 		];
 
 		const cases = (["publicProfile", "privateProfile"] as const).flatMap(profileName =>
-			scopeCases.flatMap(scopeCase =>
-				changeCases.map(changeCase => ({ profileName, scopeCase, changeCase }))
+			roleCases.flatMap(roleCase =>
+				changeCases.map(changeCase => ({ profileName, roleCase, changeCase }))
 			)
 		);
 
 		test.each(cases)(
-			"$profileName denied property $changeCase.label with $scopeCase.label",
-			async ({ profileName, scopeCase, changeCase }) => {
+			"$profileName denied property $changeCase.label with $roleCase.label",
+			async ({ profileName, roleCase, changeCase }) => {
 				const service = new IdentityProfileService(DENIED_CONFIG);
 				await identityProfileEntityStorage.set({
 					identity: TEST_USER,
@@ -420,8 +486,8 @@ describe("IdentityProfileService", () => {
 					}
 				};
 
-				if (changeCase.isDeniedChange && !scopeCase.isAdmin) {
-					await expect(scopeCase.run(update)).rejects.toMatchObject({
+				if (changeCase.isDeniedChange && !roleCase.isAdmin) {
+					await expect(roleCase.run(update)).rejects.toMatchObject({
 						name: "UnauthorizedError",
 						message: "identityProfileService.selfUpdateDenied",
 						properties: { identity: TEST_USER, properties: `${profileName}.roles` }
@@ -430,7 +496,7 @@ describe("IdentityProfileService", () => {
 						changeCase.stored
 					);
 				} else {
-					await scopeCase.run(update);
+					await roleCase.run(update);
 					expect((await identityProfileEntityStorage.getStore())[0][profileName]).toEqual(
 						changeCase.updated
 					);
