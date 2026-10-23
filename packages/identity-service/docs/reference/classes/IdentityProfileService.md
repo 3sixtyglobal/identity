@@ -4,11 +4,11 @@ Class which implements the identity profile contract.
 
 ## Type Parameters
 
-### T
+### T {#t}
 
 `T` *extends* `IJsonLdDocument` = `IJsonLdDocument`
 
-### U
+### U {#u}
 
 `U` *extends* `IJsonLdDocument` = `IJsonLdDocument`
 
@@ -112,13 +112,13 @@ Get the profile properties for an identity.
 
 ##### publicPropertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The public properties to get for the profile, defaults to all.
 
 ##### privatePropertyNames?
 
-keyof `U`[]
+(keyof `U`)[]
 
 The private properties to get for the profile, defaults to all.
 
@@ -156,7 +156,7 @@ The identity to perform the profile operation on.
 
 ##### propertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The properties to get for the item, defaults to all.
 
@@ -252,7 +252,7 @@ The filters to apply to the identities public profiles.
 
 ##### publicPropertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The public properties to get for the profile, defaults to all.
 
@@ -302,13 +302,13 @@ The filters to apply to the identities private profiles.
 
 ##### publicPropertyNames?
 
-keyof `T`[]
+(keyof `T`)[]
 
 The public properties to get for the profile, defaults to all.
 
 ##### privatePropertyNames?
 
-keyof `U`[]
+(keyof `U`)[]
 
 The private properties to get for the profile, defaults to none.
 

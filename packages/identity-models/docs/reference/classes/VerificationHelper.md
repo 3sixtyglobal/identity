@@ -30,11 +30,11 @@ Verify the JWT and return the decoded header and payload.
 
 #### Type Parameters
 
-##### T
+##### T {#t}
 
 `T` *extends* `JWTHeaderParameters`
 
-##### U
+##### U {#u}
 
 `U` *extends* `JWTPayload`
 
