@@ -23,5 +23,10 @@ export interface IIdentityRemoveRequest {
 		 * Also remove any associated private keys from the vault.
 		 */
 		removeKeys?: string;
+
+		/**
+		 * Also remove the document key from the vault.
+		 */
+		removeDocumentKey?: string;
 	};
 }

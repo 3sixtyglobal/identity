@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { DidVerificationMethodType } from "@twin.org/standards-w3c-did";
+import type { DidVerificationMethodType } from "@3sixty/standards-w3c-did";
 
 /**
  * Request to create a verification method.

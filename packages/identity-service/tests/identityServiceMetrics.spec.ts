@@ -1,33 +1,33 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { AlreadyExistsError, ComponentFactory, RandomHelper } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { AlreadyExistsError, ComponentFactory, Is, RandomHelper } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 import {
 	EntityStorageIdentityConnector,
 	EntityStorageIdentityResolverConnector,
 	type IdentityDocument,
 	initSchema as initSchemaIdentity
-} from "@twin.org/identity-connector-entity-storage";
+} from "@3sixty/identity-connector-entity-storage";
 import {
 	IdentityConnectorFactory,
 	IdentityResolverConnectorFactory
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import { DidVerificationMethodType } from "@twin.org/standards-w3c-did";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import { DidVerificationMethodType } from "@3sixty/standards-w3c-did";
 import {
 	MetricType,
 	type ITelemetryComponent,
 	type ITelemetryMetric
-} from "@twin.org/telemetry-models";
+} from "@3sixty/telemetry-models";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema as initSchemaVault
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
 import { IdentityService } from "../src/identityService.js";
 
 const TEST_CONTROLLER = "test-controller";
@@ -50,13 +50,19 @@ function makeMockTelemetry(): {
 		start: async () => {},
 		stop: async () => {},
 		createMetric: async m => {
-			created.push({ ...m });
+			for (const metric of Is.array(m) ? m : [m]) {
+				created.push({ ...metric });
+			}
 		},
 		getMetric: async () => ({ metric: {} as never, value: {} as never }),
 		updateMetric: async () => {},
 		addMetricValue: async (id, value, customData) => {
 			values.push({ id, value, customData });
 			return "v";
+		},
+		addMetricValues: async entries => {
+			values.push(...entries);
+			return entries.map(() => "v");
 		},
 		getMetricValue: async (id, valueId) => ({
 			id: valueId,

@@ -1,30 +1,30 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { HealthCategory, HealthStatus, type IHealth } from "@twin.org/api-models";
-import { ContextIdKeys, ContextIdStore, type IContextIds } from "@twin.org/context";
-import { RandomHelper } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { HealthCategory, HealthStatus, type IHealth } from "@3sixty/api-models";
+import { ContextIdKeys, ContextIdStore, type IContextIds } from "@3sixty/context";
+import { RandomHelper } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 import {
 	EntityStorageIdentityConnector,
 	EntityStorageIdentityResolverConnector,
 	type IdentityDocument,
 	initSchema as initSchemaIdentity
-} from "@twin.org/identity-connector-entity-storage";
+} from "@3sixty/identity-connector-entity-storage";
 import {
 	IdentityConnectorFactory,
 	IdentityResolverConnectorFactory
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import { DidContexts, DidVerificationMethodType } from "@twin.org/standards-w3c-did";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import { DidContexts, DidVerificationMethodType } from "@3sixty/standards-w3c-did";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema as initSchemaVault
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
 import { IdentityResolverService } from "../src/identityResolverService.js";
 import { IdentityService } from "../src/identityService.js";
 
@@ -65,9 +65,12 @@ describe("IdentityService", () => {
 		VaultConnectorFactory.register("vault", () => new EntityStorageVaultConnector());
 
 		IdentityConnectorFactory.register("entity-storage", () => new EntityStorageIdentityConnector());
+		// Caching disabled: the factory hands every test the same resolver instance, and these
+		// tests assert that a mutation made through IdentityService is visible on the next
+		// resolve. Resolution caching is covered in the connector's own cache spec.
 		IdentityResolverConnectorFactory.register(
 			"entity-storage",
-			() => new EntityStorageIdentityResolverConnector()
+			() => new EntityStorageIdentityResolverConnector({ config: { didResolutionCacheTtlMs: 0 } })
 		);
 
 		// Force the connector to be constructed now, so its LruCache's internal
@@ -300,9 +303,12 @@ describe("IdentityService", () => {
 				"entity-storage",
 				() => new EntityStorageIdentityConnector()
 			);
+			// Caching disabled: the health lifecycle resolves the temporary DID during
+			// healthApplication and then asserts it is gone after healthApplicationTeardown, so
+			// the second resolve has to reach storage.
 			IdentityResolverConnectorFactory.register(
 				"entity-storage",
-				() => new EntityStorageIdentityResolverConnector()
+				() => new EntityStorageIdentityResolverConnector({ config: { didResolutionCacheTtlMs: 0 } })
 			);
 		});
 
@@ -325,7 +331,7 @@ describe("IdentityService", () => {
 			);
 			IdentityResolverConnectorFactory.register(
 				"entity-storage",
-				() => new EntityStorageIdentityResolverConnector()
+				() => new EntityStorageIdentityResolverConnector({ config: { didResolutionCacheTtlMs: 0 } })
 			);
 		});
 
@@ -353,17 +359,21 @@ describe("IdentityService", () => {
 			const service = new IdentityService();
 
 			const tempOrgDoc = await service.identityCreate(undefined, TEST_CONTROLLER);
-			await service.verificationMethodCreate(
-				tempOrgDoc.id,
-				DidVerificationMethodType.AssertionMethod,
-				"health-assertion",
-				TEST_CONTROLLER
+
+			// The wallet service normally leaves the temporary controller's mnemonic in the vault,
+			// which healthApplicationInit migrates to the new document id. Without it the init
+			// bails part way through and never reaches the context id swap.
+			await VaultConnectorFactory.get("vault").setSecret(
+				`${tempOrgDoc.id}/mnemonic`,
+				Bip39.randomMnemonic()
 			);
+
 			const initContextIds: IContextIds = { [ContextIdKeys.Organization]: tempOrgDoc.id };
 			await service.healthApplicationInit(initContextIds);
 
 			const orgDid = initContextIds[ContextIdKeys.Organization];
 			expect(orgDid).toBeDefined();
+			expect(orgDid).not.toEqual(tempOrgDoc.id);
 
 			const combinedContextIds = { ...initContextIds };
 			await ContextIdStore.run(combinedContextIds, async () => {
@@ -373,6 +383,9 @@ describe("IdentityService", () => {
 
 			const resolverConnector = IdentityResolverConnectorFactory.get("entity-storage");
 			await expect(resolverConnector.resolveDocument(orgDid ?? "")).rejects.toThrow();
+
+			// The caller's own document, which the health check did not create, is left alone.
+			await expect(resolverConnector.resolveDocument(tempOrgDoc.id)).resolves.toBeDefined();
 		});
 
 		test("healthApplication returns error when healthApplicationInit has not run", async () => {

@@ -1,6 +1,6 @@
 name: Project Add Issue
 
-# TWIN_GHA_RELEASE_TOKEN requires org project read/write.
+# ORG_GHA_RELEASE_TOKEN requires org project read/write.
 # The issue label step uses the workflow GITHUB_TOKEN with issues: write.
 
 on:
@@ -13,15 +13,13 @@ permissions:
 
 jobs:
   add-to-project:
-    runs-on:
-      labels: ${{ github.event.repository.private && 'self-hosted-small' || 'ubuntu-latest' }}
-      group: ${{ github.event.repository.private && 'twin' || 'default' }}
+    runs-on: ${{ github.event.repository.private && fromJSON('{"group":"3sixty","labels":"self-hosted-small"}') || 'ubuntu-latest' }}
 
     steps:
       - uses: actions/add-to-project@v2
         with:
-          project-url: https://github.com/orgs/iotaledger/projects/104
-          github-token: ${{ secrets.TWIN_GHA_RELEASE_TOKEN }}
+          project-url: https://github.com/orgs/3sixtyglobal/projects/1
+          github-token: ${{ secrets.ORG_GHA_RELEASE_TOKEN }}
 
       - uses: actions/github-script@v9
         with:

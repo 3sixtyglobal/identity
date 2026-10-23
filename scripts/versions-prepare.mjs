@@ -8,12 +8,18 @@
  * 1. Production: Updates all packages from prerelease versions to stable versions
  * 2. Next: Updates all packages to the next prerelease version for development
  *
- * The script also manages internal dependencies between @twin.org packages,
+ * The script also manages internal dependencies between @3sixty packages,
  * ensuring they reference the correct versions of each other.
  */
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { execAsync, loadJson, loadNextPrereleaseManifest, saveJson } from './common.mjs';
+import {
+	execAsync,
+	loadJson,
+	loadNextPrereleaseManifest,
+	loadWorkspaceDirs,
+	saveJson
+} from './common.mjs';
 
 const MANIFEST_PRODUCTION_FILENAME = 'release/release-please-manifest.prod.json';
 const MANIFEST_PRERELEASE_FILENAME = 'release/release-please-manifest.prerelease.json';
@@ -208,21 +214,21 @@ async function run() {
 		}
 	}
 
-	// Load the root package.json to get the list of workspaces
-	const repoPackageJson = await loadJson('package.json');
+	// Get the list of workspaces for the repo
+	const workspaces = await loadWorkspaceDirs();
 
 	// Collect all in-repo workspace package names up front so dependency processing
-	// can distinguish them from external @twin.org packages regardless of the order
+	// can distinguish them from external @3sixty packages regardless of the order
 	// the workspaces are processed in.
 	const workspaceNames = new Set();
-	for (const workspace of repoPackageJson.workspaces) {
+	for (const workspace of workspaces) {
 		const workspacePackageJson = await loadJson(path.join(workspace, 'package.json'));
 		workspaceNames.add(workspacePackageJson.name);
 	}
 
 	const versionCache = {};
 
-	for (const workspace of repoPackageJson.workspaces) {
+	for (const workspace of workspaces) {
 		const workspacePackageJsonFilename = path.join(workspace, 'package.json');
 		process.stdout.write(`Processing: ${workspacePackageJsonFilename}\n`);
 
@@ -260,11 +266,6 @@ async function run() {
 
 		// We also need to update any files specified in the release-please-manifest
 		process.stdout.write('Updating release-please-config extra-files\n');
-		// Read the current prod version — that is the value actually written in extra
-		// files (after alignment to main). For the custom path prodVersion is the
-		// user-supplied target version, not the value currently in those files.
-		const prodManifestForExtras = await loadJson(MANIFEST_PRODUCTION_FILENAME);
-		const currentVersionInFiles = Object.values(prodManifestForExtras)[0];
 		const releaseConfig = await loadJson(CONFIG_PRERELEASE_FILENAME);
 		if (releaseConfig.packages) {
 			for (const packageName of Object.keys(releaseConfig.packages)) {
@@ -277,7 +278,7 @@ async function run() {
 						const lines = contents.split('\n');
 						for (let i = 0; i < lines.length; i++) {
 							if (lines[i].includes('x-release-please-version')) {
-								lines[i] = lines[i].replace(currentVersionInFiles, nextVersion);
+								lines[i] = lines[i].replace(/\d+\.\d+\.\d+(?:-[\w.]+)?/, nextVersion);
 							}
 						}
 						await fs.writeFile(filename, lines.join('\n'), 'utf8');
@@ -321,7 +322,7 @@ async function processPackage(
 	// Cache this package's version to avoid redundant lookups when processing dependencies
 	versionCache[workspacePackageJson.name] = workspacePackageJson.version;
 
-	// Process all types of dependencies that might reference other @twin.org packages
+	// Process all types of dependencies that might reference other @3sixty packages
 	// This ensures internal dependencies are updated to the correct versions
 	await processDependencies(
 		isProduction,
@@ -372,8 +373,8 @@ async function processDependencies(
 		return;
 	}
 	for (const [name, version] of Object.entries(dependencies)) {
-		// Only process @twin.org packages (internal dependencies)
-		if (name.startsWith('@twin.org')) {
+		// Only process @3sixty packages (internal dependencies)
+		if (name.startsWith('@3sixty')) {
 			if (isPeerDependency) {
 				// If it's a peer dependency, we just match the major version
 				// This allows the package to work with any compatible version

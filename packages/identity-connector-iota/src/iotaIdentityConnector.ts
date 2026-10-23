@@ -1,6 +1,68 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import {
+	HealthCategory,
+	HealthStatus,
+	type HealthApplicationCallback,
+	type IHealth,
+	type IHealthProviderComponent
+} from "@3sixty/api-models";
+import {
+	ArrayHelper,
+	BaseError,
+	Coerce,
+	Converter,
+	GeneralError,
+	Guards,
+	Is,
+	LruCache,
+	NotFoundError,
+	ObjectHelper,
+	RandomHelper,
+	TimeoutHelper,
+	Url,
+	Urn
+} from "@3sixty/core";
+import {
+	JsonLdHelper,
+	JsonLdProcessor,
+	type IJsonLdContextDefinitionRoot,
+	type IJsonLdNodeObject
+} from "@3sixty/data-json-ld";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { Iota, VaultJwtSigner, type IIotaClient } from "@3sixty/dlt-iota";
+import {
+	Did,
+	DocumentHelper,
+	VerificationHelper,
+	type IIdentityConnector
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import {
+	DidContexts,
+	DidTypes,
+	DidVerificationMethodType,
+	JwsAlgorithms,
+	ProofHelper,
+	ProofTypes,
+	type IDidCredentialStatus,
+	type IDidDocument,
+	type IDidDocumentVerificationMethod,
+	type IDidService,
+	type IDidVerifiableCredential,
+	type IDidVerifiableCredentialV1,
+	type IDidVerifiablePresentation,
+	type IDidVerifiablePresentationV1,
+	type IProof
+} from "@3sixty/standards-w3c-did";
+import {
+	VaultConnectorFactory,
+	VaultConnectorHelper,
+	VaultKeyType,
+	type IVaultConnector
+} from "@3sixty/vault-models";
+import { Jwk as JwkHelper, Jwt as JwtHelper, type IJwtHeader, type IJwtPayload } from "@3sixty/web";
+import {
 	Credential,
 	EdDSAJwsVerifier,
 	FailFast,
@@ -38,72 +100,6 @@ import type {
 	TransactionBuilder,
 	TransactionOutput
 } from "@iota/iota-interaction-ts/node/transaction_internal.js";
-import {
-	HealthCategory,
-	HealthStatus,
-	type HealthApplicationCallback,
-	type IHealth,
-	type IHealthProviderComponent
-} from "@twin.org/api-models";
-import {
-	ArrayHelper,
-	BaseError,
-	Coerce,
-	Converter,
-	GeneralError,
-	Guards,
-	Is,
-	LruCache,
-	NotFoundError,
-	ObjectHelper,
-	RandomHelper,
-	Url,
-	Urn
-} from "@twin.org/core";
-import {
-	JsonLdHelper,
-	JsonLdProcessor,
-	type IJsonLdContextDefinitionRoot,
-	type IJsonLdNodeObject
-} from "@twin.org/data-json-ld";
-import { AccountHelper } from "@twin.org/dlt-account";
-import { Iota, VaultJwtSigner, type IIotaClient } from "@twin.org/dlt-iota";
-import {
-	Did,
-	DocumentHelper,
-	VerificationHelper,
-	type IIdentityConnector
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import {
-	DidContexts,
-	DidTypes,
-	DidVerificationMethodType,
-	JwsAlgorithms,
-	ProofHelper,
-	ProofTypes,
-	type IDidCredentialStatus,
-	type IDidDocument,
-	type IDidDocumentVerificationMethod,
-	type IDidService,
-	type IDidVerifiableCredential,
-	type IDidVerifiableCredentialV1,
-	type IDidVerifiablePresentation,
-	type IDidVerifiablePresentationV1,
-	type IProof
-} from "@twin.org/standards-w3c-did";
-import {
-	VaultConnectorFactory,
-	VaultConnectorHelper,
-	VaultKeyType,
-	type IVaultConnector
-} from "@twin.org/vault-models";
-import {
-	Jwk as JwkHelper,
-	Jwt as JwtHelper,
-	type IJwtHeader,
-	type IJwtPayload
-} from "@twin.org/web";
 import { NetworkConstants } from "./constants/networkConstants.js";
 import type { IIotaIdentityConnectorConfig } from "./models/IIotaIdentityConnectorConfig.js";
 import type { IIotaIdentityConnectorConstructorOptions } from "./models/IIotaIdentityConnectorConstructorOptions.js";
@@ -203,6 +199,26 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	private readonly _didResolutionRetryDelayMs: number;
 
 	/**
+	 * Timeout in ms for creating the read only identity client. 0 waits indefinitely.
+	 * @internal
+	 */
+	private readonly _clientCreationTimeoutMs: number;
+
+	/**
+	 * Timeout in ms for a single DID resolution call. 0 waits indefinitely.
+	 * @internal
+	 */
+	private readonly _didResolutionTimeoutMs: number;
+
+	/**
+	 * Memoised read only identity client used by the verification paths, created on first use
+	 * and reused afterwards. Cleared whenever its construction fails so the next caller retries.
+	 * Never used by getIdentityClient, see the note there.
+	 * @internal
+	 */
+	private _identityClientReadOnly?: Promise<IdentityClientReadOnly>;
+
+	/**
 	 * Create a new instance of IotaIdentityConnector.
 	 * @param options The options for the identity connector.
 	 */
@@ -239,6 +255,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				: undefined;
 		this._didResolutionRetries = Math.max(this._config.didResolutionRetries ?? 10, 1);
 		this._didResolutionRetryDelayMs = this._config.didResolutionRetryDelayMs ?? 500;
+		this._clientCreationTimeoutMs = this._config.clientCreationTimeoutMs ?? 3_000;
+		this._didResolutionTimeoutMs = this._config.didResolutionTimeoutMs ?? 5_000;
 
 		Iota.populateConfig(this._config);
 	}
@@ -342,6 +360,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 */
 	public async stop(nodeLoggingComponentType?: string): Promise<void> {
 		this._didResolutionCache?.destroy();
+		this._identityClientReadOnly = undefined;
 	}
 
 	/**
@@ -355,18 +374,22 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		try {
 			const identityClient = await this.getIdentityClient(controller);
 			const networkHrp = identityClient.network();
-			const document = new IotaDocument(networkHrp);
 
-			const revocationBitmap = new RevocationBitmap();
-			const revocationServiceId = document.id().join("#revocation");
-			document.insertService(revocationBitmap.toService(revocationServiceId));
+			// Built through a factory so a retry after an object conflict produces a fresh builder,
+			// re-resolving the gas coin at its current version instead of reusing the stale one.
+			const buildCreate = (): TransactionBuilder<Transaction<unknown>> => {
+				const document = new IotaDocument(networkHrp);
 
-			const executionResult = await this.executeIdentityTransaction(
-				controller,
-				identityClient.createIdentity(document).finish() as unknown as TransactionBuilder<
+				const revocationBitmap = new RevocationBitmap();
+				const revocationServiceId = document.id().join("#revocation");
+				document.insertService(revocationBitmap.toService(revocationServiceId));
+
+				return identityClient.createIdentity(document).finish() as unknown as TransactionBuilder<
 					Transaction<unknown>
-				>
-			);
+				>;
+			};
+
+			const executionResult = await this.executeIdentityTransaction(controller, buildCreate);
 
 			const did = this.extractDidFromExecutionResult(executionResult, networkHrp);
 			const resolved = await this.waitForDocument(identityClient, did);
@@ -412,25 +435,23 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 					.filter(id => Is.stringValue(id));
 			}
 
-			const identity = await identityClient.getIdentity(Did.parse(documentId).id);
-			const onChain = identity.toFullFledged();
-			if (Is.undefined(onChain)) {
-				throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", documentId);
-			}
+			// Built through a factory so a retry after an object conflict reloads the identity,
+			// controller token and gas coin at their current versions.
+			const buildDelete = async (): Promise<TransactionBuilder<Transaction<unknown>>> => {
+				const { identityOnChain, controllerToken } = await this.reloadOnChainIdentity(
+					identityClient,
+					documentId
+				);
 
-			const controllerToken = await onChain.getControllerToken(identityClient);
-			if (Is.undefined(controllerToken)) {
-				throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", documentId);
-			}
-
-			const deleteBuilder = onChain
-				.deleteDid(controllerToken)
-				.withGasBudget(BigInt(this._gasBudget));
+				return identityOnChain.deleteDid(controllerToken).withGasBudget(BigInt(this._gasBudget));
+			};
 
 			if (Is.object(this._config.gasStation)) {
-				await this.executeGasStationTransaction(controller, deleteBuilder, "update");
+				await this.executeGasStationTransaction(controller, buildDelete, "update");
 			} else {
-				await deleteBuilder.buildAndExecute(identityClient);
+				await Iota.executeWithReservationRetry(this._config, async () =>
+					(await buildDelete()).buildAndExecute(identityClient)
+				);
 			}
 
 			await this.waitForDocumentDeletion(identityClient, IotaDID.parse(documentId));
@@ -1083,17 +1104,16 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 
 			const vc = decoded.credential().toJSON() as IDidVerifiableCredential;
 
-			vc.proof = await this.createProof(
-				controller,
+			vc.proof = await this.buildProof(
+				issuerDocument,
 				verificationMethodId,
 				ProofTypes.DataIntegrityProof,
-				JsonLdHelper.toNodeObject(vc),
-				issuerDocument
+				JsonLdHelper.toNodeObject(vc)
 			);
 
 			// Promote the proof's @context to the VC root so JSON-LD processors can resolve DataIntegrity terms (proofValue, cryptosuite, etc.)
 			const proofContext = vc.proof["@context"];
-			if (!Is.empty(proofContext)) {
+			if (Is.notEmpty(proofContext)) {
 				vc["@context"] = (JsonLdProcessor.combineContexts(vc["@context"], proofContext) ??
 					vc["@context"]) as IDidVerifiableCredential["@context"];
 				delete vc.proof["@context"];
@@ -1177,17 +1197,15 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(credential), credential);
 
 		try {
-			const iotaClient = Iota.createClient(this._config);
-			const identityClientReadOnly = await IdentityClientReadOnly.create(
-				// @ts-expect-error IotaClient has a mismatch with the library types
-				iotaClient,
-				this._config?.identityPkgId
-			);
+			const identityClientReadOnly = await this.getIdentityClientReadOnly();
 			const resolver = new Resolver<IotaDocument>({ client: identityClientReadOnly });
 			const jwt = new Jwt(credential);
 			const issuerDocumentId = JwtCredentialValidator.extractIssuerFromJwt(jwt);
 			const issuerDid = this.stringifyIdentityValue(issuerDocumentId);
-			const issuerDocument = await resolver.resolve(issuerDid);
+			const issuerDocument = await this.withResolutionTimeout(
+				resolver.resolve(issuerDid),
+				issuerDid
+			);
 
 			if (Is.undefined(issuerDocument)) {
 				throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", issuerDid);
@@ -1552,17 +1570,16 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				new JwtPresentationValidationOptions()
 			);
 
-			verifiablePresentation.proof = await this.createProof(
-				controller,
+			verifiablePresentation.proof = await this.buildProof(
+				holderDocument,
 				verificationMethodId,
 				ProofTypes.DataIntegrityProof,
-				JsonLdHelper.toNodeObject(verifiablePresentation),
-				holderDocument
+				JsonLdHelper.toNodeObject(verifiablePresentation)
 			);
 
 			// Promote the proof's @context to the VP root so JSON-LD processors can resolve DataIntegrity terms
 			const proofContext = verifiablePresentation.proof["@context"];
-			if (!Is.empty(proofContext)) {
+			if (Is.notEmpty(proofContext)) {
 				verifiablePresentation["@context"] = (JsonLdProcessor.combineContexts(
 					verifiablePresentation["@context"],
 					proofContext
@@ -1610,6 +1627,20 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			const { proof, ...doc } = presentation as IDidVerifiablePresentationV1;
 			const proofEntry = ArrayHelper.fromObjectOrArray(proof)[0];
 			Guards.objectValue(IotaIdentityConnector.CLASS_NAME, nameof(proof), proofEntry);
+			Guards.stringValue(
+				IotaIdentityConnector.CLASS_NAME,
+				nameof(proofEntry.verificationMethod),
+				proofEntry.verificationMethod
+			);
+
+			const signerDid = DocumentHelper.parseId(proofEntry.verificationMethod).id;
+			if (Is.stringValue(doc.holder) && doc.holder !== signerDid) {
+				throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "holderMismatch", {
+					holder: doc.holder,
+					method: proofEntry.verificationMethod
+				});
+			}
+
 			const presentationVerified = await this.verifyProof(
 				JsonLdHelper.toNodeObject(doc),
 				proofEntry
@@ -1636,17 +1667,15 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		const presentationJwt = presentation;
 
 		try {
-			const iotaClient = Iota.createClient(this._config);
-			const identityClientReadOnly = await IdentityClientReadOnly.create(
-				// @ts-expect-error IotaClient has a mismatch with the library types
-				iotaClient,
-				this._config?.identityPkgId
-			);
+			const identityClientReadOnly = await this.getIdentityClientReadOnly();
 			const resolver = new Resolver<IotaDocument>({ client: identityClientReadOnly });
 			const jwt = new Jwt(presentationJwt);
 			const holderId = JwtPresentationValidator.extractHolder(jwt);
 			const holderDid = this.stringifyIdentityValue(holderId);
-			const holderDocument = await resolver.resolve(holderDid);
+			const holderDocument = await this.withResolutionTimeout(
+				resolver.resolve(holderDid),
+				holderDid
+			);
 
 			if (Is.undefined(holderDocument)) {
 				throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", holderDid);
@@ -1684,7 +1713,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				issuers.push(this.stringifyIdentityValue(issuer));
 			}
 
-			const resolvedIssuers = await resolver.resolveMultiple(issuers);
+			const resolvedIssuers = await this.withResolutionTimeout(
+				resolver.resolveMultiple(issuers),
+				issuers.join(", ")
+			);
 
 			for (let i = 0; i < jwtCredentials.length; i++) {
 				credentialValidator.validate(
@@ -1748,7 +1780,6 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @param verificationMethodId The verification method id to use.
 	 * @param proofType The type of proof to create.
 	 * @param unsecureDocument The unsecure document to create the proof for.
-	 * @param resolvedDocument Optional already-resolved document for the DID, so a caller that just resolved it (e.g. createVerifiableCredential) skips a redundant re-resolve. Resolves it itself if omitted.
 	 * @returns The proof.
 	 * @throws NotFoundError if the id can not be resolved.
 	 * @throws GeneralError if proof creation fails or the algorithm does not match the key type.
@@ -1757,8 +1788,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		controller: string,
 		verificationMethodId: string,
 		proofType: ProofTypes,
-		unsecureDocument: IJsonLdNodeObject,
-		resolvedDocument?: IotaDocument
+		unsecureDocument: IJsonLdNodeObject
 	): Promise<IProof> {
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), controller);
 		Guards.stringValue(
@@ -1777,13 +1807,6 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			nameof(unsecureDocument),
 			unsecureDocument
 		);
-		if (!Is.undefined(resolvedDocument)) {
-			Guards.object<IotaDocument>(
-				IotaIdentityConnector.CLASS_NAME,
-				nameof(resolvedDocument),
-				resolvedDocument
-			);
-		}
 
 		try {
 			const idParts = DocumentHelper.parseId(verificationMethodId);
@@ -1795,39 +1818,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				);
 			}
 
-			let document = resolvedDocument;
-			if (Is.undefined(document)) {
-				const identityClient = await this.getIdentityClient();
-				document = await this.resolveOwnDidCached(identityClient, idParts.id);
-			}
+			const identityClient = await this.getIdentityClient();
+			const document = await this.resolveOwnDidCached(identityClient, idParts.id);
 
-			const methods = document.methods();
-			const method = methods.find(
-				m => this.stringifyIdentityValue(m.id()) === verificationMethodId
-			);
-
-			if (!method) {
-				throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "methodMissing", {
-					method: verificationMethodId
-				});
-			}
-
-			const keyId = VaultConnectorHelper.buildKeyName(idParts.id, idParts.fragment);
-			const keyType = await this._vaultConnector.getKeyType(keyId);
-
-			if (Is.undefined(keyType)) {
-				throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "privateKeyMissing", { keyId });
-			}
-
-			const unsignedProof = ProofHelper.createUnsignedProof(proofType, verificationMethodId);
-
-			const signedProof = await ProofHelper.createProofWithSigner(
-				proofType,
-				unsecureDocument,
-				unsignedProof,
-				async (data, algorithm) => this.signWithVault(keyId, keyType, data, algorithm)
-			);
-			return signedProof;
+			return await this.buildProof(document, verificationMethodId, proofType, unsecureDocument);
 		} catch (error) {
 			throw new GeneralError(
 				IotaIdentityConnector.CLASS_NAME,
@@ -1865,7 +1859,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			}
 
 			const identityClient = await this.getIdentityClient();
-			const resolvedDocument = await identityClient.resolveDid(IotaDID.parse(idParts.id));
+			const resolvedDocument = await this.withResolutionTimeout(
+				identityClient.resolveDid(IotaDID.parse(idParts.id)),
+				idParts.id
+			);
 
 			if (Is.undefined(resolvedDocument)) {
 				throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", idParts.id);
@@ -1918,7 +1915,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		}
 
 		const identityClient = await this.getIdentityClient();
-		const resolvedDocument = await identityClient.resolveDid(IotaDID.parse(idParts.id));
+		const resolvedDocument = await this.withResolutionTimeout(
+			identityClient.resolveDid(IotaDID.parse(idParts.id)),
+			idParts.id
+		);
 
 		if (Is.undefined(resolvedDocument)) {
 			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", idParts.id);
@@ -1975,7 +1975,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * Implementation for both overloads above.
 	 * @param identityClient The identity client to use for resolution.
 	 * @param did The DID to resolve.
-	 * @param preMutationUpdated Pre-mutation metadataUpdated string, null for first mutation, or omitted for create mode.
+	 * @param preMutationUpdated Pre-mutation metadataUpdated as RFC 3339, or omitted for create mode.
+	 * Only a strictly newer document is accepted, so a lagging node returning an older version is retried.
 	 * @returns The resolved document, or undefined in update mode when retries are exhausted.
 	 * @internal
 	 */
@@ -1984,15 +1985,20 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		did: IotaDID,
 		preMutationUpdated?: string
 	): Promise<IotaDocument | undefined> {
+		const preUpdated = Coerce.dateTime(preMutationUpdated);
 		let resolved: IotaDocument | undefined;
 		let lastError: unknown;
 		for (let attempt = 0; attempt <= this._didResolutionRetries; attempt++) {
 			try {
-				const candidate = await identityClient.resolveDid(did);
+				const candidate = await this.withResolutionTimeout(
+					identityClient.resolveDid(did),
+					this.stringifyIdentityValue(did)
+				);
 				if (!Is.undefined(candidate)) {
+					const candidateUpdated = Coerce.dateTime(candidate.metadataUpdated()?.toRFC3339());
 					const isSettled =
-						Is.undefined(preMutationUpdated) ||
-						candidate.metadataUpdated()?.toString() !== (preMutationUpdated ?? undefined);
+						Is.undefined(preUpdated) ||
+						(Is.date(candidateUpdated) && candidateUpdated.getTime() > preUpdated.getTime());
 					if (isSettled) {
 						resolved = candidate;
 						break;
@@ -2025,7 +2031,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	): Promise<void> {
 		for (let attempt = 0; attempt <= this._didResolutionRetries; attempt++) {
 			try {
-				await identityClient.resolveDid(did);
+				await this.withResolutionTimeout(
+					identityClient.resolveDid(did),
+					this.stringifyIdentityValue(did)
+				);
 			} catch {
 				return;
 			}
@@ -2033,6 +2042,50 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				await new Promise<void>(resolve => setTimeout(resolve, this._didResolutionRetryDelayMs));
 			}
 		}
+	}
+
+	/**
+	 * Build a proof against a document the caller has already resolved.
+	 * @param document The resolved DID document owning the verification method.
+	 * @param verificationMethodId The verification method id to use.
+	 * @param proofType The type of proof to create.
+	 * @param unsecureDocument The unsecure document to create the proof for.
+	 * @returns The proof.
+	 * @throws GeneralError if the method or its key material is missing.
+	 * @internal
+	 */
+	private async buildProof(
+		document: IotaDocument,
+		verificationMethodId: string,
+		proofType: ProofTypes,
+		unsecureDocument: IJsonLdNodeObject
+	): Promise<IProof> {
+		const idParts = DocumentHelper.parseId(verificationMethodId);
+
+		const methods = document.methods();
+		const method = methods.find(m => this.stringifyIdentityValue(m.id()) === verificationMethodId);
+
+		if (!method) {
+			throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "methodMissing", {
+				method: verificationMethodId
+			});
+		}
+
+		const keyId = VaultConnectorHelper.buildKeyName(idParts.id, idParts.fragment ?? "");
+		const keyType = await this._vaultConnector.getKeyType(keyId);
+
+		if (Is.undefined(keyType)) {
+			throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "privateKeyMissing", { keyId });
+		}
+
+		const unsignedProof = ProofHelper.createUnsignedProof(proofType, verificationMethodId);
+
+		return ProofHelper.createProofWithSigner(
+			proofType,
+			unsecureDocument,
+			unsignedProof,
+			async (data, algorithm) => this.signWithVault(keyId, keyType, data, algorithm)
+		);
 	}
 
 	/**
@@ -2073,22 +2126,86 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	}
 
 	/**
+	 * Get the read only identity client, memoised for the lifetime of the connector.
+	 * Constructing it fetches the chain identifier over RPC, and neither the network nor the
+	 * package id change for an instance, so only the first caller pays for that call and
+	 * concurrent first callers share the single construction. Only the resolution paths use
+	 * this, getIdentityClient must build its own, see the note there.
+	 * @returns The read only identity client.
+	 * @internal
+	 */
+	private async getIdentityClientReadOnly(): Promise<IdentityClientReadOnly> {
+		this._identityClientReadOnly ??= this.createIdentityClientReadOnly();
+		const pending = this._identityClientReadOnly;
+
+		try {
+			return await pending;
+		} catch (error) {
+			// Drop the memoised promise so the next caller retries. Without this a single failed
+			// construction, or one abandoned by its timeout, would be replayed for the lifetime of
+			// the connector.
+			if (this._identityClientReadOnly === pending) {
+				this._identityClientReadOnly = undefined;
+			}
+			throw error;
+		}
+	}
+
+	/**
+	 * Create a read only identity client, bounded by the client creation timeout.
+	 * The timeout is required because the wasm binding panics instead of rejecting when the
+	 * chain identifier RPC fails, leaving the promise it returned pending forever.
+	 * @returns The read only identity client.
+	 * @internal
+	 */
+	private async createIdentityClientReadOnly(): Promise<IdentityClientReadOnly> {
+		const iotaClient = Iota.createClient(this._config);
+
+		return TimeoutHelper.withTimeout(
+			IdentityClientReadOnly.create(
+				// @ts-expect-error IotaClient has a mismatch with the library types
+				iotaClient,
+				this._config?.identityPkgId
+			),
+			this._clientCreationTimeoutMs,
+			() => {
+				throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "identityClientCreationTimeout", {
+					timeoutMs: this._clientCreationTimeoutMs
+				});
+			}
+		);
+	}
+
+	/**
+	 * Bound a resolution call by the configured resolution timeout, so a resolve which never
+	 * settles fails the request instead of hanging it.
+	 * @param resolution The resolution to bound.
+	 * @param did The DID being resolved, for the timeout error.
+	 * @returns The result of the resolution.
+	 * @internal
+	 */
+	private async withResolutionTimeout<T>(resolution: Promise<T>, did: string): Promise<T> {
+		return TimeoutHelper.withTimeout(resolution, this._didResolutionTimeoutMs, () => {
+			throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "didResolutionTimeout", {
+				did,
+				timeoutMs: this._didResolutionTimeoutMs
+			});
+		});
+	}
+
+	/**
 	 * Get an identity client.
 	 * @param controller The controller to get the client for.
 	 * @returns The identity client.
 	 * @internal
 	 */
 	private async getIdentityClient(controller?: string): Promise<IdentityClient> {
-		// Deliberately built fresh on every call, not memoized: IdentityClient.create() below
-		// calls client.__destroy_into_raw() on the read-only client it's given (a wasm-bindgen
-		// move, not a borrow) - reusing the same instance across calls passes an
-		// already-destroyed handle into WASM on the second use ("null pointer passed to rust").
-		const iotaClient = Iota.createClient(this._config);
-		const identityClientReadOnly = await IdentityClientReadOnly.create(
-			// @ts-expect-error IotaClient has a mismatch with the library types
-			iotaClient,
-			this._config?.identityPkgId
-		);
+		// Deliberately built fresh on every call, never the memoized client from
+		// getIdentityClientReadOnly: IdentityClient.create() below calls
+		// client.__destroy_into_raw() on the read-only client it's given (a wasm-bindgen move,
+		// not a borrow) - handing it the shared instance would pass an already-destroyed handle
+		// into WASM on the second use ("null pointer passed to rust").
+		const identityClientReadOnly = await this.createIdentityClientReadOnly();
 		if (Is.undefined(controller)) {
 			const jwkMemStore = new JwkMemStore();
 			const keyIdMemStore = new KeyIdMemStore();
@@ -2166,7 +2283,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		identityClient: IdentityClient,
 		did: string
 	): Promise<IotaDocument> {
-		const document = await identityClient.resolveDid(IotaDID.parse(did));
+		const document = await this.withResolutionTimeout(
+			identityClient.resolveDid(IotaDID.parse(did)),
+			did
+		);
 		if (Is.undefined(document)) {
 			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", did);
 		}
@@ -2284,74 +2404,106 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	/**
 	 * Execute identity transaction with conditional gas station support.
 	 * @param controller The controller identity.
-	 * @param transactionBuilder The finished transaction builder from createIdentity().finish().
+	 * @param buildTransaction Builds the finished transaction builder from createIdentity().finish().
 	 * @returns The execution result.
 	 * @internal
 	 */
 	private async executeIdentityTransaction(
 		controller: string,
-		transactionBuilder: TransactionBuilder<Transaction<unknown>>
+		buildTransaction: () =>
+			TransactionBuilder<Transaction<unknown>> | Promise<TransactionBuilder<Transaction<unknown>>>
 	): Promise<TransactionOutput<Transaction<OnChainIdentity>>> {
 		if (Is.object(this._config.gasStation)) {
-			return this.executeGasStationTransaction(controller, transactionBuilder, "identity");
+			return this.executeGasStationTransaction(controller, buildTransaction, "identity");
 		}
 
 		const identityClient = await this.getIdentityClient(controller);
 
-		const buildResult = await transactionBuilder.build(identityClient);
+		// The build is inside the retry so each attempt re-resolves the owned objects it consumes;
+		// reusing the already built bytes would resubmit the same stale versions and fail again.
+		return Iota.executeWithReservationRetry(this._config, async () => {
+			const transactionBuilder = await buildTransaction();
+			const buildResult = await transactionBuilder.build(identityClient);
 
-		if (Is.arrayValue(buildResult) && buildResult.length === 3 && Is.uint8Array(buildResult[0])) {
-			const [txBytes, signatures, createIdentity] = buildResult;
+			if (Is.arrayValue(buildResult) && buildResult.length === 3 && Is.uint8Array(buildResult[0])) {
+				const [txBytes, signatures, createIdentity] = buildResult;
 
-			if (Is.arrayValue(signatures)) {
-				const iotaClient = Iota.createClient(this._config);
+				if (Is.arrayValue(signatures)) {
+					const iotaClient = Iota.createClient(this._config);
 
-				const txResponse = await iotaClient.executeTransactionBlock({
-					transactionBlock: txBytes,
-					signature: signatures,
-					options: {
-						showEffects: true,
-						showEvents: true,
-						showObjectChanges: true
-					}
-				});
+					const txResponse = await iotaClient.executeTransactionBlock({
+						transactionBlock: txBytes,
+						signature: signatures,
+						options: {
+							showEffects: true,
+							showEvents: true,
+							showObjectChanges: true
+						}
+					});
 
-				const confirmedTx = await Iota.waitForTransactionConfirmation(
-					iotaClient,
-					txResponse.digest,
-					this._config
-				);
-
-				if (!confirmedTx) {
-					throw new GeneralError(
-						IotaIdentityConnector.CLASS_NAME,
-						"transactionConfirmationTimeout",
-						undefined,
-						txResponse.digest
+					const confirmedTx = await Iota.waitForTransactionConfirmation(
+						iotaClient,
+						txResponse.digest,
+						this._config
 					);
+
+					if (!confirmedTx) {
+						throw new GeneralError(
+							IotaIdentityConnector.CLASS_NAME,
+							"transactionConfirmationTimeout",
+							undefined,
+							txResponse.digest
+						);
+					}
+
+					const result = {
+						output: createIdentity,
+						response: txResponse,
+						networkHrp: identityClient.network()
+					} as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
+
+					return result;
 				}
-
-				const result = {
-					output: createIdentity,
-					response: txResponse,
-					networkHrp: identityClient.network()
-				};
-
-				return result as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
 			}
+
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"transactionBuildFailed",
+				{
+					buildResultType: typeof buildResult,
+					isArray: Is.arrayValue(buildResult),
+					length: Is.arrayValue(buildResult) ? buildResult.length : 0,
+					hasUint8Array: Is.arrayValue(buildResult) && Is.uint8Array(buildResult[0])
+				},
+				Iota.extractPayloadError(buildResult)
+			);
+		});
+	}
+
+	/**
+	 * Resolve the on-chain identity and its controller token for a document.
+	 * Called again on each retry attempt so a rebuilt transaction references current versions.
+	 * @param identityClient The identity client to resolve with.
+	 * @param documentId The id of the document to resolve.
+	 * @returns The on-chain identity and its controller token.
+	 * @internal
+	 */
+	private async reloadOnChainIdentity(
+		identityClient: IdentityClient,
+		documentId: string
+	): Promise<{ identityOnChain: OnChainIdentity; controllerToken: ControllerToken }> {
+		const identity = await identityClient.getIdentity(Did.parse(documentId).id);
+		const identityOnChain = identity.toFullFledged();
+		if (Is.undefined(identityOnChain)) {
+			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", documentId);
 		}
 
-		throw new GeneralError(
-			IotaIdentityConnector.CLASS_NAME,
-			"transactionBuildFailed",
-			{
-				buildResultType: typeof buildResult,
-				isArray: Is.arrayValue(buildResult),
-				length: Is.arrayValue(buildResult) ? buildResult.length : 0,
-				hasUint8Array: Is.arrayValue(buildResult) && Is.uint8Array(buildResult[0])
-			},
-			Iota.extractPayloadError(buildResult)
-		);
+		const controllerToken = await identityOnChain.getControllerToken(identityClient);
+		if (Is.undefined(controllerToken)) {
+			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", documentId);
+		}
+
+		return { identityOnChain, controllerToken };
 	}
 
 	/**
@@ -2377,30 +2529,47 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		Guards.object(IotaIdentityConnector.CLASS_NAME, nameof(controllerToken), controllerToken);
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(did), did);
 
-		const updateBuilder = identityOnChain
-			.updateDidDocument(document.clone(), controllerToken)
-			.withGasBudget(BigInt(this._gasBudget));
+		// The caller has already resolved the identity and controller token, so the first attempt
+		// reuses them; any retry reloads both so the rebuilt transaction references the current
+		// object versions rather than the ones a concurrent transaction has already consumed.
+		let resolved:
+			{ identityOnChain: OnChainIdentity; controllerToken: ControllerToken } | undefined = {
+			identityOnChain,
+			controllerToken
+		};
+
+		const buildUpdate = async (): Promise<TransactionBuilder<Transaction<unknown>>> => {
+			const current =
+				resolved ??
+				(await this.reloadOnChainIdentity(await this.getIdentityClient(controller), did));
+			resolved = undefined;
+
+			return current.identityOnChain
+				.updateDidDocument(document.clone(), current.controllerToken)
+				.withGasBudget(BigInt(this._gasBudget));
+		};
 
 		// `did` is passed through from the caller - the exact string already used to populate the
 		// role-1 cache via resolveOwnDidCached - rather than re-derived from `document.id()`, so
 		// the cache key is guaranteed to match.
 		// Both branches are captured into `result` (instead of returning directly) so the cache
 		// update runs after either one succeeds, and a throw from either skips it automatically.
-		let result: TransactionOutput<Transaction<OnChainIdentity>>;
+		let result;
 		let resolverClient: IdentityClient;
 		if (Is.object(this._config.gasStation)) {
-			result = await this.executeGasStationTransaction(controller, updateBuilder, "update");
+			result = await this.executeGasStationTransaction(controller, buildUpdate, "update");
 			resolverClient = await this.getIdentityClient();
 		} else {
 			resolverClient = await this.getIdentityClient(controller);
-			const executionResult = await updateBuilder.buildAndExecute(resolverClient);
-			result = executionResult as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
+			result = await Iota.executeWithReservationRetry(this._config, async () =>
+				(await buildUpdate()).buildAndExecute(resolverClient)
+			);
 		}
 
 		const settled = await this.waitForDocument(
 			resolverClient,
 			IotaDID.parse(did),
-			document.metadataUpdated()?.toString()
+			document.metadataUpdated()?.toRFC3339()
 		);
 		if (!Is.undefined(this._didResolutionCache)) {
 			if (!Is.undefined(settled)) {
@@ -2416,18 +2585,19 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	/**
 	 * Execute a transaction with gas station sponsoring (consolidated method).
 	 * @param controller The controller identity.
-	 * @param builder The transaction builder (either finished identity builder or update builder).
+	 * @param buildTransaction Builds the transaction (either finished identity builder or update builder).
 	 * @param operationType The type of operation for error messaging and result formatting.
 	 * @returns The execution result.
 	 * @internal
 	 */
 	private async executeGasStationTransaction(
 		controller: string,
-		builder: TransactionBuilder<Transaction<unknown>>,
+		buildTransaction: () =>
+			TransactionBuilder<Transaction<unknown>> | Promise<TransactionBuilder<Transaction<unknown>>>,
 		operationType: "identity" | "update"
 	): Promise<TransactionOutput<Transaction<OnChainIdentity>>> {
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), controller);
-		Guards.object(IotaIdentityConnector.CLASS_NAME, nameof(builder), builder);
+		Guards.function(IotaIdentityConnector.CLASS_NAME, nameof(buildTransaction), buildTransaction);
 
 		try {
 			const identityClient = await this.getIdentityClient(controller);
@@ -2441,72 +2611,80 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				this._walletAddressIndex
 			);
 
-			// Reserve exactly the budget this transaction will declare via
-			// this._gasBudget (see the constructor), instead of letting Iota.reserveGas
-			// re-derive its own default from this._config - otherwise the two can
-			// diverge whenever gasBudget is left unset in config.
-			const gasReservation = await Iota.reserveGas({
-				...this._config,
-				gasBudget: this._gasBudget
-			});
+			// Sponsored transactions still reference the sender's own objects, so the same conflict
+			// can occur. Each attempt takes a fresh gas reservation and rebuilds the transaction,
+			// because the sponsor coins and the object versions both change between attempts.
+			return await Iota.executeWithReservationRetry(this._config, async () => {
+				// Reserve exactly the budget this transaction will declare via
+				// this._gasBudget (see the constructor), instead of letting Iota.reserveGas
+				// re-derive its own default from this._config - otherwise the two can
+				// diverge whenever gasBudget is left unset in config.
+				const gasReservation = await Iota.reserveGas({
+					...this._config,
+					gasBudget: this._gasBudget
+				});
 
-			const gasCoinsWithStringVersions = gasReservation.gasCoins.map(coin => ({
-				objectId: coin.objectId,
-				version: String(coin.version),
-				digest: coin.digest
-			}));
+				const gasCoinsWithStringVersions = gasReservation.gasCoins.map(coin => ({
+					objectId: coin.objectId,
+					version: String(coin.version),
+					digest: coin.digest
+				}));
 
-			const gasConfiguredBuilder = builder
-				.withSender(controllerAddress)
-				.withGasBudget(BigInt(this._gasBudget))
-				.withGasOwner(gasReservation.sponsorAddress)
-				.withGasPayment(gasCoinsWithStringVersions)
-				.withGasPrice(this._standardGasPrice);
+				const gasConfiguredBuilder = (await buildTransaction())
+					.withSender(controllerAddress)
+					.withGasBudget(BigInt(this._gasBudget))
+					.withGasOwner(gasReservation.sponsorAddress)
+					.withGasPayment(gasCoinsWithStringVersions)
+					.withGasPrice(this._standardGasPrice);
 
-			const buildResult = await gasConfiguredBuilder.build(identityClient);
+				const buildResult = await gasConfiguredBuilder.build(identityClient);
 
-			if (Is.arrayValue(buildResult) && buildResult.length === 3 && Is.uint8Array(buildResult[0])) {
-				const [txBytes, signatures] = buildResult;
-				// const iotaClient = Iota.createClient(this._config);
+				if (
+					Is.arrayValue(buildResult) &&
+					buildResult.length === 3 &&
+					Is.uint8Array(buildResult[0])
+				) {
+					const [txBytes, signatures] = buildResult;
 
-				const confirmedResponse = await Iota.executeAndConfirmGasStationTransaction(
-					this._config,
-					identityClient.iotaClient() as unknown as IIotaClient,
-					gasReservation.reservationId,
-					txBytes,
-					signatures[0],
-					{
-						waitForConfirmation: true,
-						showEffects: true,
-						showEvents: true,
-						showObjectChanges: true
+					const confirmedResponse = (await Iota.executeAndConfirmGasStationTransaction(
+						this._config,
+						identityClient.iotaClient() as unknown as IIotaClient,
+						gasReservation.reservationId,
+						txBytes,
+						signatures[0],
+						{
+							waitForConfirmation: true,
+							showEffects: true,
+							showEvents: true,
+							showObjectChanges: true
+						}
+					)) as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
+
+					if (operationType === "identity") {
+						// For identity creation, include the output and network HRP
+						const createIdentity = buildResult[2];
+						const result = {
+							output: createIdentity,
+							response: confirmedResponse,
+							networkHrp: identityClient.network()
+						} as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
+						return result;
 					}
-				);
 
-				if (operationType === "identity") {
-					// For identity creation, include the output and network HRP
-					const createIdentity = buildResult[2];
-					const result = {
-						output: createIdentity,
-						response: confirmedResponse,
-						networkHrp: identityClient.network()
-					};
-					return result as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
+					return confirmedResponse;
 				}
 
-				return confirmedResponse as unknown as TransactionOutput<Transaction<OnChainIdentity>>;
-			}
-
-			throw new GeneralError(
-				IotaIdentityConnector.CLASS_NAME,
-				"gasStationTransactionBuildFailed",
-				{
-					buildResultType: typeof buildResult,
-					isArray: Is.arrayValue(buildResult),
-					length: Is.arrayValue(buildResult) ? buildResult.length : 0
-				},
-				Iota.extractPayloadError(buildResult)
-			);
+				throw new GeneralError(
+					IotaIdentityConnector.CLASS_NAME,
+					"gasStationTransactionBuildFailed",
+					{
+						buildResultType: typeof buildResult,
+						isArray: Is.arrayValue(buildResult),
+						length: Is.arrayValue(buildResult) ? buildResult.length : 0
+					},
+					Iota.extractPayloadError(buildResult)
+				);
+			});
 		} catch (error) {
 			const errorMessage =
 				operationType === "identity"

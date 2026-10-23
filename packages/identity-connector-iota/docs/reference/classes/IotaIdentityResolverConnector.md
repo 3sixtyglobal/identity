@@ -63,6 +63,33 @@ The class name of the component.
 
 ***
 
+### stop() {#stop}
+
+> **stop**(`nodeLoggingComponentType?`): `Promise`\<`void`\>
+
+Stop the service.
+Destroys in-memory resources owned by this component.
+
+#### Parameters
+
+##### nodeLoggingComponentType?
+
+`string`
+
+The node logging component type.
+
+#### Returns
+
+`Promise`\<`void`\>
+
+A promise that resolves when the service has stopped.
+
+#### Implementation of
+
+`IIdentityResolverConnector.stop`
+
+***
+
 ### health() {#health}
 
 > **health**(): `Promise`\<`IHealth`[]\>
@@ -85,7 +112,8 @@ The health status of the component.
 
 > **resolveDocument**(`documentId`): `Promise`\<`IDidDocument`\>
 
-Resolve a document from its id.
+Resolve a document from its id, cached for didResolutionCacheTtlMs
+(0 disables caching and resolves fresh every call).
 
 #### Parameters
 

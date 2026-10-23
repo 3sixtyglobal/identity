@@ -1,4 +1,4 @@
-# @twin.org/identity-rest-client
+# @3sixty/identity-rest-client
 
 ## Classes
 

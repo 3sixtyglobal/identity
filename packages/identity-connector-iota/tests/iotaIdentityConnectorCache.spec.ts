@@ -16,11 +16,11 @@
  * `resolveDid` and `Iota.createClient` are confirmed genuine, spy-able prototype/static methods,
  * not WASM opaque internals.
  */
+import { LruCache } from "@3sixty/core";
+import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
+import { Iota } from "@3sixty/dlt-iota";
+import { ProofTypes, type IProof } from "@3sixty/standards-w3c-did";
 import { IdentityClient, type IotaDocument } from "@iota/identity-wasm/node/index.js";
-import { LruCache } from "@twin.org/core";
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { Iota } from "@twin.org/dlt-iota";
-import { ProofTypes, type IProof } from "@twin.org/standards-w3c-did";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,
@@ -33,7 +33,7 @@ import { IotaIdentityConnector } from "../src/iotaIdentityConnector.js";
 
 const CACHE_KEY_PREFIX = "identityConnectorCacheSpec:";
 
-// Exercises @twin.org/core's LruCache directly, not the connector - this pins down the
+// Exercises @3sixty/core's LruCache directly, not the connector - this pins down the
 // dependency contract the caching feature relies on (TTI hit/expiry, explicit delete). It cannot
 // fail for a connector-level defect; see the "didResolutionCacheTtlMs: 0 disables caching
 // end-to-end" block below for connector-level coverage of the bypass behavior.
@@ -450,7 +450,7 @@ describe("IotaIdentityConnector - role-1 cache TTL expiry (live, spy-only)", () 
 
 // Connector-level coverage for the config-off switch: the offline "AsyncCache dependency
 // contract" block above proves AsyncCache.exec itself bypasses caching at ttlMs: 0, but that
-// only exercises @twin.org/core directly. This proves the connector actually wires
+// only exercises @3sixty/core directly. This proves the connector actually wires
 // didResolutionCacheTtlMs: 0 through to resolveOwnDidCached, so a real caller who disables the
 // cache in config genuinely gets a fresh resolve on every call, not just a hit at the framework
 // layer.
@@ -573,5 +573,60 @@ describe("IotaIdentityConnector - verifyProof stays safe against a removed metho
 		// method's proof still (incorrectly) validates - an explicit, asserted, intentional
 		// characterization of the accepted tradeoff, not a silent gap. Do not add that test
 		// unless role-2 caching actually ships.
+	});
+});
+
+// A load-balanced RPC can serve a node that lags behind the one that settled the previous
+// mutation, returning a document older than the cached one. The settle check must only accept a
+// strictly newer document, otherwise the older one is cached and later mutations work against it.
+// Replaying the creation-time document as the first post-update poll simulates this
+// deterministically.
+describe("IotaIdentityConnector - mutation does not cache an older document from a lagging node (live, spy-only, mocked edge case)", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	test("addVerificationMethod retries past a poll older than the cached document", async () => {
+		await setupTestEnv();
+		const identityConnector = new IotaIdentityConnector({
+			config: {
+				clientOptions: TEST_CLIENT_OPTIONS,
+				vaultMnemonicId: TEST_MNEMONIC_NAME,
+				network: TEST_NETWORK,
+				gasBudget: TEST_GAS_BUDGET,
+				didResolutionCacheTtlMs: 60_000
+			}
+		});
+
+		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const document = await identityConnector.createDocument(TEST_USER_IDENTITY);
+		const olderDocument =
+			await resolveDidSpy.mock.results[resolveDidSpy.mock.results.length - 1].value;
+
+		// Caches the settled document, which is newer than olderDocument.
+		await identityConnector.addVerificationMethod(
+			TEST_USER_IDENTITY,
+			document.id,
+			"assertionMethod",
+			"settledMethod"
+		);
+
+		// The pre-mutation resolve is a cache hit, so the first call is the first post-update poll.
+		resolveDidSpy.mockClear();
+		resolveDidSpy.mockResolvedValueOnce(olderDocument);
+
+		const method = await identityConnector.addVerificationMethod(
+			TEST_USER_IDENTITY,
+			document.id,
+			"verificationMethod",
+			"laggingPollMethod"
+		);
+
+		expect(resolveDidSpy.mock.calls.length).toBeGreaterThan(1);
+
+		// Served from the cache, so this only finds the method if the settled document was cached.
+		await expect(
+			identityConnector.removeVerificationMethod(TEST_USER_IDENTITY, method.id)
+		).resolves.toBeUndefined();
 	});
 });

@@ -14,18 +14,18 @@
  * A separate file from `entityStorageIdentityConnector.spec.ts` on purpose: that suite freezes
  * Date.now for the whole file, which would stop the LruCache's idle clock from ever advancing.
  */
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
-import { ProofTypes } from "@twin.org/standards-w3c-did";
+import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
+import { ProofTypes } from "@3sixty/standards-w3c-did";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema as initSchemaVault
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
 import type { IdentityDocument } from "../src/entities/identityDocument.js";
 import { EntityStorageIdentityConnector } from "../src/entityStorageIdentityConnector.js";
 import { initSchema as initSchemaIdentity } from "../src/schema.js";

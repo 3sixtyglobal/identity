@@ -24,9 +24,9 @@ runs:
       if: inputs.package == 'packages/identity-connector-iota' || inputs.package == 'all'
       shell: bash
       run: |
-        echo "IOTA_CLI_VERSION_MAINNET=1.29.0" >> $GITHUB_ENV
-        echo "IOTA_CLI_VERSION_TESTNET=1.29.0-rc" >> $GITHUB_ENV
-        echo "IOTA_CLI_VERSION_DEVNET=1.29.0-beta" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_MAINNET=1.32.1" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_TESTNET=1.33.1-rc" >> $GITHUB_ENV
+        echo "IOTA_CLI_VERSION_DEVNET=1.33.0-beta" >> $GITHUB_ENV
 
     - name: Download IOTA CLI
       if: inputs.package == 'packages/identity-connector-iota' || inputs.package == 'all'
@@ -45,13 +45,13 @@ runs:
       shell: bash
       run: |
         echo "Starting TWIN Gas Station Test Environment (includes Redis + Gas Station)..."
-        docker pull twinfoundation/twin-gas-station-test:latest
-        docker run -d --name twin-gas-station-test \
+        docker pull ghcr.io/3sixtyglobal/3sixty-gas-station-test:latest
+        docker run -d --name 3sixty-gas-station-test \
           -p 6379:6379 -p 9527:9527 -p 9184:9184 \
-          -e IOTA_NODE_URL="https://api.testnet.iota.cafe" \
+          -e IOTA_NODE_URL="https://grpc.testnet.iota.cafe" \
           -e GAS_STATION_AUTH="qEyCL6d9BKKFl/tfDGAKeGFkhUlf7FkqiGV7Xw4JUsI=" \
           -e GAS_STATION_KEYPAIR="${TEST_GAS_STATION_KEYPAIR}" \
-          twinfoundation/twin-gas-station-test:latest
+          ghcr.io/3sixtyglobal/3sixty-gas-station-test:latest
 
     - name: Wait for Services to be Ready
       if: inputs.package == 'packages/identity-connector-iota' || inputs.package == 'all'
@@ -62,7 +62,7 @@ runs:
         # Wait for Redis
         REDIS_READY=false
         for i in {1..30}; do
-          if docker exec twin-gas-station-test redis-cli ping 2>/dev/null | grep -q PONG; then
+          if docker exec 3sixty-gas-station-test redis-cli ping 2>/dev/null | grep -q PONG; then
             echo "✅ Redis is ready!"
             REDIS_READY=true
             break
@@ -74,7 +74,7 @@ runs:
         # Verify Redis is actually ready
         if [ "$REDIS_READY" = false ]; then
           echo "❌ Redis failed to start after 30 attempts (60 seconds)"
-          docker logs twin-gas-station-test --tail 20
+          docker logs 3sixty-gas-station-test --tail 20
           exit 1
         fi
 
@@ -93,7 +93,7 @@ runs:
         # Verify Gas Station is actually ready
         if [ "$GAS_STATION_READY" = false ]; then
           echo "❌ Gas Station failed to start after 45 attempts (225 seconds)"
-          docker logs twin-gas-station-test --tail 20
+          docker logs 3sixty-gas-station-test --tail 20
           exit 1
         fi
 
@@ -104,20 +104,20 @@ runs:
       shell: bash
       run: |
         echo "Flushing Redis cache..."
-        docker exec twin-gas-station-test redis-cli FLUSHALL
+        docker exec 3sixty-gas-station-test redis-cli FLUSHALL
         echo "Restarting gas station container..."
-        docker restart twin-gas-station-test
+        docker restart 3sixty-gas-station-test
         echo "Waiting for services to restart..."
         sleep 15
         echo "Checking gas station status after restart..."
-        docker ps | grep twin-gas-station-test
+        docker ps | grep 3sixty-gas-station-test
         echo "Recent container logs:"
-        docker logs twin-gas-station-test --tail 20
+        docker logs 3sixty-gas-station-test --tail 20
 
         # Re-verify Redis is ready after restart
         REDIS_RESTART_READY=false
         for i in {1..30}; do
-          if docker exec twin-gas-station-test redis-cli ping 2>/dev/null | grep -q PONG; then
+          if docker exec 3sixty-gas-station-test redis-cli ping 2>/dev/null | grep -q PONG; then
             echo "✅ Redis is ready after restart!"
             REDIS_RESTART_READY=true
             break
@@ -129,7 +129,7 @@ runs:
         # Verify Redis is actually ready after restart
         if [ "$REDIS_RESTART_READY" = false ]; then
           echo "❌ Redis failed to restart after 30 attempts (60 seconds)"
-          docker logs twin-gas-station-test --tail 20
+          docker logs 3sixty-gas-station-test --tail 20
           exit 1
         fi
         # Verify Gas Station is ready after restart
@@ -148,7 +148,7 @@ runs:
         # Verify Gas Station is actually ready after restart
         if [ "$GAS_STATION_RESTART_READY" = false ]; then
           echo "❌ Gas Station failed to restart after 45 attempts (225 seconds)"
-          docker logs twin-gas-station-test --tail 20
+          docker logs 3sixty-gas-station-test --tail 20
           exit 1
         fi
 
@@ -194,7 +194,7 @@ runs:
       if: inputs.package == 'packages/identity-connector-universal' || inputs.package == 'all'
       shell: bash
       run: |
-        docker run -d --name twin-identity-universal-resolver -p 18180:8080 -e NETWORK=testnet \
+        docker run -d --name 3sixty-identity-universal-resolver -p 18180:8080 -e NETWORK=testnet \
           iotaledger/uni-resolver-driver-iota:v0.2.0-alpha
         # Wait for the service to be ready
         sleep 5

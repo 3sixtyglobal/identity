@@ -1,4 +1,4 @@
-# TWIN Identity
+# 3Sixty Identity
 
 This repository brings together the core building blocks needed to design and run decentralised identity workflows across different environments. It combines shared models, storage and network connectors, service contracts, a REST client, and a command line tool so teams can implement consistent identity behaviour without rebuilding the same foundation in each project.
 
@@ -26,3 +26,7 @@ Taken together, the workspaces are intended to make identity integrations more p
 ## Contributing
 
 To contribute to this package see the guidelines for building and publishing in [CONTRIBUTING](./CONTRIBUTING.md)
+
+## Origin
+
+This repository is derived from the original [iotaledger/twin-identity](https://github.com/iotaledger/twin-identity) repository.

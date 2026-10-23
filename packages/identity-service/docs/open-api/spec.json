@@ -1,8 +1,8 @@
 {
 	"openapi": "3.1.1",
 	"info": {
-		"title": "TWIN - Test Endpoints",
-		"description": "REST API for TWIN - Test Endpoints.",
+		"title": "3Sixty - Test Endpoints",
+		"description": "REST API for 3Sixty - Test Endpoints.",
 		"version": "1.0.0",
 		"license": {
 			"name": "Apache 2.0 License",
@@ -56,7 +56,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "https://schema.twindev.org/w3c-did/DidDocument"
+									"$ref": "https://schema.3sixty.global/w3c-did/DidDocument"
 								},
 								"examples": {
 									"identityResolveResponseExample": {
@@ -156,6 +156,15 @@
 					{
 						"name": "removeKeys",
 						"description": "Also remove any associated private keys from the vault.",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "removeDocumentKey",
+						"description": "Also remove the document key from the vault.",
 						"in": "query",
 						"required": false,
 						"schema": {
@@ -261,7 +270,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "https://schema.twindev.org/w3c-did/DidDocument"
+									"$ref": "https://schema.3sixty.global/w3c-did/DidDocument"
 								},
 								"examples": {
 									"identityCreateResponseExample": {
@@ -391,7 +400,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "https://schema.twindev.org/w3c-did/DidDocumentVerificationMethod"
+									"$ref": "https://schema.3sixty.global/w3c-did/DidDocumentVerificationMethod"
 								},
 								"examples": {
 									"identityVerificationMethodCreateResponseExample": {
@@ -632,7 +641,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "https://schema.twindev.org/w3c-did/DidService"
+									"$ref": "https://schema.3sixty.global/w3c-did/DidService"
 								},
 								"examples": {
 									"identityServiceCreateResponseExample": {
@@ -1192,7 +1201,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "https://schema.twindev.org/w3c-did/DidVerifiableCredential"
+								"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiableCredential"
 							},
 							"examples": {
 								"identityVerifiableCredentialVerifyDocumentRequestExample": {
@@ -1815,7 +1824,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "https://schema.twindev.org/w3c-did/DidVerifiablePresentation"
+								"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiablePresentation"
 							},
 							"examples": {
 								"identityVerifiablePresentationVerifyDocumentRequestExample": {
@@ -2148,7 +2157,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "https://schema.twindev.org/w3c-did/Proof"
+									"$ref": "https://schema.3sixty.global/w3c-did/Proof"
 								},
 								"examples": {
 									"identityProofCreateResponseExample": {
@@ -3864,10 +3873,10 @@
 				"type": "object",
 				"properties": {
 					"publicProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					},
 					"privateProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					}
 				},
 				"description": "The data for the request."
@@ -3876,10 +3885,10 @@
 				"type": "object",
 				"properties": {
 					"publicProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					},
 					"privateProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					}
 				},
 				"description": "The data for the request."
@@ -3931,10 +3940,10 @@
 				"type": "object",
 				"properties": {
 					"publicProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					},
 					"privateProfile": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdDocument"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdDocument"
 					}
 				},
 				"description": "The data for the request."
@@ -3943,10 +3952,10 @@
 				"type": "object",
 				"properties": {
 					"proofType": {
-						"$ref": "https://schema.twindev.org/w3c-did/ProofTypes"
+						"$ref": "https://schema.3sixty.global/w3c-did/ProofTypes"
 					},
 					"document": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdNodeObject"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdNodeObject"
 					}
 				},
 				"required": [
@@ -3959,10 +3968,10 @@
 				"type": "object",
 				"properties": {
 					"document": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdNodeObject"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdNodeObject"
 					},
 					"proof": {
-						"$ref": "https://schema.twindev.org/w3c-did/Proof"
+						"$ref": "https://schema.3sixty.global/w3c-did/Proof"
 					}
 				},
 				"required": [
@@ -4034,7 +4043,7 @@
 						"description": "The id of the credential."
 					},
 					"subject": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdNodeObject"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdNodeObject"
 					},
 					"revocationIndex": {
 						"type": "number",
@@ -4068,7 +4077,7 @@
 				"type": "object",
 				"properties": {
 					"verifiableCredential": {
-						"$ref": "https://schema.twindev.org/w3c-did/DidVerifiableCredential"
+						"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiableCredential"
 					},
 					"jwt": {
 						"type": "string",
@@ -4089,7 +4098,7 @@
 						"description": "Has the credential been revoked."
 					},
 					"verifiableCredential": {
-						"$ref": "https://schema.twindev.org/w3c-did/DidVerifiableCredential"
+						"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiableCredential"
 					}
 				},
 				"required": [
@@ -4105,7 +4114,7 @@
 						"description": "The id of the presentation."
 					},
 					"contexts": {
-						"$ref": "https://schema.twindev.org/json-ld/JsonLdContextDefinitionRoot"
+						"$ref": "https://schema.3sixty.global/json-ld/JsonLdContextDefinitionRoot"
 					},
 					"types": {
 						"anyOf": [
@@ -4129,7 +4138,7 @@
 									"type": "string"
 								},
 								{
-									"$ref": "https://schema.twindev.org/w3c-did/DidVerifiableCredential"
+									"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiableCredential"
 								}
 							]
 						},
@@ -4163,7 +4172,7 @@
 				"type": "object",
 				"properties": {
 					"verifiablePresentation": {
-						"$ref": "https://schema.twindev.org/w3c-did/DidVerifiablePresentation"
+						"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiablePresentation"
 					},
 					"jwt": {
 						"type": "string",
@@ -4184,12 +4193,12 @@
 						"description": "Has the presentation been revoked."
 					},
 					"verifiablePresentation": {
-						"$ref": "https://schema.twindev.org/w3c-did/DidVerifiablePresentation"
+						"$ref": "https://schema.3sixty.global/w3c-did/DidVerifiablePresentation"
 					},
 					"issuers": {
 						"type": "array",
 						"items": {
-							"$ref": "https://schema.twindev.org/w3c-did/DidDocument"
+							"$ref": "https://schema.3sixty.global/w3c-did/DidDocument"
 						},
 						"description": "The issuers of the presentation."
 					}
@@ -4203,7 +4212,7 @@
 				"type": "object",
 				"properties": {
 					"verificationMethodType": {
-						"$ref": "https://schema.twindev.org/w3c-did/DidVerificationMethodType"
+						"$ref": "https://schema.3sixty.global/w3c-did/DidVerificationMethodType"
 					},
 					"verificationMethodId": {
 						"type": "string",

@@ -29,3 +29,9 @@ The query parameters.
 > `optional` **removeKeys?**: `string`
 
 Also remove any associated private keys from the vault.
+
+#### removeDocumentKey?
+
+> `optional` **removeDocumentKey?**: `string`
+
+Also remove the document key from the vault.

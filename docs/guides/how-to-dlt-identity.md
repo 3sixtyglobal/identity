@@ -85,9 +85,3 @@ curl --location --request PUT 'https://playground-api.twindev.org/attestation/YO
     "holderAddress": "0x..."
 }'
 ```
-
----
-
-## Additional Materials
-
-- **Full OpenAPI Specification**: [View on Swagger Editor](https://editor-next.swagger.io/?url=https://raw.githubusercontent.com/iotaledger/playground/refs/heads/next/apps/playground-node/docs/open-api/spec.json).

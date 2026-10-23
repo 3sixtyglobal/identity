@@ -1,4 +1,4 @@
-# @twin.org/identity-connector-iota
+# @3sixty/identity-connector-iota
 
 ## Classes
 

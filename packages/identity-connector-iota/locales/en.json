@@ -15,7 +15,9 @@
 	},
 	"error": {
 		"iotaIdentityResolverConnector": {
+			"didResolutionTimeout": "Resolving the document \"{documentId}\" timed out after {timeoutMs} ms",
 			"documentNotFound": "The document could not be found",
+			"identityClientCreationTimeout": "Creating the identity client timed out after {timeoutMs} ms",
 			"resolveDocumentFailed": "Resolving the document failed \"{documentId}\""
 		},
 		"iotaIdentityConnector": {
@@ -30,8 +32,11 @@
 			"createVerifiableCredentialFailed": "Creating the verifiable credential failed",
 			"createVerifiablePresentationFailed": "Creating the verifiable presentation failed",
 			"didExtractionFailed": "Extracting the DID from the document id failed",
+			"didResolutionTimeout": "Resolving the DID \"{did}\" timed out after {timeoutMs} ms",
 			"documentNotFound": "The document could not be found",
 			"gasStationTransactionBuildFailed": "Building the gas station transaction failed",
+			"holderMismatch": "The presentation holder \"{holder}\" does not match the DID of the proof verification method \"{method}\"",
+			"identityClientCreationTimeout": "Creating the identity client timed out after {timeoutMs} ms",
 			"identityNotFound": "The identity could not be found \"{notFoundId}\"",
 			"invalidAlias": "The alias is invalid it must be a Url or Urn, it is \"{alias}\"",
 			"issuerMismatch": "The credential issuer \"{issuer}\" does not match the DID of the proof verification method \"{method}\"",

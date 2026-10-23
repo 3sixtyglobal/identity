@@ -1,4 +1,4 @@
-# @twin.org/identity-cli
+# @3sixty/identity-cli
 
 ## Classes
 

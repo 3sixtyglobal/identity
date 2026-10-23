@@ -1,10 +1,10 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 // Note: IOTA connector is the primary source for shared test bodies.
-import { Is, StringHelper, Urn } from "@twin.org/core";
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import type { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { Is, StringHelper, Urn } from "@3sixty/core";
+import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
+import type { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 
 import {
 	DidContexts,
@@ -14,9 +14,9 @@ import {
 	type IDidService,
 	type IDidVerifiableCredential,
 	type IProof
-} from "@twin.org/standards-w3c-did";
-import type { VaultSecret } from "@twin.org/vault-connector-entity-storage";
-import { Jwt } from "@twin.org/web";
+} from "@3sixty/standards-w3c-did";
+import type { VaultSecret } from "@3sixty/vault-connector-entity-storage";
+import { Jwt } from "@3sixty/web";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,
@@ -62,11 +62,16 @@ describe("IotaIdentityConnector", () => {
 				}
 			});
 
+			// Caching disabled: this suite shares one resolver across tests and asserts that
+			// mutations made through identityConnector are visible on the next resolve, so a
+			// cached entry would mask them. Resolution caching has its own coverage in
+			// iotaIdentityResolverConnectorCache.spec.ts.
 			identityResolverConnector = new IotaIdentityResolverConnector({
 				config: {
 					clientOptions: TEST_CLIENT_OPTIONS,
 					vaultMnemonicId: TEST_MNEMONIC_NAME,
-					network: TEST_NETWORK
+					network: TEST_NETWORK,
+					didResolutionCacheTtlMs: 0
 				}
 			});
 
@@ -922,6 +927,11 @@ describe("IotaIdentityConnector", () => {
 			"object-form-expiry-repro-key"
 		);
 
+		// The jwt exp claim is stored with second precision and identity.rs treats a credential as
+		// valid for the whole of its expiry second (checkExpiresOnOrAfter is inclusive), so anchor
+		// the expiry to a second boundary rather than relying on sub-second timing.
+		const expirationDate = new Date((Math.floor(Date.now() / 1000) + 2) * 1000);
+
 		const result = await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
 			verificationMethod.id,
@@ -931,11 +941,14 @@ describe("IotaIdentityConnector", () => {
 				name: "Object Form Expiry Repro"
 			},
 			// Valid at creation time (checked internally when the JWT is first signed), but
-			// expires 2s later so the checks below run against a genuinely expired credential.
-			{ expirationDate: new Date(Date.now() + 2000) }
+			// expires shortly after so the checks below run against a genuinely expired credential.
+			{ expirationDate }
 		);
 
-		await new Promise(resolve => setTimeout(resolve, 2500));
+		// Wait until well past the end of the expiry second.
+		await new Promise(resolve =>
+			setTimeout(resolve, Math.max(0, expirationDate.getTime() + 1500 - Date.now()))
+		);
 
 		await expect(identityConnector.checkVerifiableCredential(result.jwt)).rejects.toMatchObject({
 			name: "GeneralError",

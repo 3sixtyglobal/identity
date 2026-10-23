@@ -60,6 +60,12 @@ Optional settings.
 
 Also remove any associated private keys from the vault.
 
+###### removeDocumentKey?
+
+`boolean`
+
+Also remove the document key from the vault.
+
 ##### controller?
 
 `string`

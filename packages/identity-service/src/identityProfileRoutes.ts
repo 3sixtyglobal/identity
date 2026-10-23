@@ -11,10 +11,10 @@ import {
 	type INotFoundResponse,
 	type IRestRoute,
 	type ITag
-} from "@twin.org/api-models";
-import { ContextIdHelper, ContextIdKeys, ContextIdStore } from "@twin.org/context";
-import { Coerce, ComponentFactory, Guards } from "@twin.org/core";
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
+} from "@3sixty/api-models";
+import { ContextIdHelper, ContextIdKeys, ContextIdStore } from "@3sixty/context";
+import { Coerce, ComponentFactory, Guards } from "@3sixty/core";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 import type {
 	IIdentityProfileAdminGetRequest,
 	IIdentityProfileAdminListRequest,
@@ -30,9 +30,9 @@ import type {
 	IIdentityProfileListRequest,
 	IIdentityProfileListResponse,
 	IIdentityProfileUpdateRequest
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import { HeaderTypes, HttpStatusCode, MimeTypes } from "@twin.org/web";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import { HeaderTypes, HttpStatusCode, MimeTypes } from "@3sixty/web";
 
 /**
  * The source used when communicating about these routes.

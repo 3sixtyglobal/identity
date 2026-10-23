@@ -1,8 +1,8 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { HealthCategory, HealthStatus } from "@twin.org/api-models";
-import { Is } from "@twin.org/core";
-import { DidVerificationMethodType, type IDidDocument } from "@twin.org/standards-w3c-did";
+import { HealthCategory, HealthStatus } from "@3sixty/api-models";
+import { Is } from "@3sixty/core";
+import { DidVerificationMethodType, type IDidDocument } from "@3sixty/standards-w3c-did";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,

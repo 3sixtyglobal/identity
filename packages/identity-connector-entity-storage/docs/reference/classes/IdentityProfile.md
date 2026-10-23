@@ -35,3 +35,19 @@ The public profile data.
 > `optional` **privateProfile?**: `unknown`
 
 The private profile data.
+
+***
+
+### dateCreated? {#datecreated}
+
+> `optional` **dateCreated?**: `string`
+
+The date the profile was created, undefined for profiles stored before it was captured.
+
+***
+
+### dateModified? {#datemodified}
+
+> `optional` **dateModified?**: `string`
+
+The date the profile was last modified.

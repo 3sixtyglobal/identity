@@ -7,14 +7,14 @@ import {
 	CLIParam,
 	CLIUtils,
 	type CliOutputOptions
-} from "@twin.org/cli-core";
-import { GeneralError, I18n, Is } from "@twin.org/core";
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { DocumentHelper } from "@twin.org/identity-models";
-import { ProofTypes } from "@twin.org/standards-w3c-did";
-import { VaultConnectorFactory, VaultKeyType } from "@twin.org/vault-models";
-import { setupWalletConnector } from "@twin.org/wallet-cli";
-import { WalletConnectorFactory } from "@twin.org/wallet-models";
+} from "@3sixty/cli-core";
+import { GeneralError, I18n, Is } from "@3sixty/core";
+import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
+import { DocumentHelper } from "@3sixty/identity-models";
+import { ProofTypes } from "@3sixty/standards-w3c-did";
+import { VaultConnectorFactory, VaultKeyType } from "@3sixty/vault-models";
+import { setupWalletConnector } from "@3sixty/wallet-cli";
+import { WalletConnectorFactory } from "@3sixty/wallet-models";
 import { Command, Option } from "commander";
 import { setupIdentityConnector, setupVault } from "./setupCommands.js";
 import { IdentityConnectorTypes } from "../models/identityConnectorTypes.js";

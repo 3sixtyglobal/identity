@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { HealthCategory, HealthStatus } from "@twin.org/api-models";
-import { Iota } from "@twin.org/dlt-iota";
+import { HealthCategory, HealthStatus } from "@3sixty/api-models";
+import { Iota } from "@3sixty/dlt-iota";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,

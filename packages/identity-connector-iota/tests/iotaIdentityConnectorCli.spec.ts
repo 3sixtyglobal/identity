@@ -1,9 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 
-import { DocumentHelper } from "@twin.org/identity-models";
-import type { EntityStorageVaultConnector } from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory, VaultKeyType } from "@twin.org/vault-models";
+import { DocumentHelper } from "@3sixty/identity-models";
+import type { EntityStorageVaultConnector } from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory, VaultKeyType } from "@3sixty/vault-models";
 import {
 	TEST_CLIENT_OPTIONS,
 	TEST_USER_IDENTITY,

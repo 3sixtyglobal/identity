@@ -1,4 +1,4 @@
-# @twin.org/identity-connector-universal
+# @3sixty/identity-connector-universal
 
 ## Classes
 

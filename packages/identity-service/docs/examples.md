@@ -5,7 +5,7 @@ These examples show how to orchestrate identity operations through service-level
 ## IdentityService
 
 ```typescript
-import { IdentityService } from '@twin.org/identity-service';
+import { IdentityService } from '@3sixty/identity-service';
 
 const identityService = new IdentityService({
   config: {
@@ -23,8 +23,8 @@ console.log(didDocument.id); // did:iota:tst:0x...
 ```
 
 ```typescript
-import { IdentityService } from '@twin.org/identity-service';
-import { DidVerificationMethodType, ProofTypes } from '@twin.org/standards-w3c-did';
+import { IdentityService } from '@3sixty/identity-service';
+import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const identityService = new IdentityService({
   config: {
@@ -113,7 +113,7 @@ console.log(proofIsValid); // true
 ## IdentityProfileService
 
 ```typescript
-import { IdentityProfileService } from '@twin.org/identity-service';
+import { IdentityProfileService } from '@3sixty/identity-service';
 
 interface PublicProfile {
   displayName: string;
@@ -179,7 +179,7 @@ console.log(profiles.items.length); // 1
 ## IdentityResolverService
 
 ```typescript
-import { IdentityResolverService } from '@twin.org/identity-service';
+import { IdentityResolverService } from '@3sixty/identity-service';
 
 const resolverService = new IdentityResolverService({
   config: {

@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0.
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { CLIBase } from "@twin.org/cli-core";
-import { buildCommandAddress, buildCommandMnemonic } from "@twin.org/crypto-cli";
-import { buildCommandFaucet, buildCommandTransfer } from "@twin.org/wallet-cli";
+import { CLIBase } from "@3sixty/cli-core";
+import { buildCommandAddress, buildCommandMnemonic } from "@3sixty/crypto-cli";
+import { buildCommandFaucet, buildCommandTransfer } from "@3sixty/wallet-cli";
 import type { Command } from "commander";
 import { buildCommandAlsoKnownAsAdd } from "./commands/alsoKnownAsAdd.js";
 import { buildCommandAlsoKnownAsRemove } from "./commands/alsoKnownAsRemove.js";
@@ -42,9 +42,9 @@ export class CLI extends CLIBase {
 	): Promise<number> {
 		return this.execute(
 			{
-				title: "TWIN Identity",
-				appName: "twin-identity",
-				version: "0.9.3-next.1", // x-release-please-version
+				title: "3Sixty Identity",
+				appName: "3sixty-identity",
+				version: "0.20.0-next.0", // x-release-please-version
 				icon: "🌍",
 				supportsEnvFiles: true,
 				overrideOutputWidth: options?.overrideOutputWidth,

@@ -1,13 +1,23 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { BaseError, GeneralError, Guards, Is, NotFoundError } from "@twin.org/core";
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
+import { HttpContextIdKeys, ScopeHelper } from "@3sixty/api-models";
+import { ContextIdStore } from "@3sixty/context";
+import {
+	BaseError,
+	GeneralError,
+	Guards,
+	Is,
+	NotFoundError,
+	ObjectHelper,
+	UnauthorizedError
+} from "@3sixty/core";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 import {
 	IdentityProfileConnectorFactory,
 	type IIdentityProfileComponent,
 	type IIdentityProfileConnector
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
 import { IdentityService } from "./identityService.js";
 import type { IIdentityProfileServiceConstructorOptions } from "./models/IIdentityProfileServiceConstructorOptions.js";
 
@@ -30,6 +40,18 @@ export class IdentityProfileService<
 	private readonly _identityProfileConnector: IIdentityProfileConnector<T, U>;
 
 	/**
+	 * The profile properties which can only be modified with an admin scope.
+	 * @internal
+	 */
+	private readonly _selfUpdateDeniedProperties: string[];
+
+	/**
+	 * The scopes which allow the denied properties to be modified.
+	 * @internal
+	 */
+	private readonly _adminScopes: string[];
+
+	/**
 	 * Create a new instance of IdentityProfileService.
 	 * @param options The dependencies for the identity profile service.
 	 */
@@ -37,6 +59,8 @@ export class IdentityProfileService<
 		this._identityProfileConnector = IdentityProfileConnectorFactory.get<
 			IIdentityProfileConnector<T, U>
 		>(options?.profileEntityConnectorType ?? "identity-profile");
+		this._selfUpdateDeniedProperties = options?.config?.selfUpdateDeniedProperties ?? [];
+		this._adminScopes = options?.config?.adminScopes ?? ["user-admin", "global-admin"];
 	}
 
 	/**
@@ -58,6 +82,7 @@ export class IdentityProfileService<
 		Guards.stringValue(IdentityProfileService.CLASS_NAME, nameof(identity), identity);
 
 		try {
+			await this.assertSelfUpdateAllowed(identity, undefined, publicProfile, privateProfile);
 			await this._identityProfileConnector.create(identity, publicProfile, privateProfile);
 		} catch (error) {
 			if (BaseError.someErrorClass(error, IdentityProfileService.CLASS_NAME)) {
@@ -155,6 +180,7 @@ export class IdentityProfileService<
 			if (Is.undefined(result)) {
 				throw new NotFoundError(IdentityProfileService.CLASS_NAME, "notFound", identity);
 			}
+			await this.assertSelfUpdateAllowed(identity, result, publicProfile, privateProfile);
 			await this._identityProfileConnector.update(identity, publicProfile, privateProfile);
 		} catch (error) {
 			if (BaseError.someErrorClass(error, IdentityProfileService.CLASS_NAME)) {
@@ -295,5 +321,78 @@ export class IdentityProfileService<
 				error
 			);
 		}
+	}
+
+	/**
+	 * Reject changes to denied properties when the caller does not have an admin scope.
+	 * @param identity The identity of the profile being modified.
+	 * @param existing The currently stored profile.
+	 * @param publicProfile The new public profile, undefined leaves the stored profile unchanged.
+	 * @param privateProfile The new private profile, undefined leaves the stored profile unchanged.
+	 * @internal
+	 */
+	private async assertSelfUpdateAllowed(
+		identity: string,
+		existing: { publicProfile?: Partial<T>; privateProfile?: Partial<U> } | undefined,
+		publicProfile: T | undefined,
+		privateProfile: U | undefined
+	): Promise<void> {
+		// If there are no self-update denied properties, any update is allowed.
+		if (this._selfUpdateDeniedProperties.length === 0) {
+			return;
+		}
+
+		// If the user has one of the admin scopes, they are allowed to update denied properties, so just return.
+		const contextIds = await ContextIdStore.getContextIds();
+		if (
+			this._adminScopes.some(adminScope =>
+				ScopeHelper.includes(contextIds?.[HttpContextIdKeys.Scope], adminScope)
+			)
+		) {
+			return;
+		}
+
+		const deniedProperties = [
+			...this.findChangedProperties("publicProfile", existing?.publicProfile, publicProfile),
+			...this.findChangedProperties("privateProfile", existing?.privateProfile, privateProfile)
+		];
+
+		if (deniedProperties.length > 0) {
+			throw new UnauthorizedError(IdentityProfileService.CLASS_NAME, "selfUpdateDenied", {
+				identity,
+				properties: deniedProperties.join(", ")
+			});
+		}
+	}
+
+	/**
+	 * Find the denied properties which differ between the stored and new profile.
+	 * @param profileName The name of the profile used to prefix the property names.
+	 * @param existingProfile The currently stored profile.
+	 * @param profile The new profile, undefined leaves the stored profile unchanged.
+	 * @returns The prefixed names of the changed denied properties.
+	 * @internal
+	 */
+	private findChangedProperties<V extends IJsonLdDocument>(
+		profileName: string,
+		existingProfile: Partial<V> | undefined,
+		profile: V | undefined
+	): string[] {
+		if (!Is.object(profile)) {
+			return [];
+		}
+
+		const hasExisting = Is.objectValue(existingProfile);
+
+		return this._selfUpdateDeniedProperties
+			.filter(
+				propertyName =>
+					!ObjectHelper.equal(
+						hasExisting ? ObjectHelper.propertyGet(existingProfile, propertyName) : undefined,
+						ObjectHelper.propertyGet(profile, propertyName),
+						false
+					)
+			)
+			.map(propertyName => `${profileName}.${propertyName}`);
 	}
 }

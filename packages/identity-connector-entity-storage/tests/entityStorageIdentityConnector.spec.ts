@@ -1,30 +1,29 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Is, RandomHelper, StringHelper } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import type { IJsonLdNodeObject } from "@twin.org/data-json-ld";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
-import { SchemaOrgDataTypes } from "@twin.org/standards-schema-org";
+import { Is, RandomHelper, StringHelper } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
+import { SchemaOrgDataTypes } from "@3sixty/standards-schema-org";
 import {
 	DidContexts,
 	DidTypes,
 	type DidVerificationMethodType,
-	type IDidDocument,
 	type IDidService,
 	type IDidVerifiableCredential,
 	type IProof,
 	ProofTypes
-} from "@twin.org/standards-w3c-did";
+} from "@3sixty/standards-w3c-did";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema as initSchemaVault
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
-import { Jwt } from "@twin.org/web";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { Jwt } from "@3sixty/web";
 import type { IdentityDocument } from "../src/entities/identityDocument.js";
 import { EntityStorageIdentityConnector } from "../src/entityStorageIdentityConnector.js";
 import { EntityStorageIdentityResolverConnector } from "../src/entityStorageIdentityResolverConnector.js";
@@ -33,6 +32,10 @@ import { initSchema as initSchemaIdentity } from "../src/schema.js";
 const DID_PREFIX = "did:entity-storage";
 
 const CREDENTIAL_STATUS_TYPE = "BitstringStatusList";
+
+// Verifying a presentation JWT validates its exp claim against the real clock, so presentation
+// expiry dates cannot be derived from the Date.now frozen for this suite.
+const VP_EXPIRY = new Date("2100-01-01T00:00:00.000Z");
 
 async function debugOutput(documentId: string): Promise<void> {
 	console.debug("DID Document", documentId);
@@ -89,7 +92,13 @@ describe("EntityStorageIdentityConnector", () => {
 			);
 
 		identityConnector = new EntityStorageIdentityConnector();
-		identityResolverConnector = new EntityStorageIdentityResolverConnector();
+		// Caching disabled: this suite asserts that mutations made through identityConnector are
+		// visible on the next resolve, and it freezes Date.now above, so a cached entry on this
+		// long-lived resolver would never idle out. Resolution caching has its own coverage in
+		// entityStorageIdentityResolverConnectorCache.spec.ts.
+		identityResolverConnector = new EntityStorageIdentityResolverConnector({
+			config: { didResolutionCacheTtlMs: 0 }
+		});
 
 		// Create initial document so testDocumentId is available to all tests
 		const document = await identityConnector.createDocument(TEST_USER_IDENTITY);
@@ -121,6 +130,27 @@ describe("EntityStorageIdentityConnector", () => {
 				documentId: testDocument.id
 			}
 		});
+	});
+
+	test("can delete a document and keep the document key by default", async () => {
+		const testDocument = await identityConnector.createDocument(TEST_USER_IDENTITY);
+		const documentKey = EntityStorageIdentityConnector.buildVaultKey(testDocument.id, "did");
+
+		await identityConnector.removeDocument(TEST_USER_IDENTITY, testDocument.id);
+
+		expect(await vaultKeyEntityStorageConnector.get(documentKey)).toBeDefined();
+	});
+
+	test("can delete a document and remove the document key", async () => {
+		const testDocument = await identityConnector.createDocument(TEST_USER_IDENTITY);
+		const documentKey = EntityStorageIdentityConnector.buildVaultKey(testDocument.id, "did");
+		expect(await vaultKeyEntityStorageConnector.get(documentKey)).toBeDefined();
+
+		await identityConnector.removeDocument(TEST_USER_IDENTITY, testDocument.id, {
+			removeDocumentKey: true
+		});
+
+		expect(await vaultKeyEntityStorageConnector.get(documentKey)).toBeUndefined();
 	});
 
 	test("can fail to resolve a document with no id", async () => {
@@ -1117,7 +1147,7 @@ describe("EntityStorageIdentityConnector", () => {
 			DidContexts.ContextVCv1,
 			["Person"],
 			[credentialResult.jwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: VP_EXPIRY }
 		);
 
 		await identityConnector.revokeVerifiableCredentials(TEST_USER_IDENTITY, testDocumentId, [
@@ -1142,7 +1172,7 @@ describe("EntityStorageIdentityConnector", () => {
 				"https://schema.org",
 				["Person"],
 				[testVcJwt],
-				{ expirationDate: new Date(Date.now() + 14400000) }
+				{ expirationDate: VP_EXPIRY }
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -1163,7 +1193,7 @@ describe("EntityStorageIdentityConnector", () => {
 				"https://schema.org",
 				["Person"],
 				[],
-				{ expirationDate: new Date(Date.now() + 14400000) }
+				{ expirationDate: VP_EXPIRY }
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -1198,7 +1228,7 @@ describe("EntityStorageIdentityConnector", () => {
 			DidContexts.ContextVCv1,
 			["Person"],
 			[testVcJwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: VP_EXPIRY }
 		);
 
 		expect(result.verifiablePresentation["@context"]).toContain(DidContexts.ContextVCv1);
@@ -1219,7 +1249,7 @@ describe("EntityStorageIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: VP_EXPIRY,
 				jwtHeaderFields: { "x-custom": "header-value" }
 			}
 		);
@@ -1243,7 +1273,7 @@ describe("EntityStorageIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: VP_EXPIRY,
 				jwtPayloadFields: { "x-custom": "payload-value" }
 			}
 		);
@@ -1269,7 +1299,7 @@ describe("EntityStorageIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: VP_EXPIRY,
 				jwtHeaderFields: { alg: "RS256", typ: "at+JWT", kid: "evil-kid" }
 			}
 		);
@@ -1293,7 +1323,7 @@ describe("EntityStorageIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: VP_EXPIRY,
 				jwtPayloadFields: { iss: "evil-issuer" }
 			}
 		);
@@ -1325,7 +1355,7 @@ describe("EntityStorageIdentityConnector", () => {
 			"https://schema.org",
 			["Person"],
 			[testVcJwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: VP_EXPIRY }
 		);
 
 		const vpJwt = createResult.jwt;
@@ -1401,30 +1431,6 @@ describe("EntityStorageIdentityConnector", () => {
 			properties: {
 				property: "unsecureDocument",
 				value: "undefined"
-			}
-		});
-	});
-
-	test("can fail to create a proof with an invalid resolvedDocument", async () => {
-		const testDocument = {
-			"@context": "https://www.w3.org/ns/did/v1",
-			id: "did:example:123456789abcdefghi",
-			name: "Test Document"
-		};
-		await expect(
-			identityConnector.createProof(
-				TEST_USER_IDENTITY,
-				testVerificationMethodId,
-				ProofTypes.DataIntegrityProof,
-				testDocument,
-				"not-a-document" as unknown as IDidDocument
-			)
-		).rejects.toMatchObject({
-			name: "GuardError",
-			message: "guard.object",
-			properties: {
-				property: "resolvedDocument",
-				value: "not-a-document"
 			}
 		});
 	});

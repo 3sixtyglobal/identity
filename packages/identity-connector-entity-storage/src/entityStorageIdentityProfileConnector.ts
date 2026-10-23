@@ -8,15 +8,15 @@ import {
 	Is,
 	NotFoundError,
 	ObjectHelper
-} from "@twin.org/core";
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
-import { ComparisonOperator } from "@twin.org/entity";
+} from "@3sixty/core";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
+import { ComparisonOperator } from "@3sixty/entity";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
-} from "@twin.org/entity-storage-models";
-import type { IIdentityProfileConnector } from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
+} from "@3sixty/entity-storage-models";
+import type { IIdentityProfileConnector } from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
 import type { IdentityProfile } from "./entities/identityProfile.js";
 import type { IEntityStorageIdentityProfileConnectorConstructorOptions } from "./models/IEntityStorageIdentityProfileConnectorConstructorOptions.js";
 
@@ -78,7 +78,7 @@ export class EntityStorageIdentityProfileConnector<
 		try {
 			const profile = await this._profileEntityStorage.get(identity);
 
-			if (!Is.empty(profile)) {
+			if (Is.notEmpty(profile)) {
 				throw new AlreadyExistsError(
 					EntityStorageIdentityProfileConnector.CLASS_NAME,
 					"alreadyExists",
@@ -86,10 +86,14 @@ export class EntityStorageIdentityProfileConnector<
 				);
 			}
 
+			const now = new Date(Date.now()).toISOString();
+
 			await this._profileEntityStorage.set({
 				identity,
 				publicProfile,
-				privateProfile
+				privateProfile,
+				dateCreated: now,
+				dateModified: now
 			});
 		} catch (error) {
 			if (BaseError.someErrorClass(error, EntityStorageIdentityProfileConnector.CLASS_NAME)) {
@@ -169,6 +173,7 @@ export class EntityStorageIdentityProfileConnector<
 
 			profile.publicProfile = publicProfile ?? profile.publicProfile;
 			profile.privateProfile = privateProfile ?? profile.privateProfile;
+			profile.dateModified = new Date(Date.now()).toISOString();
 
 			await this._profileEntityStorage.set(profile);
 		} catch (error) {

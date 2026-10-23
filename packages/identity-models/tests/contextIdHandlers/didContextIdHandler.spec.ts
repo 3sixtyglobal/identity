@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { GuardError } from "@twin.org/core";
+import { GuardError } from "@3sixty/core";
 import { DidContextIdHandler } from "../../src/contextIdHandlers/didContextIdHandler.js";
 
 describe("DidContextIdHandler", () => {

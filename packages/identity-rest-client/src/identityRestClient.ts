@@ -1,9 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { BaseRestClient } from "@twin.org/api-core";
-import type { IBaseRestClientConfig, INoContentResponse } from "@twin.org/api-models";
-import { Coerce, Guards, Is } from "@twin.org/core";
-import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@twin.org/data-json-ld";
+import { BaseRestClient } from "@3sixty/api-core";
+import type { IBaseRestClientConfig, INoContentResponse } from "@3sixty/api-models";
+import { Coerce, Guards, Is } from "@3sixty/core";
+import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import {
 	DocumentHelper,
 	type IIdentityVerifiablePresentationVerifyDocumentRequest,
@@ -34,8 +34,8 @@ import {
 	type IIdentityVerificationMethodCreateRequest,
 	type IIdentityVerificationMethodCreateResponse,
 	type IIdentityVerificationMethodRemoveRequest
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	DidVerificationMethodType,
 	type IDidDocument,
@@ -45,8 +45,8 @@ import {
 	type IDidVerifiablePresentation,
 	type IProof,
 	ProofTypes
-} from "@twin.org/standards-w3c-did";
-import { HttpMethod } from "@twin.org/web";
+} from "@3sixty/standards-w3c-did";
+import { HttpMethod } from "@3sixty/web";
 
 /**
  * Client for performing identity through to REST endpoints.
@@ -97,15 +97,22 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 	 * @param identity The id of the document to remove.
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
+	 * @param options.removeDocumentKey Also remove the document key from the vault.
 	 * @returns A promise that resolves when the identity has been removed.
 	 */
-	public async identityRemove(identity: string, options?: { removeKeys?: boolean }): Promise<void> {
+	public async identityRemove(
+		identity: string,
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean }
+	): Promise<void> {
 		Guards.stringValue(IdentityRestClient.CLASS_NAME, nameof(identity), identity);
 		await this.fetch<IIdentityRemoveRequest, INoContentResponse>("/:identity", HttpMethod.DELETE, {
 			pathParams: {
 				identity
 			},
-			query: { removeKeys: Coerce.string(options?.removeKeys) }
+			query: {
+				removeKeys: Coerce.string(options?.removeKeys),
+				removeDocumentKey: Coerce.string(options?.removeDocumentKey)
+			}
 		});
 	}
 

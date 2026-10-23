@@ -1,6 +1,6 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 
 /**
  * Request to update the profile of another user as an admin.

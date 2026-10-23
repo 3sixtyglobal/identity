@@ -1,8 +1,8 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { GuardError } from "@twin.org/core";
-import { DidContexts, type IDidDocument } from "@twin.org/standards-w3c-did";
-import { HttpMethod } from "@twin.org/web";
+import { GuardError } from "@3sixty/core";
+import { DidContexts, type IDidDocument } from "@3sixty/standards-w3c-did";
+import { HttpMethod } from "@3sixty/web";
 import { IdentityResolverRestClient } from "../src/identityResolverRestClient.js";
 import {
 	jsonResponse,

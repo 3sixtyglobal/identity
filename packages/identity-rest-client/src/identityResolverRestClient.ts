@@ -1,16 +1,16 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { BaseRestClient } from "@twin.org/api-core";
-import type { IBaseRestClientConfig } from "@twin.org/api-models";
-import { Urn } from "@twin.org/core";
+import { BaseRestClient } from "@3sixty/api-core";
+import type { IBaseRestClientConfig } from "@3sixty/api-models";
+import { Urn } from "@3sixty/core";
 import type {
 	IIdentityResolverComponent,
 	IIdentityResolveRequest,
 	IIdentityResolveResponse
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import type { IDidDocument } from "@twin.org/standards-w3c-did";
-import { HttpMethod } from "@twin.org/web";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import type { IDidDocument } from "@3sixty/standards-w3c-did";
+import { HttpMethod } from "@3sixty/web";
 
 /**
  * Client for performing identity resolution through REST endpoints.

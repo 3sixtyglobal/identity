@@ -1,4 +1,4 @@
-# @twin.org/identity-service
+# @3sixty/identity-service
 
 ## Classes
 
@@ -8,6 +8,7 @@
 
 ## Interfaces
 
+- [IIdentityProfileServiceConfig](interfaces/IIdentityProfileServiceConfig.md)
 - [IIdentityProfileServiceConstructorOptions](interfaces/IIdentityProfileServiceConstructorOptions.md)
 - [IIdentityResolverServiceConfig](interfaces/IIdentityResolverServiceConfig.md)
 - [IIdentityResolverServiceConstructorOptions](interfaces/IIdentityResolverServiceConstructorOptions.md)

@@ -43,7 +43,8 @@
 			"notFound": "The identity profile could not be found \"{notFoundId}\"",
 			"removeFailed": "Removing the identity profile failed \"{identity}\"",
 			"listFailed": "Failed listing identities",
-			"listAdminFailed": "Failed listing identities with private data"
+			"listAdminFailed": "Failed listing identities with private data",
+			"selfUpdateDenied": "The profile properties \"{properties}\" cannot be modified on the profile \"{identity}\" without an admin scope"
 		}
 	}
 }

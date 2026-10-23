@@ -5,7 +5,7 @@ Use these snippets when you need to resolve DIDs through a universal resolver en
 ## UniversalResolverConnector
 
 ```typescript
-import { UniversalResolverConnector } from '@twin.org/identity-connector-universal';
+import { UniversalResolverConnector } from '@3sixty/identity-connector-universal';
 
 const resolver = new UniversalResolverConnector({
   config: {
@@ -18,7 +18,7 @@ console.log(className); // UniversalResolverConnector
 ```
 
 ```typescript
-import { UniversalResolverConnector } from '@twin.org/identity-connector-universal';
+import { UniversalResolverConnector } from '@3sixty/identity-connector-universal';
 
 const resolver = new UniversalResolverConnector({
   config: {

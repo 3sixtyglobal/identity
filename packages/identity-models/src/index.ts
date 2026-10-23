@@ -54,8 +54,6 @@ export * from "./models/IIdentityResolverComponent.js";
 export * from "./models/IIdentityResolverConnector.js";
 export * from "./models/identityMetricIds.js";
 export * from "./models/identityMetrics.js";
-export * from "./models/identitySpanAttributes.js";
-export * from "./models/identitySpanNames.js";
 export * from "./types/did.js";
 export * from "./utils/documentHelper.js";
 export * from "./utils/verificationHelper.js";

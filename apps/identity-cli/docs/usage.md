@@ -7,22 +7,22 @@ Use this output to check available commands quickly before running identity work
 To install and run the CLI locally use the following commands:
 
 ```shell
-npm install @twin.org/identity-cli -g
-twin-identity
+npm install @3sixty/identity-cli -g
+3sixty-identity
 ```
 
 or run directly using NPX:
 
 ```shell
-npx "@twin.org/identity-cli"
+npx "@3sixty/identity-cli"
 ```
 
 ## Help
 
 ```shell
-🌍 TWIN Identity v1.0.0
+🌍 3Sixty Identity v1.0.0
 
-Usage: twin-identity [command]
+Usage: 3sixty-identity [command]
 
 Options:
   -V, --version                             output the version number
@@ -52,9 +52,9 @@ Commands:
 ## identity-create --help
 
 ```shell
-🌍 TWIN Identity v1.0.0
+🌍 3Sixty Identity v1.0.0
 
-Usage: twin-identity identity-create [options]
+Usage: 3sixty-identity identity-create [options]
 
 Creates a Decentralized Identifier (DID).
 
@@ -74,7 +74,7 @@ Options:
 ## Example
 
 ```shell
-twin-identity identity-resolve --load-env config.env identity.env --did !DID --json did-document.json
+3sixty-identity identity-resolve --load-env config.env identity.env --did !DID --json did-document.json
 ```
 
 The commands `mnemonic`, `address`, `faucet` and `transfer` are described in more detail in the examples for `crypto-cli` and `wallet-cli`.
@@ -87,9 +87,9 @@ Use this command to create a new DID. The wallet address must have sufficient fu
 
 ```shell
 # Generate a seed and mnemonic and store it in the env file
-twin-identity mnemonic --env wallet.env
+3sixty-identity mnemonic --env wallet.env
 # Generate an address and store it in the env file
-twin-identity address --load-env wallet.env --hrp tst --seed !SEED --count 4 --env wallet.env --merge-env
+3sixty-identity address --load-env wallet.env --hrp tst --seed !SEED --count 4 --env wallet.env --merge-env
 ```
 
 To run this on the IOTA testnet you will need an env file with the following settings. Store the following config as config.env.
@@ -106,9 +106,9 @@ To then request some funds and generate the identity you can issue the following
 
 ```shell
 # Fund the wallet address from the faucet loading the config and wallet env files
-twin-identity faucet --load-env config.env wallet.env --address !ADDRESS_0
+3sixty-identity faucet --load-env config.env wallet.env --address !ADDRESS_0
 # Create an identity
-twin-identity identity-create --load-env config.env wallet.env --seed !SEED --env identity.env
+3sixty-identity identity-create --load-env config.env wallet.env --seed !SEED --env identity.env
 ```
 
 ### identity-resolve
@@ -116,7 +116,7 @@ twin-identity identity-create --load-env config.env wallet.env --seed !SEED --en
 The identity resolve command looks up an identity by DID to check it exists and return the DID document.
 
 ```shell
-twin-identity identity-resolve --load-env config.env identity.env --did !DID --json did-document.json
+3sixty-identity identity-resolve --load-env config.env identity.env --did !DID --json did-document.json
 ```
 
 ### verification-method-add
@@ -124,7 +124,7 @@ twin-identity identity-resolve --load-env config.env identity.env --did !DID --j
 This command adds a verification method to a DID document.
 
 ```shell
-twin-identity verification-method-add --load-env config.env wallet.env identity.env --seed !SEED --did !DID --type verificationMethod --env verification-method.env
+3sixty-identity verification-method-add --load-env config.env wallet.env identity.env --seed !SEED --did !DID --type verificationMethod --env verification-method.env
 ```
 
 ### verification-method-remove
@@ -132,7 +132,7 @@ twin-identity verification-method-add --load-env config.env wallet.env identity.
 This command removes a verification method from a DID document.
 
 ```shell
-twin-identity verification-method-remove --load-env config.env wallet.env identity.env verification-method.env --seed !SEED  --id !DID_VERIFICATION_METHOD_ID
+3sixty-identity verification-method-remove --load-env config.env wallet.env identity.env verification-method.env --seed !SEED  --id !DID_VERIFICATION_METHOD_ID
 ```
 
 ### service-add
@@ -140,7 +140,7 @@ twin-identity verification-method-remove --load-env config.env wallet.env identi
 This command adds a service to a DID document.
 
 ```shell
-twin-identity service-add --load-env config.env wallet.env identity.env --seed !SEED --did !DID --id linked-domain --type LinkedDomains --endpoint https://example.org --env service.env
+3sixty-identity service-add --load-env config.env wallet.env identity.env --seed !SEED --did !DID --id linked-domain --type LinkedDomains --endpoint https://example.org --env service.env
 ```
 
 ### service-remove
@@ -148,7 +148,7 @@ twin-identity service-add --load-env config.env wallet.env identity.env --seed !
 This command removes a service from the DID document.
 
 ```shell
-twin-identity service-remove --load-env config.env wallet.env identity.env service.env --seed !SEED --did !DID --id !DID_SERVICE_ID
+3sixty-identity service-remove --load-env config.env wallet.env identity.env service.env --seed !SEED --did !DID --id !DID_SERVICE_ID
 ```
 
 ## verifiable-credential-create
@@ -163,7 +163,7 @@ This command generates a verifiable credential using the specified verification 
 ```
 
 ```shell
-twin-identity verifiable-credential-create --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --private-key !DID_VERIFICATION_METHOD_PRIVATE_KEY --credential-id https://example.edu/credentials/3732 --types UniversityDegreeCredential --subject-json subject.json --env vc.env --revocation-index 0
+3sixty-identity verifiable-credential-create --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --private-key !DID_VERIFICATION_METHOD_PRIVATE_KEY --credential-id https://example.edu/credentials/3732 --types UniversityDegreeCredential --subject-json subject.json --env vc.env --revocation-index 0
 ```
 
 This command outputs the verifiable credential as a JSON Web Token.
@@ -173,7 +173,7 @@ This command outputs the verifiable credential as a JSON Web Token.
 You can verify a verifiable credential stored as a JWT using this command.
 
 ```shell
-twin-identity verifiable-credential-verify --load-env config.env vc.env --jwt !DID_VERIFIABLE_CREDENTIAL_JWT
+3sixty-identity verifiable-credential-verify --load-env config.env vc.env --jwt !DID_VERIFIABLE_CREDENTIAL_JWT
 ```
 
 ## verifiable-credential-revoke
@@ -181,7 +181,7 @@ twin-identity verifiable-credential-verify --load-env config.env vc.env --jwt !D
 You can revoke a verifiable credential by revoking the index on the generating document.
 
 ```shell
-twin-identity verifiable-credential-revoke --load-env config.env wallet.env identity.env --seed !SEED --did !DID --revocation-index 5
+3sixty-identity verifiable-credential-revoke --load-env config.env wallet.env identity.env --seed !SEED --did !DID --revocation-index 5
 ```
 
 ## verifiable-credential-unrevoke
@@ -189,7 +189,7 @@ twin-identity verifiable-credential-revoke --load-env config.env wallet.env iden
 You can unrevoke a verifiable credential by revoking the index on the generating document.
 
 ```shell
-twin-identity verifiable-credential-unrevoke --load-env config.env wallet.env identity.env --seed !SEED --did !DID --revocation-index 5
+3sixty-identity verifiable-credential-unrevoke --load-env config.env wallet.env identity.env --seed !SEED --did !DID --revocation-index 5
 ```
 
 ## proof-create
@@ -197,7 +197,7 @@ twin-identity verifiable-credential-unrevoke --load-env config.env wallet.env id
 This command generates a proof using the specified verification method.
 
 ```shell
-twin-identity proof-create --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --private-key !DID_VERIFICATION_METHOD_PRIVATE_KEY --document-filename unsecured.json --json data-proof.json
+3sixty-identity proof-create --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --private-key !DID_VERIFICATION_METHOD_PRIVATE_KEY --document-filename unsecured.json --json data-proof.json
 ```
 
 ## proof-verify
@@ -205,5 +205,5 @@ twin-identity proof-create --load-env config.env verification-method.env --id !D
 This command verifies a proof for a document.
 
 ```shell
-twin-identity proof-verify --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --document-filename unsecured.json --proof-filename data-proof.json
+3sixty-identity proof-verify --load-env config.env verification-method.env --id !DID_VERIFICATION_METHOD_ID --document-filename unsecured.json --proof-filename data-proof.json
 ```

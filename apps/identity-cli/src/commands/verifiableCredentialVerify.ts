@@ -7,11 +7,11 @@ import {
 	CLIParam,
 	CLIUtils,
 	type CliOutputOptions
-} from "@twin.org/cli-core";
-import { GeneralError, I18n, Is } from "@twin.org/core";
-import type { IDidVerifiableCredential } from "@twin.org/standards-w3c-did";
-import { setupWalletConnector } from "@twin.org/wallet-cli";
-import { WalletConnectorFactory } from "@twin.org/wallet-models";
+} from "@3sixty/cli-core";
+import { GeneralError, I18n, Is } from "@3sixty/core";
+import type { IDidVerifiableCredential } from "@3sixty/standards-w3c-did";
+import { setupWalletConnector } from "@3sixty/wallet-cli";
+import { WalletConnectorFactory } from "@3sixty/wallet-models";
 import { Command, Option } from "commander";
 import { setupIdentityConnector, setupVault } from "./setupCommands.js";
 import { IdentityConnectorTypes } from "../models/identityConnectorTypes.js";

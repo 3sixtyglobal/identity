@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IComponent } from "@twin.org/core";
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
+import type { IComponent } from "@3sixty/core";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 
 /**
  * Interface describing a contract which provides profile operations.

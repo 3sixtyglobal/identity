@@ -1,21 +1,21 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import path from "node:path";
-import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
-import { Coerce, Guards, Is } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import { AccountHelper } from "@twin.org/dlt-account";
-import { Iota } from "@twin.org/dlt-iota";
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { nameof } from "@twin.org/nameof";
+import { Coerce, Guards, Is } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import { AccountHelper } from "@3sixty/dlt-account";
+import { Iota } from "@3sixty/dlt-iota";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { requestIotaFromFaucetV0 } from "@iota/iota-sdk/faucet";
 import * as dotenv from "dotenv";
 
 console.debug("Setting up test environment from .env and .env.dev files");
@@ -42,7 +42,7 @@ if (!Is.stringValue(process.env.TEST_MNEMONIC)) {
 		`Please define TEST_MNEMONIC as a 24 word mnemonic either as an environment variable or inside an .env.dev file
 		 e.g. TEST_MNEMONIC="word0 word1 ... word23"
 		 You can generate one using the following command
-		 npx "@twin.org/crypto-cli" mnemonic --env ./tests/.env.dev --env-prefix TEST_`
+		 npx "@3sixty/crypto-cli" mnemonic --env ./tests/.env.dev --env-prefix TEST_`
 	);
 }
 

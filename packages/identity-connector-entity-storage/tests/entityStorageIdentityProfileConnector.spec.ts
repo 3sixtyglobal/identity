@@ -1,16 +1,16 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { IdentityConnectorFactory } from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { IdentityConnectorFactory } from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
 import {
 	EntityStorageVaultConnector,
 	initSchema as initSchemaVault,
 	type VaultKey,
 	type VaultSecret
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
 import type { IdentityDocument } from "../src/entities/identityDocument.js";
 import type { IdentityProfile } from "../src/entities/identityProfile.js";
 import { EntityStorageIdentityConnector } from "../src/entityStorageIdentityConnector.js";
@@ -272,6 +272,28 @@ describe("EntityStorageIdentityProfileConnector", () => {
 			telephone: "(425) 123-45672",
 			url: "http://www.janedoe.com2"
 		});
+	});
+
+	test("Can keep the created date and advance the modified date on update", async () => {
+		const createdTime = Date.UTC(2026, 0, 1);
+		const modifiedTime = Date.UTC(2026, 0, 2);
+		const nowSpy = vi.spyOn(Date, "now").mockReturnValue(createdTime);
+
+		const service = new EntityStorageIdentityProfileConnector();
+		await service.create(TEST_IDENTITY_ID, { name: "Jane Doe" });
+
+		const created = await identityProfileEntityStorage.get(TEST_IDENTITY_ID);
+		expect(created?.dateCreated).toEqual(new Date(createdTime).toISOString());
+		expect(created?.dateModified).toEqual(new Date(createdTime).toISOString());
+
+		nowSpy.mockReturnValue(modifiedTime);
+		await service.update(TEST_IDENTITY_ID, { name: "Jane Doe2" });
+
+		const updated = await identityProfileEntityStorage.get(TEST_IDENTITY_ID);
+		expect(updated?.dateCreated).toEqual(new Date(createdTime).toISOString());
+		expect(updated?.dateModified).toEqual(new Date(modifiedTime).toISOString());
+
+		nowSpy.mockRestore();
 	});
 
 	test("Can fail get a list of identities when connector fails", async () => {

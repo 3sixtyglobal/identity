@@ -31,7 +31,7 @@ This function will be used throughout the guide to load environment files, makin
 This command generates a mnemonic and a seed, saving them to a **`wallet.env`** file.
 
 ```sh
-npx "@twin.org/identity-cli@next" mnemonic --env wallet.env
+npx "@3sixty/identity-cli@next" mnemonic --env wallet.env
 ```
 
 ## Step 2: Generate Wallet Addresses
@@ -42,14 +42,14 @@ Use the mnemonic and seed from the previous step to generate wallet addresses. T
 
 ```bash
 source ./wallet.env
-npx "@twin.org/identity-cli@next" address --load-env wallet.env --seed $SEED --count 2 --env wallet.env --merge-env
+npx "@3sixty/identity-cli@next" address --load-env wallet.env --seed $SEED --count 2 --env wallet.env --merge-env
 ```
 
 ### Generate Wallet Addresses - Windows (PowerShell)
 
 ```powershell
 Source-Env .\wallet.env
-npx "@twin.org/identity-cli@next" address --load-env wallet.env --seed $env:SEED --count 2 --env wallet.env --merge-env
+npx "@3sixty/identity-cli@next" address --load-env wallet.env --seed $env:SEED --count 2 --env wallet.env --merge-env
 ```
 
 ## Step 3: Fund the First Address
@@ -87,7 +87,7 @@ Next, source your environment files and run the faucet command:
 ```bash
 source ./config.env
 source ./wallet.env
-npx "@twin.org/identity-cli@next" faucet --load-env config.env wallet.env --address $ADDRESS_0 --network $NETWORK
+npx "@3sixty/identity-cli@next" faucet --load-env config.env wallet.env --address $ADDRESS_0 --network $NETWORK
 ```
 
 ### Fund Address - Windows (PowerShell)
@@ -95,7 +95,7 @@ npx "@twin.org/identity-cli@next" faucet --load-env config.env wallet.env --addr
 ```powershell
 Source-Env .\config.env
 Source-Env .\wallet.env
-npx "@twin.org/identity-cli@next" faucet --load-env config.env wallet.env --address $env:ADDRESS_0 --network $env:NETWORK
+npx "@3sixty/identity-cli@next" faucet --load-env config.env wallet.env --address $env:ADDRESS_0 --network $env:NETWORK
 ```
 
 You can verify the transaction using the explorer link provided in the command's output.
@@ -108,14 +108,14 @@ Now, create the DID. This command will generate an **`identity.env`** file conta
 
 ```bash
 source ./wallet.env
-npx "@twin.org/identity-cli@next" identity-create --load-env config.env wallet.env --seed $SEED --address-index 0 --env identity.env
+npx "@3sixty/identity-cli@next" identity-create --load-env config.env wallet.env --seed $SEED --address-index 0 --env identity.env
 ```
 
 ### Create Identity - Windows (PowerShell)
 
 ```powershell
 Source-Env .\wallet.env
-npx "@twin.org/identity-cli@next" identity-create --load-env config.env wallet.env --seed $env:SEED --address-index 0 --env identity.env
+npx "@3sixty/identity-cli@next" identity-create --load-env config.env wallet.env --seed $env:SEED --address-index 0 --env identity.env
 ```
 
 ## Step 5: Add a Verification Method (Optional)
@@ -127,7 +127,7 @@ This step adds a cryptographic key to your DID, which can be used for signing an
 ```bash
 source ./wallet.env
 source ./identity.env
-npx "@twin.org/identity-cli@next" verification-method-add --load-env config.env wallet.env identity.env --seed $SEED --did $DID --type verificationMethod --env verification-method.env
+npx "@3sixty/identity-cli@next" verification-method-add --load-env config.env wallet.env identity.env --seed $SEED --did $DID --type verificationMethod --env verification-method.env
 ```
 
 ### Add Verification Method - Windows (PowerShell)
@@ -135,7 +135,7 @@ npx "@twin.org/identity-cli@next" verification-method-add --load-env config.env 
 ```powershell
 Source-Env .\wallet.env
 Source-Env .\identity.env
-npx "@twin.org/identity-cli@next" verification-method-add --load-env config.env wallet.env identity.env --seed $env:SEED --did $env:DID --type verificationMethod --env verification-method.env
+npx "@3sixty/identity-cli@next" verification-method-add --load-env config.env wallet.env identity.env --seed $env:SEED --did $env:DID --type verificationMethod --env verification-method.env
 ```
 
 ---

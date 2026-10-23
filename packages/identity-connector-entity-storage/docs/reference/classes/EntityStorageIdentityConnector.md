@@ -145,6 +145,12 @@ Optional settings.
 
 Also remove any associated private keys from the vault.
 
+###### removeDocumentKey?
+
+`boolean`
+
+Also remove the document key from the vault.
+
 #### Returns
 
 `Promise`\<`void`\>
@@ -731,7 +737,7 @@ The presentation stored in the jwt and the revocation status.
 
 ### createProof() {#createproof}
 
-> **createProof**(`controller`, `verificationMethodId`, `proofType`, `unsecureDocument`, `resolvedDocument?`): `Promise`\<`IProof`\>
+> **createProof**(`controller`, `verificationMethodId`, `proofType`, `unsecureDocument`): `Promise`\<`IProof`\>
 
 Create a proof for arbitrary data with the specified verification method.
 This method uses async signing to ensure the private key never leaves the vault,
@@ -763,14 +769,6 @@ The type of proof to create.
 
 The unsecure document to create the proof for.
 
-##### resolvedDocument?
-
-`IDidDocument`
-
-Optional already-resolved document for the DID, so a caller that
-just resolved it (e.g. createVerifiableCredential) skips a redundant re-resolve. Resolves
-it itself if omitted.
-
 #### Returns
 
 `Promise`\<`IProof`\>
@@ -780,6 +778,10 @@ The proof.
 #### Throws
 
 NotFoundError if the identity or method is not found.
+
+#### Throws
+
+UnauthorizedError if the caller is not the stored controller.
 
 #### Throws
 

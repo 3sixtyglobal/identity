@@ -1,9 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { BaseRestClient } from "@twin.org/api-core";
-import { HttpParameterHelper, type IBaseRestClientConfig } from "@twin.org/api-models";
-import { Coerce, Guards, Is } from "@twin.org/core";
-import type { IJsonLdDocument } from "@twin.org/data-json-ld";
+import { BaseRestClient } from "@3sixty/api-core";
+import { HttpParameterHelper, type IBaseRestClientConfig } from "@3sixty/api-models";
+import { Coerce, Guards, Is } from "@3sixty/core";
+import type { IJsonLdDocument } from "@3sixty/data-json-ld";
 import type {
 	IIdentityProfileAdminGetRequest,
 	IIdentityProfileAdminListRequest,
@@ -19,9 +19,9 @@ import type {
 	IIdentityProfileListRequest,
 	IIdentityProfileListResponse,
 	IIdentityProfileUpdateRequest
-} from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import { HttpMethod } from "@twin.org/web";
+} from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import { HttpMethod } from "@3sixty/web";
 
 /**
  * Client for performing identity profile operations through REST endpoints.
@@ -85,7 +85,7 @@ export class IdentityProfileRestClient<
 		publicProfile?: Partial<T>;
 		privateProfile?: Partial<U>;
 	}> {
-		if (!Is.empty(identity)) {
+		if (Is.notEmpty(identity)) {
 			Guards.string(IdentityProfileRestClient.CLASS_NAME, nameof(identity), identity);
 			const response = await this.fetch<
 				IIdentityProfileAdminGetRequest,
@@ -155,7 +155,7 @@ export class IdentityProfileRestClient<
 	 * @returns A promise that resolves when the profile has been updated.
 	 */
 	public async update(publicProfile?: T, privateProfile?: U, identity?: string): Promise<void> {
-		if (!Is.empty(identity)) {
+		if (Is.notEmpty(identity)) {
 			Guards.string(IdentityProfileRestClient.CLASS_NAME, nameof(identity), identity);
 			await this.fetch<IIdentityProfileAdminUpdateRequest, never>(
 				"/:userIdentity",
@@ -186,7 +186,7 @@ export class IdentityProfileRestClient<
 	 * @returns A promise that resolves when the profile has been removed.
 	 */
 	public async remove(identity?: string): Promise<void> {
-		if (!Is.empty(identity)) {
+		if (Is.notEmpty(identity)) {
 			Guards.string(IdentityProfileRestClient.CLASS_NAME, nameof(identity), identity);
 			await this.fetch<IIdentityProfileAdminRemoveRequest, never>(
 				"/:userIdentity",

@@ -1,18 +1,18 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 
-import { MemoryEntityStorageConnector } from "@twin.org/entity-storage-connector-memory";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
-import { DocumentHelper } from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import { SchemaOrgDataTypes } from "@twin.org/standards-schema-org";
+import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
+import { DocumentHelper } from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import { SchemaOrgDataTypes } from "@3sixty/standards-schema-org";
 import {
 	EntityStorageVaultConnector,
 	type VaultKey,
 	type VaultSecret,
 	initSchema as initSchemaVault
-} from "@twin.org/vault-connector-entity-storage";
-import { VaultConnectorFactory, VaultKeyType } from "@twin.org/vault-models";
+} from "@3sixty/vault-connector-entity-storage";
+import { VaultConnectorFactory, VaultKeyType } from "@3sixty/vault-models";
 import type { IdentityDocument } from "../src/entities/identityDocument.js";
 import { EntityStorageIdentityConnector } from "../src/entityStorageIdentityConnector.js";
 import { initSchema as initSchemaIdentity } from "../src/schema.js";
@@ -131,10 +131,8 @@ describe("Vault Key Naming Contract", () => {
 			"correct-vm-id"
 		);
 
-		const vmParts = DocumentHelper.parseId(verificationMethod.id);
-
 		const result = await identityConnector.createVerifiableCredential(
-			vmParts.id,
+			TEST_IDENTITY_ID,
 			verificationMethod.id,
 			"https://example.com/credentials/test",
 			{
@@ -161,10 +159,8 @@ describe("Vault Key Naming Contract", () => {
 			"proof-vm-id"
 		);
 
-		const vmParts = DocumentHelper.parseId(verificationMethod.id);
-
 		const proof = await identityConnector.createProof(
-			vmParts.id,
+			TEST_IDENTITY_ID,
 			verificationMethod.id,
 			"DataIntegrityProof",
 			{

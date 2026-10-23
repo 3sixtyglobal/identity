@@ -1,17 +1,17 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { mkdir, rm, writeFile } from "node:fs/promises";
-import { CLIUtils } from "@twin.org/cli-core";
-import { Converter, I18n, Is } from "@twin.org/core";
-import { Bip39 } from "@twin.org/crypto";
-import { actionCommandAddress } from "@twin.org/crypto-cli";
-import { EntityStorageConnectorFactory } from "@twin.org/entity-storage-models";
+import { CLIUtils } from "@3sixty/cli-core";
+import { Converter, I18n, Is } from "@3sixty/core";
+import { Bip39 } from "@3sixty/crypto";
+import { actionCommandAddress } from "@3sixty/crypto-cli";
+import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 import {
 	DidVerificationMethodType,
 	type IDidVerifiableCredential,
 	type IDidVerifiablePresentation
-} from "@twin.org/standards-w3c-did";
-import { actionCommandFaucet } from "@twin.org/wallet-cli";
+} from "@3sixty/standards-w3c-did";
+import { actionCommandFaucet } from "@3sixty/wallet-cli";
 import { TEST_MNEMONIC } from "./setupTestEnv.js";
 import locales from "../dist/locales/en.json" with { type: "json" };
 import { actionCommandAlsoKnownAsAdd } from "../src/commands/alsoKnownAsAdd.js";

@@ -5,7 +5,7 @@ These snippets demonstrate document, profile, and resolution workflows using ent
 ## EntityStorageIdentityConnector
 
 ```typescript
-import { EntityStorageIdentityConnector } from '@twin.org/identity-connector-entity-storage';
+import { EntityStorageIdentityConnector } from '@3sixty/identity-connector-entity-storage';
 
 const connector = new EntityStorageIdentityConnector({
   didDocumentEntityStorageType: 'identity-document',
@@ -23,8 +23,8 @@ console.log(vaultKey); // did:entity-storage:.../did
 ```
 
 ```typescript
-import { EntityStorageIdentityConnector } from '@twin.org/identity-connector-entity-storage';
-import { DidVerificationMethodType, ProofTypes } from '@twin.org/standards-w3c-did';
+import { EntityStorageIdentityConnector } from '@3sixty/identity-connector-entity-storage';
+import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const connector = new EntityStorageIdentityConnector({
   didDocumentEntityStorageType: 'identity-document',
@@ -107,7 +107,7 @@ console.log(proofVerified); // true
 ## EntityStorageIdentityProfileConnector
 
 ```typescript
-import { EntityStorageIdentityProfileConnector } from '@twin.org/identity-connector-entity-storage';
+import { EntityStorageIdentityProfileConnector } from '@3sixty/identity-connector-entity-storage';
 
 interface PublicProfile {
   displayName: string;
@@ -173,7 +173,7 @@ console.log(profileList.items.length); // 1
 ## EntityStorageIdentityResolverConnector
 
 ```typescript
-import { EntityStorageIdentityResolverConnector } from '@twin.org/identity-connector-entity-storage';
+import { EntityStorageIdentityResolverConnector } from '@3sixty/identity-connector-entity-storage';
 
 const resolverConnector = new EntityStorageIdentityResolverConnector({
   didDocumentEntityStorageType: 'identity-document',
@@ -190,7 +190,7 @@ console.log(didDocument.id); // did:entity-storage:0x1234abcd
 ## IdentityDocument
 
 ```typescript
-import { IdentityDocument } from '@twin.org/identity-connector-entity-storage';
+import { IdentityDocument } from '@3sixty/identity-connector-entity-storage';
 
 const identityDocument = new IdentityDocument();
 identityDocument.id = 'did:entity-storage:0x1234abcd';
@@ -206,7 +206,7 @@ console.log(identityDocument.id); // did:entity-storage:0x1234abcd
 ## IdentityProfile
 
 ```typescript
-import { IdentityProfile } from '@twin.org/identity-connector-entity-storage';
+import { IdentityProfile } from '@3sixty/identity-connector-entity-storage';
 
 const identityProfile = new IdentityProfile();
 identityProfile.identity = 'did:entity-storage:0x1234abcd';

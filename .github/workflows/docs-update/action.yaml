@@ -48,35 +48,42 @@ runs:
       with:
         node-version: 24
 
+    # Setup pnpm after node, the runners have no system node for its installer to use.
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        cache: true
+
     # Import GPG key for signed commits.
     - name: Import GPG key
       shell: bash
       run: |
         echo "${{ inputs.gpg_private_key }}" | base64 --decode | gpg --import
-        echo "TWIN_GPG_KEY_ID=${{ inputs.gpg_key_id }}" >> $GITHUB_ENV
+        echo "ORG_GPG_KEY_ID=${{ inputs.gpg_key_id }}" >> $GITHUB_ENV
 
     # Configure git identity and enforce signed commits.
     - name: Configure Git
       shell: bash
       run: |
-        git config --global user.email "github@twindev.org"
-        git config --global user.name "TWIN GitHub Bot"
-        git config --global user.signingkey "$TWIN_GPG_KEY_ID"
+        git config --global user.email "$ORG_GPG_EMAIL"
+        git config --global user.name "$ORG_GPG_NAME"
+        git config --global user.signingkey "$ORG_GPG_KEY_ID"
         git config --global commit.gpgsign true
         git config --global tag.gpgsign true
 
-    # Install dependencies once at repo root for workspace docs generation.
+    # Install dependencies once at repo root for workspace docs generation, with
+    # retry to handle transient registry failures.
     - name: Install dependencies
       shell: bash
       run: |
         cd "$TARGET_DIR"
         for i in {1..5}; do
-          npm ci && break || {
+          pnpm install --frozen-lockfile && break || {
             if [ $i -eq 5 ]; then
-              echo "npm ci failed after 3 attempts"
+              echo "pnpm install failed after 5 attempts"
               exit 1
             fi
-            echo "npm ci failed, retrying in 30 seconds (attempt $i/3)..."
+            echo "pnpm install failed, retrying in 30 seconds (attempt $i/5)..."
             sleep 30
           }
         done
@@ -86,8 +93,8 @@ runs:
       shell: bash
       run: |
         cd "$TARGET_DIR"
-        npm run build
-        npm run docs
+        pnpm run build
+        pnpm run docs
 
     # Diff only docs folders so unrelated working-tree changes don't influence the check.
     - name: Report docs change status
@@ -117,7 +124,11 @@ runs:
         echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
 
         git add -- ':(glob)**/docs/**'
-        git commit -S -m "docs: regenerate package documentation" --signoff
+        # [skip ci] stops GitHub creating the pull_request runs for this branch at
+        # all. They are opened by GITHUB_TOKEN, so GitHub parks them as
+        # action_required with no jobs and then relabels them as failures when the
+        # PR merges. Nothing is lost: lint, build and docs already ran above.
+        git commit -S -m "docs: regenerate package documentation [skip ci]" --signoff
         git push origin "$BRANCH_NAME"
 
     # Open PR back to the target branch so the docs commit goes through normal review gates.
@@ -147,23 +158,38 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.release_token }}
 
-    # Merge immediately when checks have already passed; fall back to auto-merge otherwise.
-    - name: Merge or enable auto-merge for docs update PR
+    # Poll until the PR is mergeable, then merge directly.
+    # Auto-merge is not used because it requires a repository-level setting.
+    #
+    # UNSTABLE is accepted alongside CLEAN. This PR is opened by GITHUB_TOKEN, so
+    # GitHub parks the workflow runs it triggers as action_required and they never
+    # execute, which leaves the PR permanently UNSTABLE rather than CLEAN. The
+    # next branch has no required status checks, so a non-required check that is
+    # not successful must not block the merge. Only genuinely unmergeable states
+    # (BLOCKED, DIRTY, BEHIND) keep this loop waiting.
+    - name: Merge docs update PR
       if: ${{ steps.create-pr.outputs.pr_number != '' }}
       shell: bash
       run: |
         PR_NUMBER="${{ steps.create-pr.outputs.pr_number }}"
-        MERGE_STATE=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json mergeStateStatus --jq '.mergeStateStatus')
 
-        echo "PR #$PR_NUMBER mergeStateStatus: $MERGE_STATE"
+        for i in {1..30}; do
+          MERGE_STATE=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json mergeStateStatus --jq '.mergeStateStatus')
+          echo "PR #$PR_NUMBER mergeStateStatus: $MERGE_STATE (attempt $i/30)"
 
-        if [ "$MERGE_STATE" = "CLEAN" ]; then
-          echo "PR is mergeable now; merging immediately."
-          gh pr merge "$PR_NUMBER" --squash
-        else
-          echo "PR is not mergeable yet; enabling auto-merge."
-          gh pr merge "$PR_NUMBER" --auto --squash
-        fi
+          if [ "$MERGE_STATE" = "CLEAN" ] || [ "$MERGE_STATE" = "UNSTABLE" ]; then
+            echo "PR is mergeable; merging now."
+            gh pr merge "$PR_NUMBER" --squash
+            exit 0
+          fi
+
+          if [ "$i" -eq 30 ]; then
+            echo "::error::Timed out waiting for PR #$PR_NUMBER to become mergeable (last state: $MERGE_STATE)."
+            exit 1
+          fi
+
+          sleep 10
+        done
       env:
         GH_TOKEN: ${{ inputs.release_token }}
 
@@ -202,7 +228,7 @@ runs:
       if: always()
       shell: bash
       run: |
-        FINGERPRINT=$(gpg --list-secret-keys --with-colons "$TWIN_GPG_KEY_ID" | awk -F: '/fpr:/ {print $10}' | head -1)
+        FINGERPRINT=$(gpg --list-secret-keys --with-colons "$ORG_GPG_KEY_ID" | awk -F: '/fpr:/ {print $10}' | head -1)
         if [ -n "$FINGERPRINT" ]; then
           gpg --batch --yes --delete-secret-keys "$FINGERPRINT" || true
           gpg --batch --yes --delete-keys "$FINGERPRINT" || true

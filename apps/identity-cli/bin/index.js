@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-process.title = 'TWIN Identity';
+process.title = '3Sixty Identity';
 
 import { CLI } from '../dist/es/index.js';
 

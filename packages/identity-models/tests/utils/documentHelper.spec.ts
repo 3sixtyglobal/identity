@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IDidDocument } from "@twin.org/standards-w3c-did";
+import type { IDidDocument } from "@3sixty/standards-w3c-did";
 import { DocumentHelper } from "../../src/utils/documentHelper.js";
 
 describe("DocumentHelper", () => {

@@ -5,7 +5,7 @@ Use these examples when you want to create, update, verify, and resolve DID docu
 ## IotaIdentityConnector
 
 ```typescript
-import { IotaIdentityConnector } from '@twin.org/identity-connector-iota';
+import { IotaIdentityConnector } from '@3sixty/identity-connector-iota';
 
 const connector = new IotaIdentityConnector({
   config: {
@@ -28,8 +28,8 @@ console.log(createdDocument.id); // did:iota:tst:0x...
 ```
 
 ```typescript
-import { IotaIdentityConnector } from '@twin.org/identity-connector-iota';
-import { DidVerificationMethodType, ProofTypes } from '@twin.org/standards-w3c-did';
+import { IotaIdentityConnector } from '@3sixty/identity-connector-iota';
+import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const connector = new IotaIdentityConnector({
   config: {
@@ -118,7 +118,7 @@ console.log(proofValid); // true
 ## IotaIdentityResolverConnector
 
 ```typescript
-import { IotaIdentityResolverConnector } from '@twin.org/identity-connector-iota';
+import { IotaIdentityResolverConnector } from '@3sixty/identity-connector-iota';
 
 const resolver = new IotaIdentityResolverConnector({
   config: {

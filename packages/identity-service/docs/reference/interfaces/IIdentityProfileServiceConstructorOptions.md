@@ -15,3 +15,11 @@ The storage connector for the profiles.
 ```ts
 identity-profile
 ```
+
+***
+
+### config? {#config}
+
+> `optional` **config?**: [`IIdentityProfileServiceConfig`](IIdentityProfileServiceConfig.md)
+
+The configuration for the identity profile service.

@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IComponent } from "@twin.org/core";
-import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@twin.org/data-json-ld";
+import type { IComponent } from "@3sixty/core";
+import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import type {
 	DidVerificationMethodType,
 	IDidDocument,
@@ -11,7 +11,7 @@ import type {
 	IDidVerifiableCredential,
 	IDidVerifiablePresentation,
 	ProofTypes
-} from "@twin.org/standards-w3c-did";
+} from "@3sixty/standards-w3c-did";
 
 /**
  * Interface describing an identity connector.
@@ -30,12 +30,13 @@ export interface IIdentityConnector extends IComponent {
 	 * @param documentId The id of the document to remove.
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
+	 * @param options.removeDocumentKey Also remove the document key from the vault.
 	 * @returns A promise that resolves when the document has been removed.
 	 */
 	removeDocument(
 		controller: string,
 		documentId: string,
-		options?: { removeKeys?: boolean }
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean }
 	): Promise<void>;
 
 	/**

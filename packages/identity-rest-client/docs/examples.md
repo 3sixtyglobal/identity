@@ -5,7 +5,7 @@ Use these examples to call identity REST endpoints from applications that need d
 ## IdentityRestClient
 
 ```typescript
-import { IdentityRestClient } from '@twin.org/identity-rest-client';
+import { IdentityRestClient } from '@3sixty/identity-rest-client';
 
 const client = new IdentityRestClient({
   endpoint: 'http://localhost:8080'
@@ -21,8 +21,8 @@ console.log(createdDocument.id); // did:iota:tst:0x...
 ```
 
 ```typescript
-import { IdentityRestClient } from '@twin.org/identity-rest-client';
-import { DidVerificationMethodType, ProofTypes } from '@twin.org/standards-w3c-did';
+import { IdentityRestClient } from '@3sixty/identity-rest-client';
+import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const client = new IdentityRestClient({
   endpoint: 'http://localhost:8080'
@@ -99,7 +99,7 @@ console.log(proofVerified); // true
 ## IdentityProfileRestClient
 
 ```typescript
-import { IdentityProfileRestClient } from '@twin.org/identity-rest-client';
+import { IdentityProfileRestClient } from '@3sixty/identity-rest-client';
 
 interface PublicProfile {
   displayName: string;
@@ -161,7 +161,7 @@ console.log(profileList.items.length); // 1
 ## IdentityResolverRestClient
 
 ```typescript
-import { IdentityResolverRestClient } from '@twin.org/identity-rest-client';
+import { IdentityResolverRestClient } from '@3sixty/identity-rest-client';
 
 const resolverClient = new IdentityResolverRestClient({
   endpoint: 'http://localhost:8080'

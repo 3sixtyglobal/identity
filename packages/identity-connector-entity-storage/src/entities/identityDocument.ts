@@ -1,17 +1,17 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { entity, property } from "@twin.org/entity";
-import type { IDidDocument } from "@twin.org/standards-w3c-did";
+import { entity, property } from "@3sixty/entity";
+import type { IDidDocument } from "@3sixty/standards-w3c-did";
 
 /**
  * Class describing the identity document.
  */
-@entity()
+@entity({ version: 1 })
 export class IdentityDocument {
 	/**
 	 * The identity of the document.
 	 */
-	@property({ type: "string", isPrimary: true })
+	@property({ type: "string", isPrimary: true, maxLength: 255 })
 	public id!: string;
 
 	/**
@@ -29,6 +29,18 @@ export class IdentityDocument {
 	/**
 	 * The controller of the document.
 	 */
-	@property({ type: "string" })
+	@property({ type: "string", maxLength: 255 })
 	public controller!: string;
+
+	/**
+	 * The date the document was created, undefined for documents stored before it was captured.
+	 */
+	@property({ type: "string", format: "date-time", optional: true })
+	public dateCreated?: string;
+
+	/**
+	 * The date the document was last modified.
+	 */
+	@property({ type: "string", format: "date-time", optional: true })
+	public dateModified?: string;
 }

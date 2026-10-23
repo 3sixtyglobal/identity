@@ -6,12 +6,12 @@ import {
 	CLIParam,
 	CLIUtils,
 	type CliOutputOptions
-} from "@twin.org/cli-core";
-import { Converter, I18n, Is, StringHelper, Urn } from "@twin.org/core";
-import { DocumentHelper } from "@twin.org/identity-models";
-import { VaultConnectorFactory } from "@twin.org/vault-models";
-import { setupWalletConnector } from "@twin.org/wallet-cli";
-import { WalletConnectorFactory } from "@twin.org/wallet-models";
+} from "@3sixty/cli-core";
+import { Converter, I18n, Is, StringHelper, Urn } from "@3sixty/core";
+import { DocumentHelper } from "@3sixty/identity-models";
+import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { setupWalletConnector } from "@3sixty/wallet-cli";
+import { WalletConnectorFactory } from "@3sixty/wallet-models";
 import { Command, Option } from "commander";
 import { setupIdentityConnector, setupVault } from "./setupCommands.js";
 import { IdentityConnectorTypes } from "../models/identityConnectorTypes.js";

@@ -1,6 +1,6 @@
 // Copyright 2025 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { NameOfPlugin } from "@twin.org/nameof-vitest-plugin";
+import { NameOfPlugin } from "@3sixty/nameof-vitest-plugin";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -18,6 +18,9 @@ export default defineConfig({
 			include: ["src/**/*.ts"],
 			exclude: ["**/index.ts", "**/models/**/*.ts"]
 		},
-		fileParallelism: false
+		fileParallelism: true,
+		maxWorkers: 4,
+		fsModuleCache: true,
+		fsModuleCachePath: "node_modules/.vitest-cache"
 	}
 });

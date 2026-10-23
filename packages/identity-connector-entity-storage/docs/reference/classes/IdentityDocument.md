@@ -43,3 +43,19 @@ The signature of the document.
 > **controller**: `string`
 
 The controller of the document.
+
+***
+
+### dateCreated? {#datecreated}
+
+> `optional` **dateCreated?**: `string`
+
+The date the document was created, undefined for documents stored before it was captured.
+
+***
+
+### dateModified? {#datemodified}
+
+> `optional` **dateModified?**: `string`
+
+The date the document was last modified.

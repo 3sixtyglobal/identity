@@ -5,7 +5,7 @@ These examples focus on building and validating DID identifiers, extracting data
 ## DocumentHelper
 
 ```typescript
-import { DocumentHelper } from '@twin.org/identity-models';
+import { DocumentHelper } from '@3sixty/identity-models';
 
 const parsed = DocumentHelper.parseId('did:iota:tst:0x1234abcd#key-1');
 
@@ -14,8 +14,8 @@ console.log(parsed.fragment); // key-1
 ```
 
 ```typescript
-import { DocumentHelper } from '@twin.org/identity-models';
-import { DidVerificationMethodType, type IDidDocument } from '@twin.org/standards-w3c-did';
+import { DocumentHelper } from '@3sixty/identity-models';
+import { DidVerificationMethodType, type IDidDocument } from '@3sixty/standards-w3c-did';
 
 const didDocument: IDidDocument = {
   id: 'did:iota:tst:0x1234abcd',
@@ -52,7 +52,7 @@ console.log(publicJwk.crv); // Ed25519
 ## DidContextIdHandler
 
 ```typescript
-import { DidContextIdHandler } from '@twin.org/identity-models';
+import { DidContextIdHandler } from '@3sixty/identity-models';
 
 const contextIdHandler = new DidContextIdHandler();
 
@@ -67,7 +67,7 @@ console.log(shortened); // jy8NelxLOi8eDZyLem9eTQ
 ## Did
 
 ```typescript
-import { Did } from '@twin.org/identity-models';
+import { Did } from '@3sixty/identity-models';
 
 const parsedDid = Did.parse('did:iota:tst:0x1234abcd');
 Did.guard('ExampleWorkflow', 'issuerDid', 'did:iota:tst:0x1234abcd');
@@ -80,7 +80,7 @@ console.log(parsedDid.id); // 0x1234abcd
 ## VerificationHelper
 
 ```typescript
-import { VerificationHelper, type IIdentityResolverComponent } from '@twin.org/identity-models';
+import { VerificationHelper, type IIdentityResolverComponent } from '@3sixty/identity-models';
 
 const resolver: IIdentityResolverComponent = {
   className: () => 'IdentityResolverService',
@@ -110,8 +110,8 @@ console.log(typeof jwtVerification.payload.sub); // string
 ```
 
 ```typescript
-import { VerificationHelper, type IIdentityResolverComponent } from '@twin.org/identity-models';
-import type { IJsonLdNodeObject } from '@twin.org/data-json-ld';
+import { VerificationHelper, type IIdentityResolverComponent } from '@3sixty/identity-models';
+import type { IJsonLdNodeObject } from '@3sixty/data-json-ld';
 
 const resolver: IIdentityResolverComponent = {
   className: () => 'IdentityResolverService',

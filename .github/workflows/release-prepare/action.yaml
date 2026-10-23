@@ -84,37 +84,44 @@ runs:
       with:
         node-version: 24
 
-    # Install and prepare the tooling release-please depends on.
+    # Setup pnpm after node, the runners have no system node for its installer to use.
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+      with:
+        cache: true
+
+    # Install and prepare the tooling release-please depends on, with retry to
+    # handle transient registry failures.
     - name: Install dependencies
       shell: bash
       run: |
         for i in {1..5}; do
-          npm ci && break || {
+          pnpm install --frozen-lockfile && break || {
             if [ $i -eq 5 ]; then
-              echo "npm ci failed after 3 attempts"
+              echo "pnpm install failed after 5 attempts"
               exit 1
             fi
-            echo "npm ci failed, retrying in 30 seconds (attempt $i/3)..."
+            echo "pnpm install failed, retrying in 30 seconds (attempt $i/5)..."
             sleep 30
           }
         done
 
     - name: Patch release-please prerelease versioning strategy
       shell: bash
-      run: npx patch-package --patch-dir release
+      run: pnpm dlx patch-package --patch-dir release
 
     - name: Import GPG key
       shell: bash
       run: |
         echo "${{ inputs.gpg_private_key }}" | base64 --decode | gpg --import
-        echo "TWIN_GPG_KEY_ID=${{ inputs.gpg_key_id }}" >> "$GITHUB_ENV"
+        echo "ORG_GPG_KEY_ID=${{ inputs.gpg_key_id }}" >> "$GITHUB_ENV"
 
     - name: Configure Git
       shell: bash
       run: |
-        git config --global user.email "github@twindev.org"
-        git config --global user.name "TWIN GitHub Bot"
-        git config --global user.signingkey "$TWIN_GPG_KEY_ID"
+        git config --global user.email "$ORG_GPG_EMAIL"
+        git config --global user.name "$ORG_GPG_NAME"
+        git config --global user.signingkey "$ORG_GPG_KEY_ID"
         git config --global commit.gpgsign true
         git config --global tag.gpgsign true
 
@@ -134,7 +141,13 @@ runs:
 
         FORCE_BRANCH="release/force-commit-$(date +%s)"
         git checkout -b "$FORCE_BRANCH"
-        git commit -S --allow-empty -m "feat: release to production" -m "Release-As: $PROD_VERSION"
+        # [skip ci] stops GitHub creating the pull_request runs for this branch.
+        # They are opened by GITHUB_TOKEN, so GitHub parks them as action_required
+        # with no jobs and relabels them as failures when the PR merges. Closing
+        # this PR starts no release job: process-workspaces requires the
+        # 'autorelease: pending' label, which only the release PR has. The
+        # Release-As trailer stays in the body, so release-please still reads it.
+        git commit -S --allow-empty -m "feat: release to production [skip ci]" -m "Release-As: $PROD_VERSION"
         git push origin "$FORCE_BRANCH"
         git checkout main
 
@@ -157,29 +170,32 @@ runs:
 
         gh pr review "$PR_NUMBER" --approve
 
-        MERGE_STATE=$(gh pr view "$PR_NUMBER" \
-          --repo "${{ github.repository }}" \
-          --json mergeStateStatus --jq '.mergeStateStatus')
+        # Poll until the PR is mergeable, then merge directly.
+        # Auto-merge is not used because it requires a repository-level setting.
+        #
+        # UNSTABLE is accepted alongside CLEAN because this PR is opened by
+        # GITHUB_TOKEN, so the workflow runs it triggers are parked as
+        # action_required and never execute. The main branch has no required
+        # status checks, so that must not block the merge.
+        for i in {1..60}; do
+          MERGE_STATE=$(gh pr view "$PR_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --json mergeStateStatus --jq '.mergeStateStatus')
+          echo "PR #$PR_NUMBER mergeStateStatus: $MERGE_STATE (attempt $i/60)"
 
-        if [ "$MERGE_STATE" = "CLEAN" ]; then
-          gh pr merge "$PR_NUMBER" --squash
-        else
-          gh pr merge "$PR_NUMBER" --squash --auto
-          for i in {1..30}; do
-            MERGED_AT=$(gh pr view "$PR_NUMBER" \
-              --repo "${{ github.repository }}" \
-              --json mergedAt --jq '.mergedAt')
-            if [ -n "$MERGED_AT" ] && [ "$MERGED_AT" != "null" ]; then
-              echo "Force commit PR #$PR_NUMBER merged."
-              break
-            fi
-            if [ "$i" -eq 30 ]; then
-              echo "::error::Timed out waiting for force commit PR #$PR_NUMBER to merge."
-              exit 1
-            fi
-            sleep 10
-          done
-        fi
+          if [ "$MERGE_STATE" = "CLEAN" ] || [ "$MERGE_STATE" = "UNSTABLE" ]; then
+            echo "Force commit PR #$PR_NUMBER is mergeable; merging now."
+            gh pr merge "$PR_NUMBER" --squash
+            break
+          fi
+
+          if [ "$i" -eq 60 ]; then
+            echo "::error::Timed out waiting for force commit PR #$PR_NUMBER to become mergeable (last state: $MERGE_STATE)."
+            exit 1
+          fi
+
+          sleep 10
+        done
 
         git pull origin main
       env:
@@ -229,6 +245,24 @@ runs:
           echo "::error::release-please did not create a PR. Either there are no releasable commits since the last release, or a stale 'autorelease: pending' PR is blocking a new one. Check for open PRs labelled 'autorelease: pending' on the ${{ inputs.branch }} branch."
           exit 1
         fi
+
+    # Release-please updates package.json versions but does not regenerate the
+    # pnpm lockfile. Update the generated release PR before approval.
+    - name: Update release PR lockfile
+      if: ${{ steps.release-please.outputs.pr_number != '' }}
+      shell: bash
+      run: |
+        gh pr checkout ${{ steps.release-please.outputs.pr_number }} --force
+        pnpm install --lockfile-only --no-frozen-lockfile --ignore-scripts
+        if git diff --quiet -- pnpm-lock.yaml; then
+          echo "pnpm-lock.yaml is already up to date"
+        else
+          git add pnpm-lock.yaml
+          git commit -m "chore: update pnpm lockfile for release versions [skip ci]"
+          git push origin HEAD
+        fi
+      env:
+        GH_TOKEN: ${{ inputs.release_token }}
 
     # Approval must come from a second identity because the PR author cannot self-approve.
     # If the approval token is rate-limited, continue and let the reviewer approve manually.

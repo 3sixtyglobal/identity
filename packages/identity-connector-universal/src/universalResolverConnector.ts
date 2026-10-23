@@ -5,12 +5,12 @@ import {
 	HealthStatus,
 	type IHealth,
 	type IHealthProviderComponent
-} from "@twin.org/api-models";
-import { GeneralError, Guards, StringHelper } from "@twin.org/core";
-import type { IIdentityResolverConnector } from "@twin.org/identity-models";
-import { nameof } from "@twin.org/nameof";
-import type { IDidDocument } from "@twin.org/standards-w3c-did";
-import { FetchHelper, HttpMethod } from "@twin.org/web";
+} from "@3sixty/api-models";
+import { GeneralError, Guards, StringHelper } from "@3sixty/core";
+import type { IIdentityResolverConnector } from "@3sixty/identity-models";
+import { nameof } from "@3sixty/nameof";
+import type { IDidDocument } from "@3sixty/standards-w3c-did";
+import { FetchHelper, HttpMethod } from "@3sixty/web";
 import type { IUniversalResolverResult } from "./models/api/IUniversalResolverResult.js";
 import type { IUniversalResolverConnectorConfig } from "./models/IUniversalResolverConnectorConfig.js";
 import type { IUniversalResolverConnectorConstructorOptions } from "./models/IUniversalResolverConnectorConstructorOptions.js";
