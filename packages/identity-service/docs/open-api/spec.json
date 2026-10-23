@@ -1457,7 +1457,7 @@
 			}
 		},
 		"/identity/{identity}/verifiable-credential/revoke/{revocationIndex}": {
-			"get": {
+			"post": {
 				"operationId": "identityVerifiableCredentialRevoke",
 				"summary": "Revoke an identity verifiable credential",
 				"tags": [
@@ -1557,7 +1557,7 @@
 			}
 		},
 		"/identity/{identity}/verifiable-credential/unrevoke/{revocationIndex}": {
-			"get": {
+			"post": {
 				"operationId": "identityVerifiableCredentialUnrevoke",
 				"summary": "Unrevoke an identity verifiable credential",
 				"tags": [
@@ -3343,11 +3343,6 @@
 						"example": "role,email,name"
 					}
 				],
-				"security": [
-					{
-						"jwtBearerAuthScheme": []
-					}
-				],
 				"responses": {
 					"200": {
 						"description": "Response to get an identity public profile.",
@@ -3392,24 +3387,6 @@
 											"properties": {
 												"foo": "bar"
 											}
-										}
-									}
-								}
-							}
-						}
-					},
-					"401": {
-						"description": "You are not authorized to use the API or no credentials were supplied, see the content for more details.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/Error"
-								},
-								"examples": {
-									"exampleResponse": {
-										"value": {
-											"name": "UnauthorizedError",
-											"message": "errorMessage"
 										}
 									}
 								}

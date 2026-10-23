@@ -8,7 +8,7 @@ Configuration for the Identity Profile Service.
 
 > `optional` **selfUpdateDeniedProperties?**: `string`[]
 
-The public and private profile properties which can only be added, changed or removed by callers with an admin scope.
+The public and private profile properties which can only be added, changed or removed by callers with escalated privilege or permitted to execute the admin update operation.
 
 #### Default
 
@@ -18,14 +18,28 @@ The public and private profile properties which can only be added, changed or re
 
 ***
 
-### adminScopes? {#adminscopes}
+### escalatedPrivilegeRole? {#escalatedprivilegerole}
 
-> `optional` **adminScopes?**: `string`[]
+> `optional` **escalatedPrivilegeRole?**: `string`
 
-The scopes which allow the denied properties to be modified, any one is sufficient.
+The role that grants escalated privilege, callers holding it can always modify the denied properties.
 
 #### Default
 
 ```ts
-["user-admin", "global-admin"]
+global-admin
+```
+
+***
+
+### authorizationModelId? {#authorizationmodelid}
+
+> `optional` **authorizationModelId?**: `string`
+
+The authorization model ID used to check permissions.
+
+#### Default
+
+```ts
+system
 ```

@@ -18,6 +18,20 @@ identity-profile
 
 ***
 
+### authorizationComponentType? {#authorizationcomponenttype}
+
+> `optional` **authorizationComponentType?**: `string`
+
+The authorization component used to check the caller permissions.
+
+#### Default
+
+```ts
+authorization
+```
+
+***
+
 ### config? {#config}
 
 > `optional` **config?**: [`IIdentityProfileServiceConfig`](IIdentityProfileServiceConfig.md)

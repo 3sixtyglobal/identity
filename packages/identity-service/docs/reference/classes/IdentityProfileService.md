@@ -44,6 +44,38 @@ The dependencies for the identity profile service.
 
 Runtime name for the class.
 
+***
+
+### DEFAULT\_ADMIN\_ROLE {#default_admin_role}
+
+> `readonly` `static` **DEFAULT\_ADMIN\_ROLE**: `string` = `"identity-profile-admin"`
+
+The default role which administers identity profiles.
+
+***
+
+### DEFAULT\_ESCALATED\_PRIVILEGE\_ROLE {#default_escalated_privilege_role}
+
+> `readonly` `static` **DEFAULT\_ESCALATED\_PRIVILEGE\_ROLE**: `string` = `"global-admin"`
+
+The default role that grants escalated privilege.
+
+***
+
+### ADMIN\_UPDATE\_OPERATION\_ID {#admin_update_operation_id}
+
+> `readonly` `static` **ADMIN\_UPDATE\_OPERATION\_ID**: `string` = `"identityProfileAdminUpdate"`
+
+The admin update operation, callers permitted to execute it can modify the denied properties.
+
+***
+
+### DEFAULT\_AUTHORIZATION\_MODEL\_ID {#default_authorization_model_id}
+
+> `readonly` `static` **DEFAULT\_AUTHORIZATION\_MODEL\_ID**: `string` = `"system"`
+
+The default authorization model ID used to check permissions.
+
 ## Methods
 
 ### className() {#classname}
