@@ -282,13 +282,13 @@ importers:
         version: 0.20.0-next.1
       '@3sixty/wallet-cli':
         specifier: next
-        version: 0.20.0-next.0(typescript@6.0.3)
+        version: 0.20.0-next.1(typescript@6.0.3)
       '@3sixty/wallet-connector-iota':
         specifier: next
-        version: 0.20.0-next.0(typescript@6.0.3)
+        version: 0.20.0-next.1(typescript@6.0.3)
       '@3sixty/wallet-models':
         specifier: next
-        version: 0.20.0-next.0
+        version: 0.20.0-next.1
       '@3sixty/web':
         specifier: next
         version: 0.20.0-next.2
@@ -765,7 +765,7 @@ importers:
         version: 0.20.0-next.1
       '@3sixty/wallet-models':
         specifier: next
-        version: 0.20.0-next.0
+        version: 0.20.0-next.1
       '@3sixty/web':
         specifier: next
         version: 0.20.0-next.2
@@ -958,17 +958,17 @@ packages:
     resolution: {integrity: sha512-w3rNruwfhaiNpkIopMuD3Yn/5vTyfCWntJ2sJu/xT5nrUyqGm3GkgvbkTZeF7q9Q3nuvQRt3nWkdSjUM3cZoTw==}
     engines: {node: '>=24.0.0'}
 
-  '@3sixty/wallet-cli@0.20.0-next.0':
-    resolution: {integrity: sha512-2x6fmQsAYtCAk1wtZjeFHnZXlPovvlWujcFER4HjpEN3Ju+2zjEPgPcC5Hx4JbejZf542/JlG+/htlso1HvmVg==}
+  '@3sixty/wallet-cli@0.20.0-next.1':
+    resolution: {integrity: sha512-F4iYYTTb/3pi1GnoBdjeE4UaLIUVYgRUnnXEJ60481AJP6MwK16/dEZT/PMWWl8omkrjqpIKRpTL7BAhCbbHog==}
     engines: {node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/wallet-connector-iota@0.20.0-next.0':
-    resolution: {integrity: sha512-DnL75QM5ChMF8bMNILsyXpWbCoE2OWrS2+krulwd1PgfbOCIk0uEWSYbGeJhwn2bqtc0k9gnHFQT0SApMR/3yw==}
+  '@3sixty/wallet-connector-iota@0.20.0-next.1':
+    resolution: {integrity: sha512-TNLVTDDxtRB6ffQiP5R8FKglbKYDDwzCdCixahfHTfSUpALoO3kyeVGK244a6e4rW7kDX/itenSrOkQF4DqIFA==}
     engines: {node: '>=24.0.0'}
 
-  '@3sixty/wallet-models@0.20.0-next.0':
-    resolution: {integrity: sha512-bkCKbHnyrIF/gfvNRRRi/HZVzNUpv4dXvApO4IIJ60ZQzVJL1EA/ojLyXi8CHEHR0cpfN6P6m/BQrt1ZbBJ1DQ==}
+  '@3sixty/wallet-models@0.20.0-next.1':
+    resolution: {integrity: sha512-TBML2KotQxdAU6FREheMZsuXIKBuzpujtNfugxtrSLZ7BeiRt8KlQxBJ5vH7F6R/1/bAKGokfTvHMnTZsnORJg==}
     engines: {node: '>=24.0.0'}
 
   '@3sixty/web@0.20.0-next.2':
@@ -4487,7 +4487,7 @@ snapshots:
       '@3sixty/logging-models': 0.20.0-next.1
       '@3sixty/nameof': 0.20.0-next.2
       '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-models': 0.20.0-next.0
+      '@3sixty/wallet-models': 0.20.0-next.1
       '@3sixty/web': 0.20.0-next.2
       '@iota/bcs': 1.6.0
       '@iota/identity-wasm': 1.9.7-beta.1(@iota/iota-sdk@1.15.0(typescript@6.0.3))
@@ -4657,7 +4657,7 @@ snapshots:
       '@3sixty/nameof': 0.20.0-next.2
       '@3sixty/web': 0.20.0-next.2
 
-  '@3sixty/wallet-cli@0.20.0-next.0(typescript@6.0.3)':
+  '@3sixty/wallet-cli@0.20.0-next.1(typescript@6.0.3)':
     dependencies:
       '@3sixty/cli-core': 0.20.0-next.2
       '@3sixty/core': 0.20.0-next.2
@@ -4669,8 +4669,8 @@ snapshots:
       '@3sixty/nameof': 0.20.0-next.2
       '@3sixty/vault-connector-entity-storage': 0.20.0-next.1
       '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-connector-iota': 0.20.0-next.0(typescript@6.0.3)
-      '@3sixty/wallet-models': 0.20.0-next.0
+      '@3sixty/wallet-connector-iota': 0.20.0-next.1(typescript@6.0.3)
+      '@3sixty/wallet-models': 0.20.0-next.1
       commander: 15.0.0
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
@@ -4678,7 +4678,7 @@ snapshots:
       - encoding
       - typescript
 
-  '@3sixty/wallet-connector-iota@0.20.0-next.0(typescript@6.0.3)':
+  '@3sixty/wallet-connector-iota@0.20.0-next.1(typescript@6.0.3)':
     dependencies:
       '@3sixty/api-models': 0.20.0-next.1
       '@3sixty/context': 0.20.0-next.2
@@ -4687,14 +4687,14 @@ snapshots:
       '@3sixty/dlt-iota': 0.20.0-next.1(typescript@6.0.3)
       '@3sixty/nameof': 0.20.0-next.2
       '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-models': 0.20.0-next.0
+      '@3sixty/wallet-models': 0.20.0-next.1
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
       - encoding
       - typescript
 
-  '@3sixty/wallet-models@0.20.0-next.0':
+  '@3sixty/wallet-models@0.20.0-next.1':
     dependencies:
       '@3sixty/core': 0.20.0-next.2
       '@3sixty/crypto': 0.20.0-next.2
