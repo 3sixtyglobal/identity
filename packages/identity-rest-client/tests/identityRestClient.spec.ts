@@ -545,7 +545,7 @@ describe("IdentityRestClient", () => {
 			expect(url).toBe(
 				`${ENDPOINT}/${PREFIX}/${IDENTITY_URN}/verifiable-credential/revoke/${CREDENTIAL_INDEX}`
 			);
-			expect(options.method).toBe(HttpMethod.GET);
+			expect(options.method).toBe(HttpMethod.POST);
 		});
 
 		test("resolves without a return value", async () => {
@@ -583,7 +583,7 @@ describe("IdentityRestClient", () => {
 			expect(url).toBe(
 				`${ENDPOINT}/${PREFIX}/${IDENTITY_URN}/verifiable-credential/unrevoke/${CREDENTIAL_INDEX}`
 			);
-			expect(options.method).toBe(HttpMethod.GET);
+			expect(options.method).toBe(HttpMethod.POST);
 		});
 
 		test("resolves without a return value", async () => {

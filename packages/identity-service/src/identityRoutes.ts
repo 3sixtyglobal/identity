@@ -1,6 +1,12 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import type { IHttpRequestContext, INoContentResponse, IRestRoute, ITag } from "@3sixty/api-models";
+import type {
+	IRouteAuthorization,
+	IHttpRequestContext,
+	INoContentResponse,
+	IRestRoute,
+	ITag
+} from "@3sixty/api-models";
 import { ContextIdHelper, ContextIdKeys, ContextIdStore } from "@3sixty/context";
 import { Coerce, ComponentFactory, Guards } from "@3sixty/core";
 import {
@@ -57,6 +63,11 @@ export const tagsIdentity: ITag[] = [
 	}
 ];
 
+const DEFAULT_AUTHORIZATION_WRITER: IRouteAuthorization = {
+	permission: "identity:write",
+	role: "identity-admin"
+};
+
 /**
  * The REST routes for identity.
  * @param baseRouteName Prefix to prepend to the paths.
@@ -106,7 +117,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityRemoveRoute: IRestRoute<IIdentityRemoveRequest, INoContentResponse> = {
@@ -135,7 +147,8 @@ export function generateRestRoutesIdentity(
 			{
 				type: nameof<INoContentResponse>()
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerificationMethodCreateRoute: IRestRoute<
@@ -191,7 +204,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerificationMethodRemoveRoute: IRestRoute<
@@ -232,7 +246,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityServiceCreateRoute: IRestRoute<
@@ -281,7 +296,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityServiceRemoveRoute: IRestRoute<IIdentityServiceRemoveRequest, INoContentResponse> =
@@ -320,7 +336,8 @@ export function generateRestRoutesIdentity(
 						}
 					]
 				}
-			]
+			],
+			defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 		};
 
 	const identityAlsoKnownAsCreateRoute: IRestRoute<
@@ -355,7 +372,8 @@ export function generateRestRoutesIdentity(
 			{
 				type: nameof<INoContentResponse>()
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityAlsoKnownAsRemoveRoute: IRestRoute<
@@ -396,7 +414,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerifiableCredentialCreateRoute: IRestRoute<
@@ -466,7 +485,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerifiableCredentialVerifyRoute: IRestRoute<
@@ -606,7 +626,7 @@ export function generateRestRoutesIdentity(
 		operationId: "identityVerifiableCredentialRevoke",
 		summary: "Revoke an identity verifiable credential",
 		tag: tagsIdentity[0].name,
-		method: "GET",
+		method: "POST",
 		path: `${baseRouteName}/:identity/verifiable-credential/revoke/:revocationIndex`,
 		handler: async (httpRequestContext, request) =>
 			identityVerifiableCredentialRevoke(httpRequestContext, componentName, request),
@@ -637,7 +657,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerifiableCredentialUnrevokeRoute: IRestRoute<
@@ -647,7 +668,7 @@ export function generateRestRoutesIdentity(
 		operationId: "identityVerifiableCredentialUnrevoke",
 		summary: "Unrevoke an identity verifiable credential",
 		tag: tagsIdentity[0].name,
-		method: "GET",
+		method: "POST",
 		path: `${baseRouteName}/:identity/verifiable-credential/unrevoke/:revocationIndex`,
 		handler: async (httpRequestContext, request) =>
 			identityVerifiableCredentialUnrevoke(httpRequestContext, componentName, request),
@@ -678,7 +699,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerifiablePresentationCreateRoute: IRestRoute<
@@ -733,7 +755,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityVerifiablePresentationVerifyRoute: IRestRoute<
@@ -925,7 +948,8 @@ export function generateRestRoutesIdentity(
 					}
 				]
 			}
-		]
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
 	};
 
 	const identityProofVerifyRoute: IRestRoute<
