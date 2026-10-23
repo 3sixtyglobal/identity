@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { GuardError } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
@@ -16,6 +17,14 @@ const ENDPOINT = "http://localhost:8080";
 const PREFIX = "identity/profile";
 
 const IDENTITY_URN = "urn:did:test:entity001";
+
+/**
+ * Profile with the property names used by the tests declared explicitly.
+ */
+interface ITestProfile extends IJsonLdNodeObject {
+	name?: string;
+	dateOfBirth?: string;
+}
 
 const TEST_PUBLIC_PROFILE: IJsonLdNodeObject = {
 	"@context": "https://schema.org/",
@@ -61,11 +70,11 @@ const TEST_ADMIN_LIST_RESPONSE = {
 const fetchMock = vi.fn();
 
 describe("IdentityProfileRestClient", () => {
-	let client: IdentityProfileRestClient<IJsonLdNodeObject, IJsonLdNodeObject>;
+	let client: IdentityProfileRestClient<ITestProfile, ITestProfile>;
 
 	beforeEach(() => {
 		setupFetchMock(fetchMock);
-		client = new IdentityProfileRestClient<IJsonLdNodeObject, IJsonLdNodeObject>({
+		client = new IdentityProfileRestClient<ITestProfile, ITestProfile>({
 			endpoint: ENDPOINT
 		});
 	});
