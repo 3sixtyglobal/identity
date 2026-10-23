@@ -1,9 +1,11 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
-import { HttpContextIdKeys, ScopeHelper } from "@3sixty/api-models";
-import { ContextIdStore } from "@3sixty/context";
+import type { IAuthorizationComponent } from "@3sixty/authorization-models";
+import { ContextIdKeys, ContextIdStore } from "@3sixty/context";
 import {
 	BaseError,
+	ComponentFactory,
 	GeneralError,
 	Guards,
 	Is,
@@ -34,22 +36,54 @@ export class IdentityProfileService<
 	public static readonly CLASS_NAME: string = nameof<IdentityProfileService>();
 
 	/**
+	 * The default role which administers identity profiles.
+	 */
+	public static readonly DEFAULT_ADMIN_ROLE: string = "identity-profile-admin";
+
+	/**
+	 * The default role that grants escalated privilege.
+	 */
+	public static readonly DEFAULT_ESCALATED_PRIVILEGE_ROLE: string = "global-admin";
+
+	/**
+	 * The admin update operation, callers permitted to execute it can modify the denied properties.
+	 */
+	public static readonly ADMIN_UPDATE_OPERATION_ID: string = "identityProfileAdminUpdate";
+
+	/**
+	 * The default authorization model ID used to check permissions.
+	 */
+	public static readonly DEFAULT_AUTHORIZATION_MODEL_ID: string = "system";
+
+	/**
 	 * The identity profile connector.
 	 * @internal
 	 */
 	private readonly _identityProfileConnector: IIdentityProfileConnector<T, U>;
 
 	/**
-	 * The profile properties which can only be modified with an admin scope.
+	 * The authorization component used to check the caller permissions.
+	 * @internal
+	 */
+	private readonly _authorizationComponent: IAuthorizationComponent;
+
+	/**
+	 * The profile properties which can only be modified by callers with admin permission.
 	 * @internal
 	 */
 	private readonly _selfUpdateDeniedProperties: string[];
 
 	/**
-	 * The scopes which allow the denied properties to be modified.
+	 * The role that grants escalated privilege.
 	 * @internal
 	 */
-	private readonly _adminScopes: string[];
+	private readonly _escalatedPrivilegeRole: string;
+
+	/**
+	 * The authorization model ID used to check permissions.
+	 * @internal
+	 */
+	private readonly _authorizationModelId: string;
 
 	/**
 	 * Create a new instance of IdentityProfileService.
@@ -59,8 +93,16 @@ export class IdentityProfileService<
 		this._identityProfileConnector = IdentityProfileConnectorFactory.get<
 			IIdentityProfileConnector<T, U>
 		>(options?.profileEntityConnectorType ?? "identity-profile");
+		this._authorizationComponent = ComponentFactory.get<IAuthorizationComponent>(
+			options?.authorizationComponentType ?? "authorization"
+		);
 		this._selfUpdateDeniedProperties = options?.config?.selfUpdateDeniedProperties ?? [];
-		this._adminScopes = options?.config?.adminScopes ?? ["user-admin", "global-admin"];
+		this._escalatedPrivilegeRole =
+			options?.config?.escalatedPrivilegeRole ??
+			IdentityProfileService.DEFAULT_ESCALATED_PRIVILEGE_ROLE;
+		this._authorizationModelId =
+			options?.config?.authorizationModelId ??
+			IdentityProfileService.DEFAULT_AUTHORIZATION_MODEL_ID;
 	}
 
 	/**
@@ -324,7 +366,7 @@ export class IdentityProfileService<
 	}
 
 	/**
-	 * Reject changes to denied properties when the caller does not have an admin scope.
+	 * Reject changes to denied properties when the caller does not have an admin role.
 	 * @param identity The identity of the profile being modified.
 	 * @param existing The currently stored profile.
 	 * @param publicProfile The new public profile, undefined leaves the stored profile unchanged.
@@ -342,27 +384,47 @@ export class IdentityProfileService<
 			return;
 		}
 
-		// If the user has one of the admin scopes, they are allowed to update denied properties, so just return.
-		const contextIds = await ContextIdStore.getContextIds();
-		if (
-			this._adminScopes.some(adminScope =>
-				ScopeHelper.includes(contextIds?.[HttpContextIdKeys.Scope], adminScope)
-			)
-		) {
-			return;
-		}
-
 		const deniedProperties = [
 			...this.findChangedProperties("publicProfile", existing?.publicProfile, publicProfile),
 			...this.findChangedProperties("privateProfile", existing?.privateProfile, privateProfile)
 		];
 
-		if (deniedProperties.length > 0) {
+		if (deniedProperties.length > 0 && !(await this.callerHasAdminPermission())) {
 			throw new UnauthorizedError(IdentityProfileService.CLASS_NAME, "selfUpdateDenied", {
 				identity,
 				properties: deniedProperties.join(", ")
 			});
 		}
+	}
+
+	/**
+	 * Check whether the caller holds escalated privilege or is permitted to execute the admin update operation.
+	 * @returns True if the caller has admin permission.
+	 * @internal
+	 */
+	private async callerHasAdminPermission(): Promise<boolean> {
+		const contextIds = await ContextIdStore.getContextIds();
+		const callerIdentity = contextIds?.[ContextIdKeys.User];
+		if (!Is.stringValue(callerIdentity)) {
+			return false;
+		}
+
+		if (
+			await this._authorizationComponent.hasRoleForSubject(
+				this._authorizationModelId,
+				callerIdentity,
+				this._escalatedPrivilegeRole
+			)
+		) {
+			return true;
+		}
+
+		return this._authorizationComponent.check(
+			this._authorizationModelId,
+			callerIdentity,
+			IdentityProfileService.ADMIN_UPDATE_OPERATION_ID,
+			"execute"
+		);
 	}
 
 	/**

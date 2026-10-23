@@ -730,6 +730,9 @@ importers:
       '@3sixty/api-models':
         specifier: next
         version: 0.20.0-next.1
+      '@3sixty/authorization-models':
+        specifier: next
+        version: 0.20.0-next.1
       '@3sixty/context':
         specifier: next
         version: 0.20.0-next.2
@@ -847,6 +850,10 @@ packages:
 
   '@3sixty/api-models@0.20.0-next.1':
     resolution: {integrity: sha512-1KmZs1JOKJKqo1UEpIgWblBcnefBQ/L027HPcck7gqYp/pDJT93/OOPPv0VwHccDY4C/UN0ZhC1oD4TPv+2k3Q==}
+    engines: {node: '>=24.0.0'}
+
+  '@3sixty/authorization-models@0.20.0-next.1':
+    resolution: {integrity: sha512-t8MsVzRm6AmlNUtENJLym7bW0zR8dwqZ920gErKRFGknbNH4eoh5fmxLH+4zA1EOmgohn//xSKP8UR9uxdRHNA==}
     engines: {node: '>=24.0.0'}
 
   '@3sixty/cli-core@0.20.0-next.2':
@@ -4412,6 +4419,12 @@ snapshots:
       '@3sixty/entity': 0.20.0-next.2
       '@3sixty/nameof': 0.20.0-next.2
       '@3sixty/web': 0.20.0-next.2
+
+  '@3sixty/authorization-models@0.20.0-next.1':
+    dependencies:
+      '@3sixty/api-models': 0.20.0-next.1
+      '@3sixty/core': 0.20.0-next.2
+      '@3sixty/telemetry-models': 0.20.0-next.1
 
   '@3sixty/cli-core@0.20.0-next.2':
     dependencies:

@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@3sixty/api-models": "next",
+		"@3sixty/authorization-models": "next",
 		"@3sixty/context": "next",
 		"@3sixty/core": "next",
 		"@3sixty/data-core": "next",

@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	HttpParameterHelper,
@@ -33,6 +34,7 @@ import type {
 } from "@3sixty/identity-models";
 import { nameof } from "@3sixty/nameof";
 import { HeaderTypes, HttpStatusCode, MimeTypes } from "@3sixty/web";
+import { IdentityProfileService } from "./identityProfileService.js";
 
 /**
  * The source used when communicating about these routes.
@@ -54,11 +56,11 @@ export const tagsIdentityProfile: ITag[] = [
  */
 const DEFAULT_AUTHORIZATION_READER: IRouteAuthorization = {
 	permission: "identity-profile:read",
-	role: "identity-profile-admin"
+	role: IdentityProfileService.DEFAULT_ADMIN_ROLE
 };
 const DEFAULT_AUTHORIZATION_WRITER: IRouteAuthorization = {
 	permission: "identity-profile:write",
-	role: "identity-profile-admin",
+	role: IdentityProfileService.DEFAULT_ADMIN_ROLE,
 	inherits: [DEFAULT_AUTHORIZATION_READER.permission]
 };
 
@@ -328,7 +330,7 @@ export function generateRestRoutesIdentityProfile(
 		IIdentityProfileAdminUpdateRequest,
 		INoContentResponse
 	> = {
-		operationId: "identityProfileAdminUpdate",
+		operationId: IdentityProfileService.ADMIN_UPDATE_OPERATION_ID,
 		summary: "Update the identity profile properties of another user",
 		tag: tagsIdentityProfile[0].name,
 		method: "PUT",
