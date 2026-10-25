@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { HealthCategory, HealthStatus, type IHealth } from "@3sixty/api-models";
 import { ContextIdKeys, ContextIdStore, type IContextIds } from "@3sixty/context";
@@ -25,6 +26,7 @@ import {
 	initSchema as initSchemaVault
 } from "@3sixty/vault-connector-entity-storage";
 import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { REVOCATION_ENDPOINT_MATCHER, expectEmptyRevocationList } from "./revocationHelper.js";
 import { IdentityResolverService } from "../src/identityResolverService.js";
 import { IdentityService } from "../src/identityService.js";
 
@@ -119,11 +121,11 @@ describe("IdentityService", () => {
 				{
 					id: "did:entity-storage:0x0101010101010101010101010101010101010101010101010101010101010101#revocation",
 					type: "BitstringStatusList",
-					serviceEndpoint:
-						"data:application/octet-stream;base64,H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+					serviceEndpoint: REVOCATION_ENDPOINT_MATCHER
 				}
 			]
 		});
+		await expectEmptyRevocationList(identity);
 	});
 
 	test("Can create a verification method", async () => {
