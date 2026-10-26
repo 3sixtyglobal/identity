@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.20.0-next.2](https://github.com/3sixtyglobal/identity/compare/identity-service-v0.20.0-next.1...identity-service-v0.20.0-next.2) (2026-10-26)
+
+
+### Features
+
+* release to next [skip ci] ([#54](https://github.com/3sixtyglobal/identity/issues/54)) ([ed16ab0](https://github.com/3sixtyglobal/identity/commit/ed16ab09e20d7ffe0b85057056ded07085df902d))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/identity-models bumped from 0.20.0-next.1 to 0.20.0-next.2
+  * devDependencies
+    * @3sixty/identity-connector-entity-storage bumped from 0.20.0-next.1 to 0.20.0-next.2
+
 ## [0.20.0-next.1](https://github.com/3sixtyglobal/identity/compare/identity-service-v0.20.0-next.0...identity-service-v0.20.0-next.1) (2026-10-23)
 
 

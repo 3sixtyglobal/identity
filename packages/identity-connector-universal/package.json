@@ -1,6 +1,6 @@
 {
 	"name": "@3sixty/identity-connector-universal",
-	"version": "0.20.0-next.1",
+	"version": "0.20.0-next.2",
 	"description": "Connector for resolving decentralised identifiers through the Universal Resolver ecosystem.",
 	"repository": {
 		"type": "git",
@@ -32,7 +32,7 @@
 	"dependencies": {
 		"@3sixty/api-models": "next",
 		"@3sixty/core": "next",
-		"@3sixty/identity-models": "0.20.0-next.1",
+		"@3sixty/identity-models": "0.20.0-next.2",
 		"@3sixty/nameof": "next",
 		"@3sixty/standards-w3c-did": "next",
 		"@3sixty/web": "next"
