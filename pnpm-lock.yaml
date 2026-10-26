@@ -243,22 +243,22 @@ importers:
     dependencies:
       '@3sixty/cli-core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/crypto-cli':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/entity-storage-connector-memory':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/entity-storage-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/identity-connector-iota':
         specifier: 0.20.0-next.1
         version: link:../../packages/identity-connector-iota
@@ -267,44 +267,44 @@ importers:
         version: link:../../packages/identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/vault-connector-entity-storage':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/vault-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/wallet-cli':
         specifier: next
-        version: 0.20.0-next.1(typescript@6.0.3)
+        version: 0.20.0-next.2(typescript@6.0.3)
       '@3sixty/wallet-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       commander:
         specifier: 15.0.0
         version: 15.0.0
     devDependencies:
       '@3sixty/crypto':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/merge-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@types/node':
         specifier: 26.6.5
         version: 26.6.5
@@ -340,53 +340,53 @@ importers:
     dependencies:
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/entity':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/entity-storage-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/identity-models':
         specifier: 0.20.0-next.1
         version: link:../identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/vault-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
     devDependencies:
       '@3sixty/crypto':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/entity-storage-connector-memory':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/standards-schema-org':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/vault-connector-entity-storage':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -416,34 +416,34 @@ importers:
     dependencies:
       '@3sixty/api-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/dlt-account':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/dlt-iota':
         specifier: next
-        version: 0.20.0-next.1(typescript@6.0.3)
+        version: 0.20.0-next.2(typescript@6.0.3)
       '@3sixty/identity-models':
         specifier: 0.20.0-next.1
         version: link:../identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/vault-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@iota/identity-wasm':
         specifier: 1.9.6-beta.1
         version: 1.9.6-beta.1(@iota/iota-sdk@1.15.0(typescript@6.0.3))
@@ -453,25 +453,25 @@ importers:
     devDependencies:
       '@3sixty/crypto':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/entity-storage-connector-memory':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/entity-storage-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/vault-connector-entity-storage':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@iota/iota-sdk':
         specifier: 1.15.0
         version: 1.15.0(typescript@6.0.3)
@@ -507,32 +507,32 @@ importers:
     dependencies:
       '@3sixty/api-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/identity-models':
         specifier: 0.20.0-next.1
         version: link:../identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
     devDependencies:
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -562,35 +562,35 @@ importers:
     dependencies:
       '@3sixty/context':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/telemetry-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
     devDependencies:
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -620,38 +620,38 @@ importers:
     dependencies:
       '@3sixty/api-core':
         specifier: next
-        version: 0.20.0-next.1(supports-color@10.2.2)
+        version: 0.20.0-next.2(supports-color@10.2.2)
       '@3sixty/api-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/identity-models':
         specifier: 0.20.0-next.1
         version: link:../identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
     devDependencies:
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -681,68 +681,68 @@ importers:
     dependencies:
       '@3sixty/api-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/authorization-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/context':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/core':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/data-json-ld':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/dlt-account':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/identity-models':
         specifier: 0.20.0-next.1
         version: link:../identity-models
       '@3sixty/nameof':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/standards-w3c-did':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.3
       '@3sixty/telemetry-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/vault-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/web':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
     devDependencies:
       '@3sixty/crypto':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/entity-storage-connector-memory':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/entity-storage-models':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@3sixty/identity-connector-entity-storage':
         specifier: 0.20.0-next.1
         version: link:../identity-connector-entity-storage
       '@3sixty/nameof-transformer':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/nameof-vitest-plugin':
         specifier: next
-        version: 0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
+        version: 0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
       '@3sixty/ts-to-openapi':
         specifier: next
-        version: 0.20.0-next.4
+        version: 0.20.0-next.6
       '@3sixty/validate-locales':
         specifier: next
-        version: 0.20.0-next.2
+        version: 0.20.0-next.4
       '@3sixty/vault-connector-entity-storage':
         specifier: next
-        version: 0.20.0-next.1
+        version: 0.20.0-next.2
       '@vitest/coverage-v8':
         specifier: 5.0.5
         version: 5.0.5(vitest@5.0.5)
@@ -784,143 +784,143 @@ packages:
       graphql: ^15.5.0 || ^16.0.0 || ^17.0.0
       typescript: ^5.0.0 || ^6.0.0
 
-  '@3sixty/api-core@0.20.0-next.1':
-    resolution: {integrity: sha512-gd6IJEufB6C7Sjv3G+BRPKP7UiZ1NTSUdJqD2nD5JSU9mJ41PwhkZ1PArV5PODUXUI8A/f93g463WxTlYf8Vgw==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/api-core@0.20.0-next.2':
+    resolution: {integrity: sha512-9LjY5kqHuZMVAn2P/dbcRHYiVpysXbR0DIORKKVJF8R4cxDtTj+7sYzu0MFt9+eBW6v0ZpArB6EdFs6h9MKEAQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/api-models@0.20.0-next.1':
-    resolution: {integrity: sha512-1KmZs1JOKJKqo1UEpIgWblBcnefBQ/L027HPcck7gqYp/pDJT93/OOPPv0VwHccDY4C/UN0ZhC1oD4TPv+2k3Q==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/api-models@0.20.0-next.2':
+    resolution: {integrity: sha512-gj6Ah0yXALZk2QPukwPbDiLCozP4hi1sAJck6zGD6X9ZmKyAGu7KX/X0XSMcrw9qmbXYNpfNGB2uBtxblP8h/g==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/authorization-models@0.20.0-next.1':
-    resolution: {integrity: sha512-t8MsVzRm6AmlNUtENJLym7bW0zR8dwqZ920gErKRFGknbNH4eoh5fmxLH+4zA1EOmgohn//xSKP8UR9uxdRHNA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/authorization-models@0.20.0-next.2':
+    resolution: {integrity: sha512-cfRxqanagQGrl0RZHyIxlnI44BlEhkEZ3EzOYgUm6S1HsT+R9SDqoDLdFCC+uuWGpgjcpRcmEeUHxakSJDyYQQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/cli-core@0.20.0-next.2':
-    resolution: {integrity: sha512-b9WwgWVJOqCHQBqoaWOXuWSJ2qBrWEsy1hARkMrUOtWe0sy0DnmLf4+8pVyQZgvb96pZtWWTgqZpAH2nKqi9kg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/cli-core@0.20.0-next.4':
+    resolution: {integrity: sha512-25b96pbRUnrB8wqoFSmO58QfmcRO+RWB1otyK6bY/3YjdCJ0MO3MsJzSbaax7S1ss+3aLHtg2fAhigOhSoAgCg==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/context@0.20.0-next.2':
-    resolution: {integrity: sha512-tE+OtETiyPQGMeBRNILDCy4TrT4b00tuF4xWTLfx82Pr8poiHnXuRGWMHvaZ/9hHmRuYri7cAjpOt81USxK9RQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/context@0.20.0-next.4':
+    resolution: {integrity: sha512-i6AcisUk6Ne4YCop9OunIDZJ8lHS8jDQzGuODfYdjDBWNZLax4EzX1EvBPdNKP4MKG3HqP02yFGHoc0Re02NXQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/core@0.20.0-next.2':
-    resolution: {integrity: sha512-zoILg1ni4GXeWGvSJMJbL4YcMJmtO+/U4BqQo6EzyRu/ChgKfWi9mZoMawCsn4iZh0R6w3Dm8pqQhyaZX+dVJg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/core@0.20.0-next.4':
+    resolution: {integrity: sha512-gjcsZLw7ItroZy/CDcwOkEDwlDY/wZiZfGWp15/BrXPYLxmYOvMNAYrF7yhVyN+ULGy6pcxlZf0h1oRg7GnXXQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/crypto-cli@0.20.0-next.2':
-    resolution: {integrity: sha512-NFxGjsFKravZTvfBvfUjrbo7PcSe6EwFjr+4abIH8PXxiJjtcOG1Nfst0JuBSvPUeaUPy/rzax44JFVeMfUlsg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/crypto-cli@0.20.0-next.4':
+    resolution: {integrity: sha512-EAVvJiqANXqIq75PbBhsTsn7cFl7/L6WI0fOa5rPvkeT1XmbFdcuNnicoxwknPMuPC2PSBv4XU4RwdA4dq8ATg==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/crypto@0.20.0-next.2':
-    resolution: {integrity: sha512-0tLDaAs5j3NDob9PcmTGP7SBBr2BUnmmgj7/EuvGZNXB1qDV9+ZlYbI2R6KSf8FtGs+S1VsOohgRoqIIBoGvgQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/crypto@0.20.0-next.4':
+    resolution: {integrity: sha512-I4itGN4AtPwng6RK8k3hR11mVtJb4g3jOBLsxfsNOku2WDzsXdD+NT9kZ9sBtC09Gal70/4s6xV/5t4fK78cGw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/data-core@0.20.0-next.3':
-    resolution: {integrity: sha512-lqV/EM9n/O5U7Wuq1SNSJQPtpTiiKKL1QlmrekO78aLS6qLiolxQv5cRiN55eGdU/46hBxl7akvvzgtTa9HeJQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/data-core@0.20.0-next.4':
+    resolution: {integrity: sha512-pXwWiwg6puOdrVAJoA/ZEN0JeOYKP9kzog75cjgPsBf391sRYdDwpS6eYXuE+uOkaxv9dOPsBvSONoIZjhq5hQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/data-json-ld@0.20.0-next.3':
-    resolution: {integrity: sha512-YdmQ1h1DYVTCq+IZ2kG6p5M5ht0+Lc/Ij54tU3MkCgarA0jgRkCSaC6i37KVeMEMsslOJlhwaNhzxG4QoszPOQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/data-json-ld@0.20.0-next.4':
+    resolution: {integrity: sha512-xUQU4EhlkIShuv59KuZfm2yMgRIBHWO6kc+grENZmZTt41rL0sAnhGy8fxsqRWW6DYmpsPZ5exmqUVHKoNtySA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/dlt-account@0.20.0-next.1':
-    resolution: {integrity: sha512-vmI5iL3p2y0AqsRr/P+r5jLF7PADe39L67OnR/aEka6iOo5Kd+p+APKE3Rsb/NbKFW2YFaaULPv9e30/W0KVDA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/dlt-account@0.20.0-next.2':
+    resolution: {integrity: sha512-15lY//keyeoUMdvCzk02bb6bujrMe16RVPZ5+TZ5/2vDah45QnxklQxwU8vsmDC2gER0NNPNucgT8E1QgosvYQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/dlt-iota@0.20.0-next.1':
-    resolution: {integrity: sha512-X3GEK1xTuQIYvMoZ7/s9Y1pShb9NLbzy/gwDVgNkdc28rGOKg5iFJnNHXuK4qVBSi1vgsNy+VNwYJI2oiZjSkA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/dlt-iota@0.20.0-next.2':
+    resolution: {integrity: sha512-6B40GTomPxjyemq+KcXj75qZ6P88r0rKoSDRrO6PcnvASfUyzO4y3iwsGQ6BrHypxu6fD+2ow/UW65utOzt2aw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/entity-storage-connector-memory@0.20.0-next.1':
-    resolution: {integrity: sha512-IEDnCJGk/DlH3jHajIG+s5SQ36ZhR0Mjo38ISXJKmXbQlcl4CtNfh3Ac/1isBt7cbL2FU4ZeJGOL1pVFAa4xlQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/entity-storage-connector-memory@0.20.0-next.2':
+    resolution: {integrity: sha512-LDPSydkp9pRXlSRGA0zcwDiUg2P6sQTuJjnpOVqc5ZGtezzx4wtahQMUKpeMwlt5+Lr15iiwfxe+tb/dXtVu/Q==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/entity-storage-models@0.20.0-next.1':
-    resolution: {integrity: sha512-Ruf3cG2VOipevsG1WnZjxya/MIu0M4XNaEwZ7O/inbje+vkdf0PHDyHqxcFXMXOTX+U8dvD+z7SPitfsBp/Tvg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/entity-storage-models@0.20.0-next.2':
+    resolution: {integrity: sha512-X4HpqwQCaCygHAh/YfaHvihLw7ce3d1yIzloiPpz8MjClTKWAZSgppg/+ZmWb1pKikPqqAvKx/P0w052BOrv5w==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/entity@0.20.0-next.2':
-    resolution: {integrity: sha512-iq8T0sVI+FGheo7SXmoEPtUAgSIvej7NSy06vD3od5a84WyHzTHsf4nlvV97VDegFyUxXjAhKS5WjLK8tbjFdA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/entity@0.20.0-next.4':
+    resolution: {integrity: sha512-GUgvE4EA3SOIrHWz7btls7jAI8FoVL/N0wlqP/S/liCtcDzDBN8EkJjzeQ/3LYEr209x7F/RcP5Jn0UNF/D79Q==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/logging-models@0.20.0-next.1':
-    resolution: {integrity: sha512-PvrnZSBuws7TML96voAcKN7jZqMSbMKyq3IXh3dZ1zpgU6U7iBsqT5ynfOln2P3vkVdD29ohFOrX1zr5NPsX8Q==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/logging-models@0.20.0-next.2':
+    resolution: {integrity: sha512-MLUhNB6oojDYu/38fDs6M+XKkpdkeLblglylOfuvd30DSz1nJ8UBQ/HY/Eu4dNClXqHlYSLu8siyzwpgpL+6UA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/merge-locales@0.20.0-next.2':
-    resolution: {integrity: sha512-DVrQnxdHYzs03ZZUhfU2Ut5FIB+nTysW9eA5MVEdFd49Ea3sW850uGgtFSZBFd8EbgQkFZBda93QdeInDFG+Dg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/merge-locales@0.20.0-next.4':
+    resolution: {integrity: sha512-DxZO9Y85nViTOpHgGwydBLrNQnEARl2drs82pgagQrnz7GBKV/Roosvv+IsdPNZtccOWPdjG28jsDDdWFvpYtw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/nameof-transformer@0.20.0-next.2':
-    resolution: {integrity: sha512-5bcCOCohanUx81q/R3Q7KeirNbJJpysFv+PO+yb3Tq8J6xbujAEilG8xQc41zszVBOI9LbQcSmppn2FEKhMMJw==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/nameof-transformer@0.20.0-next.4':
+    resolution: {integrity: sha512-ru3SW/LCzSA3CTOED9EMadnJxFbpCQq6TNuzbf/hCmwWVbZmYCp0zjQ28symTmDlEl3uSsPLfKXXSWQhhtZlyQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/nameof-vitest-plugin@0.20.0-next.2':
-    resolution: {integrity: sha512-BNVlzVpobTayWnS01pX83dSGu/edZepztxOojmXHWLrxYfLM9iUeDRniHcH3VdZqz5hm3Sp6UH66BcqUqVcgOw==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/nameof-vitest-plugin@0.20.0-next.4':
+    resolution: {integrity: sha512-lE9YgvJoUDQiAVsC97tri97hfCNoGLGOSJ4x0mHnFx10j0TYyW37ztoXOwhGrJynqFEyB8tX1A/XHo2rxWwNjA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/nameof@0.20.0-next.2':
-    resolution: {integrity: sha512-isPi+GgUWa/B3+gtLbPm3HJ5yaMJrp2uMlzLIkC2aBGQGC2jFmDk5HSmbpJg7mhQf38YomwI6AzC2JaZcL1XWQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/nameof@0.20.0-next.4':
+    resolution: {integrity: sha512-vERokiuGRph0oESD71WqFqqiTua4vSddovkUQSPt3WrMC5GRRvi1nJCnkDyLKQsCiKnHXwBg7ebTjPGluVjrKw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/standards-schema-org@0.20.0-next.2':
-    resolution: {integrity: sha512-u0t76+kisicB102D70/33ZiPs7eAoxe4+YCiJ3uzovvFGCbFyrSzaPvHaXG4hSAdx8Jl5v5GwRM7zO8ePS3OlA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/standards-schema-org@0.20.0-next.3':
+    resolution: {integrity: sha512-Qf+gqgFkkk/yyFvI7o1Hg1yRTGxbMrIcNF6uNJhdAghof2+gQJpbbr88Z33Gu4zy01IGmWFlkPbRxNJfsokw3g==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/standards-w3c-did@0.20.0-next.2':
-    resolution: {integrity: sha512-TcOW4CN/nOWB/tOybAwxkwyqvHNVOOY+XWxeSTlAwEpQHTE6aNqo77E3dPoRVfFRUZb2nvHCggPUydbWpNNLfg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/standards-w3c-did@0.20.0-next.3':
+    resolution: {integrity: sha512-/snKyKTpq+DJdr4Q+noNpH2aRurJnwzt06Z1hf1Zf6gqfD1pDGajKIgRuvSUsg4CDF8pRMNY4imR8hhCXK9U9g==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/telemetry-models@0.20.0-next.1':
-    resolution: {integrity: sha512-yqK3nWrqe4GCmo+mmLXytI+FWVm0d8CPIV9tw5OAtOVe9y6d7qKU63CR00mZGI6V/E/VTJmCv+Rm3ABRMVvwHQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/telemetry-models@0.20.0-next.2':
+    resolution: {integrity: sha512-l1vx6/Hic4PrNiKlmQzuTjM2n/kXg6JXyPnXbaiLVrPVAwOqLhAKuglBFrkUoc/QdQ04yeO7oSqBQdsRr4YEfg==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/tools-core@0.20.0-next.4':
-    resolution: {integrity: sha512-M/NKlmAvQoOn/ailU8yhjjINjP4nEqR3YG0qiYauxhyMOwQJLqcfXoVCo4zzAURcBcb+SY3YuYR07dG3VAsqTg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/tools-core@0.20.0-next.6':
+    resolution: {integrity: sha512-h3tcgTgjpA61pWHj1f58LDZCfK7kDwO7pQhjyIP1YLLs3gLAEdukhZFa5UELl0HKv0NyR7oQLK+7LTPKlEjUdw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/tools-models@0.20.0-next.4':
-    resolution: {integrity: sha512-/Ehlhy4Hy5IArm9WJEMs8P42jFBuOwu3YSDiqKl3iAZulgcGrX9AHmIEWgx9nUuWNAZ8646sQwcIQdMNTcwsxQ==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/tools-models@0.20.0-next.6':
+    resolution: {integrity: sha512-qohLvl5yyewAc5lEyCaKUXaym2mpe9LJoe+5PsSLL67rbgimNhkz4zbRHl1XPrHD9F8kNU3jqP8sT3tLIQf6Zg==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/ts-to-openapi@0.20.0-next.4':
-    resolution: {integrity: sha512-vdo/d7mZn5/ysnS0Qq0GdBA26F943kBd3e73l9oe7la6WQ0PKr0sKSu/FfeJJHUvi5+Hlpno6kRvmI3ndR8DkA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/ts-to-openapi@0.20.0-next.6':
+    resolution: {integrity: sha512-WUh0VZ6Q5rmXN6A7QtRap2Igovaz78TwmahXDxwZ6Pem8OB1ShcgClBhIPiSJqhBlRtdwEpZyk9TKK9X5loG1Q==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/validate-locales@0.20.0-next.2':
-    resolution: {integrity: sha512-YdHAAyTWrsSv1OWwU//FBpn4YgW1S3z7PYHczcr/GXdfZ26ormHug6Bk9nugtJVb/1MVGkvk4nsq6LtdbsO70w==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/validate-locales@0.20.0-next.4':
+    resolution: {integrity: sha512-jz17RYBY9P60anDy/J/6Uhr06UDDzlJSMxadZQh3s2zsyj45NMtpqBp9nwVV2XOWTWE5ljNdApFC/b94ZbfJiA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/vault-connector-entity-storage@0.20.0-next.1':
-    resolution: {integrity: sha512-gPF8l3jxXihS7s+pvZKUsDHIEMiBAZC3nrAbrnTHvPBY6o3501qwww2q1wbGRc16RWdqC1AkmOAhusakPiMQ0Q==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/vault-connector-entity-storage@0.20.0-next.2':
+    resolution: {integrity: sha512-AjsQPLXpiXNFS2K2bl/k8StRGv0ogs9isxB0RvSkAXZvr+dVcXnLFkKHmtMFB5Q9JTSG6hIAN53g2yGMqaFXiQ==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/vault-models@0.20.0-next.1':
-    resolution: {integrity: sha512-w3rNruwfhaiNpkIopMuD3Yn/5vTyfCWntJ2sJu/xT5nrUyqGm3GkgvbkTZeF7q9Q3nuvQRt3nWkdSjUM3cZoTw==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/vault-models@0.20.0-next.2':
+    resolution: {integrity: sha512-Ca7xajtfmbLxSSX6EFhyUhgqCwH/U0hcN3yeF5kjfOogi2DYHXrVe1Pi5x3dHS4PrMFYK0LWJXHlJ0Wr6DwoVA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/wallet-cli@0.20.0-next.1':
-    resolution: {integrity: sha512-F4iYYTTb/3pi1GnoBdjeE4UaLIUVYgRUnnXEJ60481AJP6MwK16/dEZT/PMWWl8omkrjqpIKRpTL7BAhCbbHog==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/wallet-cli@0.20.0-next.2':
+    resolution: {integrity: sha512-bfe4YjeOALPw962mq8zNkZ1ehy2iQroSmDke5/qDdD5vBUPo3ULDwgNmQqsMKGSHSIevOFr/lADBnnANP/TmZg==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
     hasBin: true
 
-  '@3sixty/wallet-connector-iota@0.20.0-next.1':
-    resolution: {integrity: sha512-TNLVTDDxtRB6ffQiP5R8FKglbKYDDwzCdCixahfHTfSUpALoO3kyeVGK244a6e4rW7kDX/itenSrOkQF4DqIFA==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/wallet-connector-iota@0.20.0-next.2':
+    resolution: {integrity: sha512-/9xqavOvAWidhr8s2j+Up2Y2nYLjiZokx1pnSrlUPIcHSytVUj3vNEmMtlAlqEm7tWuSDh9FURBhD7TfqOJtoA==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/wallet-models@0.20.0-next.1':
-    resolution: {integrity: sha512-TBML2KotQxdAU6FREheMZsuXIKBuzpujtNfugxtrSLZ7BeiRt8KlQxBJ5vH7F6R/1/bAKGokfTvHMnTZsnORJg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/wallet-models@0.20.0-next.2':
+    resolution: {integrity: sha512-RiLD4idLpUrDC7NuuQ2jxxQkzAeYX834OSdA4WLkHEX6ouj6f697LsZ3xAtK50O57mK0LSjD8m0v6yuTJ4gy4Q==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/web@0.20.0-next.2':
-    resolution: {integrity: sha512-fnX4iTbgaUa5x8RzppQ+GqvP4xex38M8kK48X0YGLMBfKBoU4iolZl1w4WXxRIipVjjZKvr51Bwwf0TW5UGcMg==}
-    engines: {node: '>=24.0.0'}
+  '@3sixty/web@0.20.0-next.4':
+    resolution: {integrity: sha512-OAqSjTvA2JKpBnbHZ475QWlTqOjo79K0JMcFok/3llOmUUz+ikBCaG5S3EiCF7CNefE8xLgkOKPil2CX66EXdw==}
+    engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
   '@babel/code-frame@7.29.7':
     resolution: {integrity: sha512-Aup7aUOfpbAUg2ROOJN6Iw5f9DMBlzu0mIkm/malLQFN/YQgO48wCj0Kxa3sEHJvPVFg7siR+qRInwXd2qhQKw==}
@@ -4262,63 +4262,60 @@ snapshots:
       graphql: 16.14.2
       typescript: 6.0.3
 
-  '@3sixty/api-core@0.20.0-next.1(supports-color@10.2.2)':
+  '@3sixty/api-core@0.20.0-next.2(supports-color@10.2.2)':
     dependencies:
-      '@3sixty/api-models': 0.20.0-next.1
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/api-models': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
       socket.io-client: 4.8.4(supports-color@10.2.2)
     transitivePeerDependencies:
       - bufferutil
       - supports-color
       - utf-8-validate
 
-  '@3sixty/api-models@0.20.0-next.1':
+  '@3sixty/api-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/context': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/context': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
 
-  '@3sixty/authorization-models@0.20.0-next.1':
+  '@3sixty/authorization-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/api-models': 0.20.0-next.1
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/telemetry-models': 0.20.0-next.1
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/telemetry-models': 0.20.0-next.2
 
-  '@3sixty/cli-core@0.20.0-next.2':
+  '@3sixty/cli-core@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
       chalk: 6.0.1
       commander: 15.0.0
       dotenv: 18.0.8
 
-  '@3sixty/context@0.20.0-next.2':
+  '@3sixty/context@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
 
-  '@3sixty/core@0.20.0-next.2':
+  '@3sixty/core@0.20.0-next.4':
     dependencies:
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
       intl-messageformat: 12.1.4
       rfc6902: 5.3.0
 
-  '@3sixty/crypto-cli@0.20.0-next.2':
+  '@3sixty/crypto-cli@0.20.0-next.4':
     dependencies:
-      '@3sixty/cli-core': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/cli-core': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
       commander: 15.0.0
 
-  '@3sixty/crypto@0.20.0-next.2':
+  '@3sixty/crypto@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
       '@noble/ciphers': 2.4.0
       '@noble/curves': 2.4.0
       '@noble/hashes': 2.4.0
@@ -4327,43 +4324,41 @@ snapshots:
       '@scure/bip39': 2.4.0
       micro-key-producer: 0.10.2
 
-  '@3sixty/data-core@0.20.0-next.3':
+  '@3sixty/data-core@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
       ajv: 8.20.0
       ajv-formats: 3.0.1(ajv@8.20.0)
 
-  '@3sixty/data-json-ld@0.20.0-next.3':
+  '@3sixty/data-json-ld@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/data-core': 0.20.0-next.3
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/data-core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
       '@types/jsonld': 1.5.15
       jsonld: 9.0.0
 
-  '@3sixty/dlt-account@0.20.0-next.1':
+  '@3sixty/dlt-account@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/vault-models': 0.20.0-next.1
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/vault-models': 0.20.0-next.2
 
-  '@3sixty/dlt-iota@0.20.0-next.1(typescript@6.0.3)':
+  '@3sixty/dlt-iota@0.20.0-next.2(typescript@6.0.3)':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/dlt-account': 0.20.0-next.1
-      '@3sixty/logging-models': 0.20.0-next.1
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-models': 0.20.0-next.1
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/dlt-account': 0.20.0-next.2
+      '@3sixty/logging-models': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/vault-models': 0.20.0-next.2
+      '@3sixty/web': 0.20.0-next.4
       '@iota/bcs': 1.6.0
       '@iota/identity-wasm': 1.9.7-beta.1(@iota/iota-sdk@1.15.0(typescript@6.0.3))
       '@iota/iota-sdk': 1.15.0(typescript@6.0.3)
@@ -4373,54 +4368,52 @@ snapshots:
       - encoding
       - typescript
 
-  '@3sixty/entity-storage-connector-memory@0.20.0-next.1':
+  '@3sixty/entity-storage-connector-memory@0.20.0-next.2':
     dependencies:
-      '@3sixty/api-models': 0.20.0-next.1
-      '@3sixty/context': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/entity-storage-models': 0.20.0-next.1
-      '@3sixty/logging-models': 0.20.0-next.1
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/api-models': 0.20.0-next.2
+      '@3sixty/context': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/entity-storage-models': 0.20.0-next.2
+      '@3sixty/logging-models': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
 
-  '@3sixty/entity-storage-models@0.20.0-next.1':
+  '@3sixty/entity-storage-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/context': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/logging-models': 0.20.0-next.1
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/context': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/logging-models': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
 
-  '@3sixty/entity@0.20.0-next.2':
+  '@3sixty/entity@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
       reflect-metadata: 0.2.2
       tslib: 2.8.1
 
-  '@3sixty/logging-models@0.20.0-next.1':
+  '@3sixty/logging-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
 
-  '@3sixty/merge-locales@0.20.0-next.2':
+  '@3sixty/merge-locales@0.20.0-next.4':
     dependencies:
-      '@3sixty/cli-core': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/cli-core': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
       commander: 15.0.0
-      glob: 13.0.6
 
-  '@3sixty/nameof-transformer@0.20.0-next.2':
+  '@3sixty/nameof-transformer@0.20.0-next.4':
     dependencies:
       typescript: 6.0.3
       typescript-native: typescript@7.1.0-beta
 
-  '@3sixty/nameof-vitest-plugin@0.20.0-next.2(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))':
+  '@3sixty/nameof-vitest-plugin@0.20.0-next.4(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
-      '@3sixty/nameof-transformer': 0.20.0-next.2
+      '@3sixty/nameof-transformer': 0.20.0-next.4
       vitest: 5.0.5(@types/node@26.6.2)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.2)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@edge-runtime/vm'
@@ -4437,9 +4430,9 @@ snapshots:
       - msw
       - vite
 
-  '@3sixty/nameof-vitest-plugin@0.20.0-next.2(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))':
+  '@3sixty/nameof-vitest-plugin@0.20.0-next.4(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
-      '@3sixty/nameof-transformer': 0.20.0-next.2
+      '@3sixty/nameof-transformer': 0.20.0-next.4
       vitest: 5.0.5(@types/node@26.6.5)(@vitest/coverage-v8@5.0.5)(vite@8.3.4(@types/node@26.6.5)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@edge-runtime/vm'
@@ -4456,96 +4449,88 @@ snapshots:
       - msw
       - vite
 
-  '@3sixty/nameof@0.20.0-next.2': {}
+  '@3sixty/nameof@0.20.0-next.4': {}
 
-  '@3sixty/standards-schema-org@0.20.0-next.2':
+  '@3sixty/standards-schema-org@0.20.0-next.3':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/data-core': 0.20.0-next.3
-      '@3sixty/data-json-ld': 0.20.0-next.3
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/data-core': 0.20.0-next.4
+      '@3sixty/data-json-ld': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
       schema-dts: 2.1.0
 
-  '@3sixty/standards-w3c-did@0.20.0-next.2':
+  '@3sixty/standards-w3c-did@0.20.0-next.3':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/data-core': 0.20.0-next.3
-      '@3sixty/data-json-ld': 0.20.0-next.3
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/data-core': 0.20.0-next.4
+      '@3sixty/data-json-ld': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
 
-  '@3sixty/telemetry-models@0.20.0-next.1':
+  '@3sixty/telemetry-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
 
-  '@3sixty/tools-core@0.20.0-next.4':
+  '@3sixty/tools-core@0.20.0-next.6':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/tools-models': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/tools-models': 0.20.0-next.6
       glob: 13.0.6
       typescript: 6.0.3
 
-  '@3sixty/tools-models@0.20.0-next.4':
-    dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+  '@3sixty/tools-models@0.20.0-next.6': {}
 
-  '@3sixty/ts-to-openapi@0.20.0-next.4':
+  '@3sixty/ts-to-openapi@0.20.0-next.6':
     dependencies:
-      '@3sixty/cli-core': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/tools-core': 0.20.0-next.4
-      '@3sixty/tools-models': 0.20.0-next.4
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/cli-core': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/tools-core': 0.20.0-next.6
+      '@3sixty/tools-models': 0.20.0-next.6
+      '@3sixty/web': 0.20.0-next.4
       commander: 15.0.0
-      glob: 13.0.6
 
-  '@3sixty/validate-locales@0.20.0-next.2':
+  '@3sixty/validate-locales@0.20.0-next.4':
     dependencies:
-      '@3sixty/cli-core': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/nameof-transformer': 0.20.0-next.2
+      '@3sixty/cli-core': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/nameof-transformer': 0.20.0-next.4
       commander: 15.0.0
       glob: 13.0.6
       typescript: 6.0.3
 
-  '@3sixty/vault-connector-entity-storage@0.20.0-next.1':
+  '@3sixty/vault-connector-entity-storage@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/entity-storage-models': 0.20.0-next.1
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/vault-models': 0.20.0-next.1
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/entity': 0.20.0-next.4
+      '@3sixty/entity-storage-models': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/vault-models': 0.20.0-next.2
 
-  '@3sixty/vault-models@0.20.0-next.1':
+  '@3sixty/vault-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/web': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/web': 0.20.0-next.4
 
-  '@3sixty/wallet-cli@0.20.0-next.1(typescript@6.0.3)':
+  '@3sixty/wallet-cli@0.20.0-next.2(typescript@6.0.3)':
     dependencies:
-      '@3sixty/cli-core': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/crypto-cli': 0.20.0-next.2
-      '@3sixty/entity': 0.20.0-next.2
-      '@3sixty/entity-storage-connector-memory': 0.20.0-next.1
-      '@3sixty/entity-storage-models': 0.20.0-next.1
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/vault-connector-entity-storage': 0.20.0-next.1
-      '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-connector-iota': 0.20.0-next.1(typescript@6.0.3)
-      '@3sixty/wallet-models': 0.20.0-next.1
+      '@3sixty/cli-core': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto-cli': 0.20.0-next.4
+      '@3sixty/entity-storage-connector-memory': 0.20.0-next.2
+      '@3sixty/entity-storage-models': 0.20.0-next.2
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/vault-connector-entity-storage': 0.20.0-next.2
+      '@3sixty/vault-models': 0.20.0-next.2
+      '@3sixty/wallet-connector-iota': 0.20.0-next.2(typescript@6.0.3)
+      '@3sixty/wallet-models': 0.20.0-next.2
       commander: 15.0.0
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
@@ -4553,33 +4538,31 @@ snapshots:
       - encoding
       - typescript
 
-  '@3sixty/wallet-connector-iota@0.20.0-next.1(typescript@6.0.3)':
+  '@3sixty/wallet-connector-iota@0.20.0-next.2(typescript@6.0.3)':
     dependencies:
-      '@3sixty/api-models': 0.20.0-next.1
-      '@3sixty/context': 0.20.0-next.2
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/dlt-account': 0.20.0-next.1
-      '@3sixty/dlt-iota': 0.20.0-next.1(typescript@6.0.3)
-      '@3sixty/nameof': 0.20.0-next.2
-      '@3sixty/vault-models': 0.20.0-next.1
-      '@3sixty/wallet-models': 0.20.0-next.1
+      '@3sixty/api-models': 0.20.0-next.2
+      '@3sixty/context': 0.20.0-next.4
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/dlt-account': 0.20.0-next.2
+      '@3sixty/dlt-iota': 0.20.0-next.2(typescript@6.0.3)
+      '@3sixty/nameof': 0.20.0-next.4
+      '@3sixty/vault-models': 0.20.0-next.2
+      '@3sixty/wallet-models': 0.20.0-next.2
     transitivePeerDependencies:
       - '@gql.tada/svelte-support'
       - '@gql.tada/vue-support'
       - encoding
       - typescript
 
-  '@3sixty/wallet-models@0.20.0-next.1':
+  '@3sixty/wallet-models@0.20.0-next.2':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
 
-  '@3sixty/web@0.20.0-next.2':
+  '@3sixty/web@0.20.0-next.4':
     dependencies:
-      '@3sixty/core': 0.20.0-next.2
-      '@3sixty/crypto': 0.20.0-next.2
-      '@3sixty/nameof': 0.20.0-next.2
+      '@3sixty/core': 0.20.0-next.4
+      '@3sixty/crypto': 0.20.0-next.4
+      '@3sixty/nameof': 0.20.0-next.4
       jose: 6.2.12
 
   '@babel/code-frame@7.29.7':
