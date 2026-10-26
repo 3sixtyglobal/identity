@@ -1,6 +1,6 @@
 {
 	"name": "@3sixty/identity-service",
-	"version": "0.20.0-next.2",
+	"version": "0.20.0-next.3",
 	"description": "Service contracts and REST endpoint definitions for exposing identity workflows through stable interfaces.",
 	"repository": {
 		"type": "git",
@@ -37,7 +37,7 @@
 		"@3sixty/core": "next",
 		"@3sixty/data-json-ld": "next",
 		"@3sixty/dlt-account": "next",
-		"@3sixty/identity-models": "0.20.0-next.2",
+		"@3sixty/identity-models": "0.20.0-next.3",
 		"@3sixty/nameof": "next",
 		"@3sixty/standards-w3c-did": "next",
 		"@3sixty/telemetry-models": "next",
@@ -48,7 +48,7 @@
 		"@3sixty/crypto": "next",
 		"@3sixty/entity-storage-connector-memory": "next",
 		"@3sixty/entity-storage-models": "next",
-		"@3sixty/identity-connector-entity-storage": "0.20.0-next.2",
+		"@3sixty/identity-connector-entity-storage": "0.20.0-next.3",
 		"@3sixty/nameof-transformer": "next",
 		"@3sixty/nameof-vitest-plugin": "next",
 		"@3sixty/ts-to-openapi": "next",

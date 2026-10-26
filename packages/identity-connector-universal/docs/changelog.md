@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.20.0-next.3](https://github.com/3sixtyglobal/identity/compare/identity-connector-universal-v0.20.0-next.2...identity-connector-universal-v0.20.0-next.3) (2026-10-26)
+
+
+### Miscellaneous Chores
+
+* **identity-connector-universal:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/identity-models bumped from 0.20.0-next.2 to 0.20.0-next.3
+
 ## [0.20.0-next.2](https://github.com/3sixtyglobal/identity/compare/identity-connector-universal-v0.20.0-next.1...identity-connector-universal-v0.20.0-next.2) (2026-10-26)
 
 

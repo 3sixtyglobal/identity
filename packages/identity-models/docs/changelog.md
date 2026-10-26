@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0-next.3](https://github.com/3sixtyglobal/identity/compare/identity-models-v0.20.0-next.2...identity-models-v0.20.0-next.3) (2026-10-26)
+
+
+### Features
+
+* create a self-controlled identity ([#53](https://github.com/3sixtyglobal/identity/issues/53)) ([5d5a894](https://github.com/3sixtyglobal/identity/commit/5d5a89447a8f6282fa1e0242da254b2cef5650f6))
+
 ## [0.20.0-next.2](https://github.com/3sixtyglobal/identity/compare/identity-models-v0.20.0-next.1...identity-models-v0.20.0-next.2) (2026-10-26)
 
 
