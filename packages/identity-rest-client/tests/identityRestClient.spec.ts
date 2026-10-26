@@ -114,6 +114,26 @@ describe("IdentityRestClient", () => {
 			const [, options] = fetchMock.mock.calls[0];
 			const body = JSON.parse(options.body);
 			expect(body.namespace).toBe("iota");
+			expect(body.selfControlled).toBeUndefined();
+		});
+
+		test("throws when a controller is provided", async () => {
+			await expect(client.identityCreate("iota", "did:iota:other")).rejects.toMatchObject({
+				name: "NotSupportedError",
+				message: "identityRestClient.controllerNotSupported"
+			});
+			expect(fetchMock).not.toHaveBeenCalled();
+		});
+
+		test("sends selfControlled in request body when the option is set", async () => {
+			fetchMock.mockResolvedValueOnce(jsonResponse(TEST_DID_DOCUMENT));
+
+			await client.identityCreate("iota", undefined, { selfControlled: true });
+
+			const [, options] = fetchMock.mock.calls[0];
+			const body = JSON.parse(options.body);
+			expect(body.namespace).toBe("iota");
+			expect(body.selfControlled).toBe(true);
 		});
 
 		test("returns the DID document from the response body", async () => {

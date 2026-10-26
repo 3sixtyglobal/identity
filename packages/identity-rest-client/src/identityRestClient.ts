@@ -77,30 +77,33 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 	/**
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
+	 * @param controller Not supported by the REST client; the controller is resolved server-side from the session context.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
+	 * @throws NotSupportedError If a controller is provided.
 	 */
-	public async identityCreate(namespace?: string): Promise<IDidDocument> {
+	public async identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		if (!Is.empty(controller)) {
+			throw new NotSupportedError(IdentityRestClient.CLASS_NAME, "controllerNotSupported");
+		}
+
 		const response = await this.fetch<IIdentityCreateRequest, IIdentityCreateResponse>(
 			"/",
 			HttpMethod.POST,
 			{
 				body: {
-					namespace
+					namespace,
+					selfControlled: options?.selfControlled
 				}
 			}
 		);
 
 		return response.body;
-	}
-
-	/**
-	 * Create a new identity controlled by its own DID.
-	 * There is no HTTP route for this. Adoption calls the in-process service.
-	 * @returns The created identity document.
-	 * @throws NotSupportedError Always.
-	 */
-	public async identityCreateSelf(): Promise<IDidDocument> {
-		throw new NotSupportedError(IdentityRestClient.CLASS_NAME, "identityCreateSelfNotSupported");
 	}
 
 	/**

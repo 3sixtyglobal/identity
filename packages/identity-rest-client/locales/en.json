@@ -1,7 +1,7 @@
 {
 	"error": {
 		"identityRestClient": {
-			"identityCreateSelfNotSupported": "Creating a self-controlled identity is not supported by the REST client"
+			"controllerNotSupported": "The controller cannot be provided to the REST client, it is resolved from the session context"
 		}
 	}
 }

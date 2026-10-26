@@ -298,8 +298,15 @@ describe("EntityStorageIdentityConnector - controller enforcement", () => {
 		});
 	});
 
-	test("createSelfControlledDocument stores the new DID as its controller", async () => {
-		const document = await identityConnector.createSelfControlledDocument();
+	test("createDocument without a controller requires selfControlled", async () => {
+		await expect(identityConnector.createDocument()).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string"
+		});
+	});
+
+	test("createDocument with selfControlled stores the new DID as its controller", async () => {
+		const document = await identityConnector.createDocument(undefined, { selfControlled: true });
 
 		expect(document.id.startsWith("did:")).toEqual(true);
 

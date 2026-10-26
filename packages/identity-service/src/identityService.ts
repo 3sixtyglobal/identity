@@ -239,33 +239,25 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
 	 */
-	public async identityCreate(namespace?: string, controller?: string): Promise<IDidDocument> {
-		Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+	public async identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		const selfControlled = options?.selfControlled ?? false;
+		if (!selfControlled) {
+			Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+		}
 
 		try {
 			const identityConnector = this.getConnectorByNamespace(namespace);
-			const result = await identityConnector.createDocument(controller);
+			const result = await identityConnector.createDocument(controller, { selfControlled });
 			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsCreated, {
 				namespace: namespace ?? this._defaultNamespace
-			});
-			return result;
-		} catch (error) {
-			throw new GeneralError(IdentityService.CLASS_NAME, "identityCreateFailed", undefined, error);
-		}
-	}
-
-	/**
-	 * Create a new identity controlled by its own DID.
-	 * @returns The created identity document.
-	 */
-	public async identityCreateSelf(): Promise<IDidDocument> {
-		try {
-			const identityConnector = this.getConnectorByNamespace();
-			const result = await identityConnector.createSelfControlledDocument();
-			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsCreated, {
-				namespace: this._defaultNamespace
 			});
 			return result;
 		} catch (error) {

@@ -13,5 +13,10 @@ export interface IIdentityCreateRequest {
 		 * The optional namespace to create the identity in.
 		 */
 		namespace?: string;
+
+		/**
+		 * Create the identity controlled by its own DID, defaults to false.
+		 */
+		selfControlled?: boolean;
 	};
 }

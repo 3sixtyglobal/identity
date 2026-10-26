@@ -22,15 +22,15 @@ export interface IIdentityComponent extends IComponent {
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
 	 */
-	identityCreate(namespace?: string, controller?: string): Promise<IDidDocument>;
-
-	/**
-	 * Create a new identity controlled by its own DID.
-	 * @returns The created identity document.
-	 */
-	identityCreateSelf(): Promise<IDidDocument>;
+	identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument>;
 
 	/**
 	 * Remove an identity.

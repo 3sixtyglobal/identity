@@ -221,52 +221,19 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 	/**
 	 * Create a new document.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the document controlled by its own DID instead of the controller.
 	 * @returns The created document.
 	 */
-	public async createDocument(controller: string): Promise<IDidDocument> {
-		Guards.stringValue(EntityStorageIdentityConnector.CLASS_NAME, nameof(controller), controller);
-
-		try {
-			const did = `did:${EntityStorageIdentityConnector.NAMESPACE}:${Converter.bytesToHex(RandomHelper.generate(32), true)}`;
-
-			await this._vaultConnector.createKey(
-				EntityStorageIdentityConnector.buildVaultKey(did, "did"),
-				VaultKeyType.Ed25519
-			);
-
-			const bitString = new BitString(EntityStorageIdentityConnector._REVOCATION_BITS_SIZE);
-			const compressed = await Compression.compress(bitString.getBits(), CompressionType.Gzip);
-
-			const didDocument: IDidDocument = {
-				"@context": DidContexts.Context,
-				id: did,
-				service: [
-					{
-						id: `${did}#revocation`,
-						type: "BitstringStatusList",
-						serviceEndpoint: `data:application/octet-stream;base64,${Converter.bytesToBase64Url(compressed)}`
-					}
-				]
-			};
-
-			await this.updateDocument(controller, didDocument);
-
-			return didDocument;
-		} catch (error) {
-			throw new GeneralError(
-				EntityStorageIdentityConnector.CLASS_NAME,
-				"createDocumentFailed",
-				undefined,
-				error
-			);
+	public async createDocument(
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		const selfControlled = options?.selfControlled ?? false;
+		if (!selfControlled) {
+			Guards.stringValue(EntityStorageIdentityConnector.CLASS_NAME, nameof(controller), controller);
 		}
-	}
 
-	/**
-	 * Create a new document controlled by its own DID.
-	 * @returns The new document.
-	 */
-	public async createSelfControlledDocument(): Promise<IDidDocument> {
 		try {
 			const did = `did:${EntityStorageIdentityConnector.NAMESPACE}:${Converter.bytesToHex(RandomHelper.generate(32), true)}`;
 
@@ -290,7 +257,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				]
 			};
 
-			await this.updateDocument(did, didDocument);
+			await this.updateDocument(selfControlled ? did : (controller ?? did), didDocument);
 
 			return didDocument;
 		} catch (error) {

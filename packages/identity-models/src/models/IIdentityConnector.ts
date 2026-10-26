@@ -21,15 +21,14 @@ export interface IIdentityConnector extends IComponent {
 	/**
 	 * Create a new document.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the document controlled by its own DID instead of the controller.
 	 * @returns The created document.
 	 */
-	createDocument(controller: string): Promise<IDidDocument>;
-
-	/**
-	 * Create a new document controlled by its own DID.
-	 * @returns The new document.
-	 */
-	createSelfControlledDocument(): Promise<IDidDocument>;
+	createDocument(
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument>;
 
 	/**
 	 * Remove a document.
