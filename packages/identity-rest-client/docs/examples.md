@@ -12,12 +12,19 @@ const client = new IdentityRestClient({
 });
 
 const className = client.className();
+// Controlled by the organization in the session context
 const createdDocument = await client.identityCreate('iota');
+
+// Controlled by its own DID
+const selfControlledDocument = await client.identityCreate('iota', undefined, {
+  selfControlled: true
+});
 
 await client.identityRemove(createdDocument.id);
 
 console.log(className); // IdentityRestClient
 console.log(createdDocument.id); // did:iota:tst:0x...
+console.log(selfControlledDocument.id); // did:iota:tst:0x...
 ```
 
 ```typescript

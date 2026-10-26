@@ -1,8 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { BaseRestClient } from "@3sixty/api-core";
 import type { IBaseRestClientConfig, INoContentResponse } from "@3sixty/api-models";
-import { Coerce, Guards, Is } from "@3sixty/core";
+import { Coerce, Guards, Is, NotSupportedError } from "@3sixty/core";
 import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import {
 	DocumentHelper,
@@ -76,15 +77,28 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 	/**
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
+	 * @param controller Not supported by the REST client; the controller is resolved server-side from the session context.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
+	 * @throws NotSupportedError If a controller is provided.
 	 */
-	public async identityCreate(namespace?: string): Promise<IDidDocument> {
+	public async identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		if (!Is.empty(controller)) {
+			throw new NotSupportedError(IdentityRestClient.CLASS_NAME, "controllerNotSupported");
+		}
+
 		const response = await this.fetch<IIdentityCreateRequest, IIdentityCreateResponse>(
 			"/",
 			HttpMethod.POST,
 			{
 				body: {
-					namespace
+					namespace,
+					selfControlled: options?.selfControlled
 				}
 			}
 		);

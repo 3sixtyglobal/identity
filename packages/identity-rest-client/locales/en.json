@@ -1,1 +1,7 @@
-{}
+{
+	"error": {
+		"identityRestClient": {
+			"controllerNotSupported": "The controller cannot be provided to the REST client, it is resolved from the session context"
+		}
+	}
+}

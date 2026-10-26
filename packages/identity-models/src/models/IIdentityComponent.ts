@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IComponent } from "@3sixty/core";
 import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
@@ -21,9 +22,15 @@ export interface IIdentityComponent extends IComponent {
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
 	 */
-	identityCreate(namespace?: string, controller?: string): Promise<IDidDocument>;
+	identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument>;
 
 	/**
 	 * Remove an identity.

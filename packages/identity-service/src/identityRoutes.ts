@@ -92,6 +92,14 @@ export function generateRestRoutesIdentity(
 				{
 					id: "identityCreateRequestExample",
 					request: {}
+				},
+				{
+					id: "identityCreateSelfControlledRequestExample",
+					request: {
+						body: {
+							selfControlled: true
+						}
+					}
 				}
 			]
 		},
@@ -1055,10 +1063,18 @@ export async function identityCreate(
 ): Promise<IIdentityCreateResponse> {
 	Guards.object<IIdentityCreateRequest>(ROUTES_SOURCE, nameof(request), request);
 
+	const component = ComponentFactory.get<IIdentityComponent>(componentName);
+
+	if (request.body?.selfControlled ?? false) {
+		return {
+			body: await component.identityCreate(request.body?.namespace, undefined, {
+				selfControlled: true
+			})
+		};
+	}
+
 	const contextIds = await ContextIdStore.getContextIds();
 	ContextIdHelper.guard(contextIds, ContextIdKeys.Organization);
-
-	const component = ComponentFactory.get<IIdentityComponent>(componentName);
 
 	const result = await component.identityCreate(
 		request.body?.namespace,

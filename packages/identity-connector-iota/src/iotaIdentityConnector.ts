@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	HealthCategory,
@@ -17,6 +18,7 @@ import {
 	Is,
 	LruCache,
 	NotFoundError,
+	NotSupportedError,
 	ObjectHelper,
 	RandomHelper,
 	TimeoutHelper,
@@ -366,9 +368,17 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	/**
 	 * Create a new document.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the document controlled by its own DID instead of the controller.
 	 * @returns The created document.
 	 */
-	public async createDocument(controller: string): Promise<IDidDocument> {
+	public async createDocument(
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		if (options?.selfControlled ?? false) {
+			return this.createSelfControlledDocument();
+		}
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), controller);
 
 		try {
@@ -2399,6 +2409,51 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		}
 
 		return IotaDID.parse(`did:iota:${networkHrp}:${objectId}`);
+	}
+
+	/**
+	 * Create a document controlled by its own DID.
+	 * A fresh account signs the creation under a temporary identity, the gas station pays,
+	 * then the account keys are moved to the new DID so it controls itself.
+	 * @returns The created document.
+	 * @throws NotSupportedError If no gas station is configured, as the new account has no funds.
+	 * @internal
+	 */
+	private async createSelfControlledDocument(): Promise<IDidDocument> {
+		if (!Is.object(this._config.gasStation)) {
+			throw new NotSupportedError(
+				IotaIdentityConnector.CLASS_NAME,
+				"selfControlledGasStationRequired"
+			);
+		}
+
+		const tempIdentity = `self-controlled-${Converter.bytesToHex(RandomHelper.generate(16))}`;
+
+		await AccountHelper.createAccountKeys(
+			this._config,
+			this._vaultConnector,
+			tempIdentity,
+			undefined,
+			this._walletAccountIndex
+		);
+
+		let document: IDidDocument;
+		try {
+			document = await this.createDocument(tempIdentity);
+		} catch (error) {
+			await AccountHelper.removeAccountKeys(this._config, this._vaultConnector, tempIdentity);
+			throw error;
+		}
+
+		// Not removed on failure here, the keys are the only way to control the published DID.
+		await AccountHelper.renameAccountKeys(
+			this._config,
+			this._vaultConnector,
+			tempIdentity,
+			document.id
+		);
+
+		return document;
 	}
 
 	/**

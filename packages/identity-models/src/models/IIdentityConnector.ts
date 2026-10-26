@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IComponent } from "@3sixty/core";
 import type { IJsonLdContextDefinitionRoot, IJsonLdNodeObject } from "@3sixty/data-json-ld";
@@ -20,9 +21,14 @@ export interface IIdentityConnector extends IComponent {
 	/**
 	 * Create a new document.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the document controlled by its own DID instead of the controller.
 	 * @returns The created document.
 	 */
-	createDocument(controller: string): Promise<IDidDocument>;
+	createDocument(
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument>;
 
 	/**
 	 * Remove a document.

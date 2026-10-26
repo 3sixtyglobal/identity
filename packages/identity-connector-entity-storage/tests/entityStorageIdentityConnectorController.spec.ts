@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 /**
  * Tests that every mutating and signing operation refuses a caller whose controller differs from
@@ -295,5 +296,42 @@ describe("EntityStorageIdentityConnector - controller enforcement", () => {
 				properties: { documentId: bootstrap.id }
 			}
 		});
+	});
+
+	test("createDocument without a controller requires selfControlled", async () => {
+		await expect(identityConnector.createDocument()).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string"
+		});
+	});
+
+	test("createDocument with selfControlled stores the new DID as its controller", async () => {
+		const document = await identityConnector.createDocument(undefined, { selfControlled: true });
+
+		expect(document.id.startsWith("did:")).toEqual(true);
+
+		const stored = await didDocumentEntityStorage.get(document.id);
+		expect(stored?.controller).toEqual(document.id);
+
+		await expect(
+			identityConnector.addVerificationMethod(
+				TENANT_B,
+				document.id,
+				DidVerificationMethodType.AssertionMethod,
+				"hijacked"
+			)
+		).rejects.toMatchObject({
+			name: "GeneralError",
+			message: "entityStorageIdentityConnector.addVerificationMethodFailed",
+			cause: {
+				name: "UnauthorizedError",
+				message: "entityStorageIdentityConnector.notController",
+				properties: { documentId: document.id }
+			}
+		});
+
+		await identityConnector.removeDocument(document.id, document.id, { removeKeys: true });
+
+		expect(await didDocumentEntityStorage.get(document.id)).toBeUndefined();
 	});
 });

@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import {
 	HealthCategory,
@@ -238,14 +239,23 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 	 * Create a new identity.
 	 * @param namespace The namespace of the connector to use for the identity, defaults to service configured namespace.
 	 * @param controller The controller of the identity who can make changes.
+	 * @param options Optional settings.
+	 * @param options.selfControlled Create the identity controlled by its own DID instead of the controller.
 	 * @returns The created identity document.
 	 */
-	public async identityCreate(namespace?: string, controller?: string): Promise<IDidDocument> {
-		Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+	public async identityCreate(
+		namespace?: string,
+		controller?: string,
+		options?: { selfControlled?: boolean }
+	): Promise<IDidDocument> {
+		const selfControlled = options?.selfControlled ?? false;
+		if (!selfControlled) {
+			Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+		}
 
 		try {
 			const identityConnector = this.getConnectorByNamespace(namespace);
-			const result = await identityConnector.createDocument(controller);
+			const result = await identityConnector.createDocument(controller, { selfControlled });
 			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsCreated, {
 				namespace: namespace ?? this._defaultNamespace
 			});

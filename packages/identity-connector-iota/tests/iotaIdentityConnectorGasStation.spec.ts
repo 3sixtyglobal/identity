@@ -174,6 +174,36 @@ describe("IotaIdentityConnector with Gas Station", () => {
 
 			expect(regularDocument.id).not.toBe(gasStationDocument.id);
 		}, 60000);
+
+		test("Should create a self-controlled identity document using gas station", async () => {
+			const connector = new IotaIdentityConnector({
+				config: gasStationConfig
+			});
+
+			const document = await connector.createDocument(undefined, { selfControlled: true });
+			expect(document.id.includes("did:iota:")).toBe(true);
+
+			const addedMethod = await connector.addVerificationMethod(
+				document.id,
+				document.id,
+				DidVerificationMethodType.AssertionMethod,
+				"selfControlledMethod"
+			);
+			expect(addedMethod.id).toEqual(`${document.id}#selfControlledMethod`);
+		}, 60000);
+
+		test("Should fail to create a self-controlled identity document without gas station", async () => {
+			const connector = new IotaIdentityConnector({
+				config: regularConfig
+			});
+
+			await expect(
+				connector.createDocument(undefined, { selfControlled: true })
+			).rejects.toMatchObject({
+				name: "NotSupportedError",
+				message: "iotaIdentityConnector.selfControlledGasStationRequired"
+			});
+		});
 	});
 
 	describe("Document Update Operations with Gas Station", () => {

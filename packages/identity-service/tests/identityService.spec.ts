@@ -1,9 +1,14 @@
 // Copyright 2024 IOTA Stiftung.
 // Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
-import { HealthCategory, HealthStatus, type IHealth } from "@3sixty/api-models";
+import {
+	HealthCategory,
+	HealthStatus,
+	type IHealth,
+	type IHttpRequestContext
+} from "@3sixty/api-models";
 import { ContextIdKeys, ContextIdStore, type IContextIds } from "@3sixty/context";
-import { RandomHelper } from "@3sixty/core";
+import { ComponentFactory, RandomHelper } from "@3sixty/core";
 import { Bip39 } from "@3sixty/crypto";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
@@ -28,6 +33,7 @@ import {
 import { VaultConnectorFactory } from "@3sixty/vault-models";
 import { REVOCATION_ENDPOINT_MATCHER, expectEmptyRevocationList } from "./revocationHelper.js";
 import { IdentityResolverService } from "../src/identityResolverService.js";
+import { identityCreate } from "../src/identityRoutes.js";
 import { IdentityService } from "../src/identityService.js";
 
 export const TEST_IDENTITY_ID = "test-identity";
@@ -126,6 +132,44 @@ describe("IdentityService", () => {
 			]
 		});
 		await expectEmptyRevocationList(identity);
+	});
+
+	test("Can create a self-controlled identity", async () => {
+		const service = new IdentityService();
+
+		// The shared store already holds the document created from the first deterministic id.
+		RandomHelper.generate(1);
+
+		const identity = await service.identityCreate(undefined, undefined, { selfControlled: true });
+
+		expect(identity.id.startsWith("did:entity-storage:")).toEqual(true);
+
+		const stored = await identityDocumentEntityStorage.get(identity.id);
+		expect(stored?.controller).toEqual(identity.id);
+	});
+
+	test("Can create a self-controlled identity through the route without an organization context", async () => {
+		ComponentFactory.register("identity-route-test", () => new IdentityService());
+
+		// Skip the deterministic ids already used by the previous tests.
+		RandomHelper.generate(1);
+		RandomHelper.generate(1);
+
+		const response = await identityCreate({} as IHttpRequestContext, "identity-route-test", {
+			body: { selfControlled: true }
+		});
+
+		const stored = await identityDocumentEntityStorage.get(response.body.id);
+		expect(stored?.controller).toEqual(response.body.id);
+	});
+
+	test("Creating an identity requires a controller when not self-controlled", async () => {
+		const service = new IdentityService();
+
+		await expect(service.identityCreate(undefined, undefined)).rejects.toMatchObject({
+			name: "GuardError",
+			message: "guard.string"
+		});
 	});
 
 	test("Can create a verification method", async () => {

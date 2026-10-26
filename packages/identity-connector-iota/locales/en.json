@@ -28,6 +28,7 @@
 			"checkingVerifiableCredentialFailed": "Checking the verifiable credential failed",
 			"checkingVerifiablePresentationFailed": "Checking the verifiable presentation failed",
 			"createDocumentFailed": "Creating the document failed",
+			"selfControlledGasStationRequired": "Creating a self-controlled document requires a gas station to be configured",
 			"createProofFailed": "Creating the signature for the data failed",
 			"createVerifiableCredentialFailed": "Creating the verifiable credential failed",
 			"createVerifiablePresentationFailed": "Creating the verifiable presentation failed",
