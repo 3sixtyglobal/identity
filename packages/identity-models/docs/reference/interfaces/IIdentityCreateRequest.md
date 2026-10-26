@@ -15,3 +15,9 @@ The data for the request.
 > `optional` **namespace?**: `string`
 
 The optional namespace to create the identity in.
+
+#### selfControlled?
+
+> `optional` **selfControlled?**: `boolean`
+
+Create the identity controlled by its own DID, defaults to false.

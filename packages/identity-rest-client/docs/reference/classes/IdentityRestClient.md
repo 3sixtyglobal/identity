@@ -64,7 +64,7 @@ The class name of the component.
 
 ### identityCreate() {#identitycreate}
 
-> **identityCreate**(`namespace?`): `Promise`\<`IDidDocument`\>
+> **identityCreate**(`namespace?`, `controller?`, `options?`): `Promise`\<`IDidDocument`\>
 
 Create a new identity.
 
@@ -76,11 +76,31 @@ Create a new identity.
 
 The namespace of the connector to use for the identity, defaults to service configured namespace.
 
+##### controller?
+
+`string`
+
+Not supported by the REST client; the controller is resolved server-side from the session context.
+
+##### options?
+
+Optional settings.
+
+###### selfControlled?
+
+`boolean`
+
+Create the identity controlled by its own DID instead of the controller.
+
 #### Returns
 
 `Promise`\<`IDidDocument`\>
 
 The created identity document.
+
+#### Throws
+
+NotSupportedError If a controller is provided.
 
 #### Implementation of
 

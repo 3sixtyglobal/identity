@@ -91,17 +91,27 @@ A promise that resolves when the service has stopped.
 
 ### createDocument() {#createdocument}
 
-> **createDocument**(`controller`): `Promise`\<`IDidDocument`\>
+> **createDocument**(`controller?`, `options?`): `Promise`\<`IDidDocument`\>
 
 Create a new document.
 
 #### Parameters
 
-##### controller
+##### controller?
 
 `string`
 
 The controller of the identity who can make changes.
+
+##### options?
+
+Optional settings.
+
+###### selfControlled?
+
+`boolean`
+
+Create the document controlled by its own DID instead of the controller.
 
 #### Returns
 

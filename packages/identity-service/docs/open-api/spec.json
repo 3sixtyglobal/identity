@@ -260,6 +260,13 @@
 						"application/json": {
 							"schema": {
 								"$ref": "#/components/schemas/IdentityCreateRequest"
+							},
+							"examples": {
+								"identityCreateSelfControlledRequestExample": {
+									"value": {
+										"selfControlled": true
+									}
+								}
 							}
 						}
 					}
@@ -3813,6 +3820,10 @@
 					"namespace": {
 						"type": "string",
 						"description": "The optional namespace to create the identity in."
+					},
+					"selfControlled": {
+						"type": "boolean",
+						"description": "Create the identity controlled by its own DID, defaults to false."
 					}
 				},
 				"description": "The data for the request."
