@@ -146,7 +146,7 @@ Removes the DID document created in healthApplicationInit.
 
 ### identityCreate() {#identitycreate}
 
-> **identityCreate**(`namespace?`, `controller?`): `Promise`\<`IDidDocument`\>
+> **identityCreate**(`namespace?`, `controller?`, `options?`): `Promise`\<`IDidDocument`\>
 
 Create a new identity.
 
@@ -163,6 +163,16 @@ The namespace of the connector to use for the identity, defaults to service conf
 `string`
 
 The controller of the identity who can make changes.
+
+##### options?
+
+Optional settings.
+
+###### selfControlled?
+
+`boolean`
+
+Create the identity controlled by its own DID instead of the controller.
 
 #### Returns
 
