@@ -31,6 +31,7 @@ import {
 	initSchema as initSchemaVault
 } from "@3sixty/vault-connector-entity-storage";
 import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { REVOCATION_ENDPOINT_MATCHER, expectEmptyRevocationList } from "./revocationHelper.js";
 import { IdentityResolverService } from "../src/identityResolverService.js";
 import { identityCreate } from "../src/identityRoutes.js";
 import { IdentityService } from "../src/identityService.js";
@@ -126,11 +127,11 @@ describe("IdentityService", () => {
 				{
 					id: "did:entity-storage:0x0101010101010101010101010101010101010101010101010101010101010101#revocation",
 					type: "BitstringStatusList",
-					serviceEndpoint:
-						"data:application/octet-stream;base64,H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+					serviceEndpoint: REVOCATION_ENDPOINT_MATCHER
 				}
 			]
 		});
+		await expectEmptyRevocationList(identity);
 	});
 
 	test("Can create a self-controlled identity", async () => {

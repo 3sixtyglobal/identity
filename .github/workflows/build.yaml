@@ -1,7 +1,14 @@
 name: Build
+run-name: ${{ inputs.bunOnly && 'Build (Bun only)' || github.event.pull_request.title || github.event.head_commit.message || 'Build' }}
 
 on:
   workflow_dispatch:
+    inputs:
+      bunOnly:
+        description: 'Only compile and run the Bun tests, as the release workflow runs the rest.'
+        required: false
+        type: boolean
+        default: false
   pull_request:
     branches:
       - next
@@ -81,9 +88,23 @@ jobs:
 
       # Run Lint and Dist
       - name: Run Lint and Dist
+        if: ${{ !inputs.bunOnly }}
         run: |
           pnpm run quality
           pnpm run docs
+
+      # Build the packages and tests only, for the Bun tests to run against
+      - name: Compile
+        if: ${{ inputs.bunOnly }}
+        run: pnpm run compile
+
+      # Setup Bun
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
+      # Run the tests again on the Bun runtime
+      - name: Run Tests (Bun)
+        run: pnpm run test:bun
 
       # Always teardown the environment, necessary to cleanup self-hosted
       - name: Teardown Test Environment

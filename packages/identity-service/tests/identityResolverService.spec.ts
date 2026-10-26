@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { RandomHelper } from "@3sixty/core";
 import { Bip39 } from "@3sixty/crypto";
@@ -23,6 +24,7 @@ import {
 	initSchema as initSchemaVault
 } from "@3sixty/vault-connector-entity-storage";
 import { VaultConnectorFactory } from "@3sixty/vault-models";
+import { REVOCATION_ENDPOINT_MATCHER, expectEmptyRevocationList } from "./revocationHelper.js";
 import { IdentityResolverService } from "../src/identityResolverService.js";
 import { IdentityService } from "../src/identityService.js";
 
@@ -114,11 +116,11 @@ describe("IdentityResolverService", () => {
 				{
 					id: "did:entity-storage:0x0101010101010101010101010101010101010101010101010101010101010101#revocation",
 					type: "BitstringStatusList",
-					serviceEndpoint:
-						"data:application/octet-stream;base64,H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+					serviceEndpoint: REVOCATION_ENDPOINT_MATCHER
 				}
 			]
 		});
+		await expectEmptyRevocationList(identity);
 	});
 
 	test("Can resolve an identity", async () => {
@@ -135,10 +137,10 @@ describe("IdentityResolverService", () => {
 				{
 					id: "did:entity-storage:0x0101010101010101010101010101010101010101010101010101010101010101#revocation",
 					type: "BitstringStatusList",
-					serviceEndpoint:
-						"data:application/octet-stream;base64,H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA"
+					serviceEndpoint: REVOCATION_ENDPOINT_MATCHER
 				}
 			]
 		});
+		await expectEmptyRevocationList(identity);
 	});
 });
