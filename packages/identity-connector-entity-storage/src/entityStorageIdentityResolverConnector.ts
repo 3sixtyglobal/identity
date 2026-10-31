@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { GeneralError, Guards, Is, LruCache, NotFoundError, ObjectHelper } from "@3sixty/core";
 import {
@@ -58,10 +59,11 @@ export class EntityStorageIdentityResolverConnector implements IIdentityResolver
 	private readonly _didResolutionCacheMutexTimeoutMs?: number;
 
 	/**
-	 * LRU cache for resolved DID documents. Undefined when caching is disabled (ttl is 0).
+	 * LRU cache for resolved DID documents with the time each expires. Undefined when caching is
+	 * disabled (ttl is 0).
 	 * @internal
 	 */
-	private readonly _didResolutionCache?: LruCache<IDidDocument>;
+	private readonly _didResolutionCache?: LruCache<{ document: IDidDocument; expires: number }>;
 
 	/**
 	 * Create a new instance of EntityStorageIdentityResolverConnector.
@@ -78,7 +80,7 @@ export class EntityStorageIdentityResolverConnector implements IIdentityResolver
 		this._didResolutionCacheMutexTimeoutMs = options?.config?.didResolutionCacheMutexTimeoutMs;
 		this._didResolutionCache =
 			this._didResolutionCacheTtlMs > 0
-				? new LruCache<IDidDocument>({
+				? new LruCache<{ document: IDidDocument; expires: number }>({
 						capacity: this._didResolutionCacheCapacity,
 						ttiMs: this._didResolutionCacheTtlMs,
 						mutexTimeoutMs: this._didResolutionCacheMutexTimeoutMs
@@ -107,6 +109,8 @@ export class EntityStorageIdentityResolverConnector implements IIdentityResolver
 	/**
 	 * Resolve a document from its id, cached for didResolutionCacheTtlMs
 	 * (0 disables caching and resolves fresh every call).
+	 * The TTL is absolute rather than reset on each read, as the resolver is not told when a
+	 * document is removed or imported, so a frequently read document must still be reloaded.
 	 * @param documentId The id of the document to resolve.
 	 * @returns The resolved document.
 	 * @throws NotFoundError if the id can not be resolved.
@@ -122,13 +126,20 @@ export class EntityStorageIdentityResolverConnector implements IIdentityResolver
 			return this.loadDocument(documentId);
 		}
 
-		const document = await this._didResolutionCache.getOrSet(documentId, async () =>
-			this.loadDocument(documentId)
-		);
+		const loadEntry = async (): Promise<{ document: IDidDocument; expires: number }> => ({
+			document: await this.loadDocument(documentId),
+			expires: Date.now() + this._didResolutionCacheTtlMs
+		});
+
+		let entry = await this._didResolutionCache.getOrSet(documentId, loadEntry);
+		if (entry.expires <= Date.now()) {
+			this._didResolutionCache.delete(documentId);
+			entry = await this._didResolutionCache.getOrSet(documentId, loadEntry);
+		}
 
 		// Return a deep clone, not the cached instance itself, so a caller mutating the document
 		// it receives cannot corrupt the entry shared with every other caller.
-		return ObjectHelper.clone(document);
+		return ObjectHelper.clone(entry.document);
 	}
 
 	/**

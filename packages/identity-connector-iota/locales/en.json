@@ -60,7 +60,23 @@
 			"verificationKeyMissing": "The verification key is missing from the vault for method \"{method}\"",
 			"verificationMethodNotFound": "The verification method could not be found",
 			"signatureVerificationFailed": "The document integrity check failed",
-			"verifyProofFailed": "Verifying the signature for the data failed"
+			"verifyProofFailed": "Verifying the signature for the data failed",
+			"accountMismatch": "The export must contain account secrets if, and only if, the identity is self-controlled",
+			"accountSeedMismatch": "The account seed does not match the account mnemonic",
+			"exportDocumentFailed": "Exporting the document failed \"{documentId}\"",
+			"exportKeyFailed": "Reading the key \"{keyId}\" from the vault for the export failed",
+			"exportSecretFailed": "Reading the account secrets from the vault for the export failed",
+			"importDocumentFailed": "Importing the document failed \"{documentId}\"",
+			"invalidMnemonic": "The account mnemonic is not a valid BIP39 mnemonic",
+			"keyAlreadyExists": "Keys for the document already exist \"{conflictId}\"",
+			"keyPairMismatch": "The private key does not match the public key for key \"{keyId}\"",
+			"keyTypeNotSupported": "The key type is not supported for key \"{keyId}\"",
+			"notController": "The controller does not hold the controller token for the document \"{documentId}\""
+		}
+	},
+	"warn": {
+		"iotaIdentityConnector": {
+			"importRollbackFailed": "Undoing a step of a failed import of the document \"{documentId}\" failed, \"{name}\" may need removing manually"
 		}
 	}
 }

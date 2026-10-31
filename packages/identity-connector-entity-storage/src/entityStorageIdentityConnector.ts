@@ -7,13 +7,16 @@ import {
 	BitString,
 	Coerce,
 	Compression,
+	ComponentFactory,
 	CompressionType,
+	ConflictError,
 	Converter,
 	GeneralError,
 	Guards,
 	Is,
 	JsonHelper,
 	LruCache,
+	Mutex,
 	NotFoundError,
 	ObjectHelper,
 	RandomHelper,
@@ -21,6 +24,7 @@ import {
 	Url,
 	Urn
 } from "@3sixty/core";
+import { Ed25519 } from "@3sixty/crypto";
 import {
 	JsonLdHelper,
 	JsonLdProcessor,
@@ -33,9 +37,14 @@ import {
 } from "@3sixty/entity-storage-models";
 import {
 	DocumentHelper,
+	IdentityExportHelper,
+	IdentityExportKeyType,
 	VerificationHelper,
-	type IIdentityConnector
+	type IIdentityConnector,
+	type IIdentityExport,
+	type IIdentityExportKey
 } from "@3sixty/identity-models";
+import type { ILoggingComponent } from "@3sixty/logging-models";
 import { nameof } from "@3sixty/nameof";
 import {
 	DidContexts,
@@ -85,6 +94,18 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 	private static readonly _REVOCATION_BITS_SIZE: number = 131072;
 
 	/**
+	 * The name of the document signing key in the vault, relative to the DID.
+	 * @internal
+	 */
+	private static readonly _DOCUMENT_KEY_ID: string = "did";
+
+	/**
+	 * The exact format of the DIDs created by the connector.
+	 * @internal
+	 */
+	private static readonly _DID_PATTERN: RegExp = /^did:entity-storage:0x[\da-f]{64}$/;
+
+	/**
 	 * The entity storage for identities.
 	 * @internal
 	 */
@@ -123,6 +144,12 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 	private readonly _didResolutionCache?: LruCache<IdentityDocument>;
 
 	/**
+	 * The logging component.
+	 * @internal
+	 */
+	private readonly _loggingComponent?: ILoggingComponent;
+
+	/**
 	 * Create a new instance of EntityStorageIdentityConnector.
 	 * @param options The options for the identity connector.
 	 */
@@ -131,6 +158,9 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			options?.didDocumentEntityStorageType ?? "identity-document"
 		);
 		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
+		this._loggingComponent = ComponentFactory.getIfExists<ILoggingComponent>(
+			options?.loggingComponentType
+		);
 
 		this._didResolutionCacheTtlMs = options?.config?.didResolutionCacheTtlMs ?? 30_000;
 		this._didResolutionCacheCapacity = options?.config?.didResolutionCacheCapacity ?? 1000;
@@ -333,6 +363,230 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				undefined,
 				error
 			);
+		}
+	}
+
+	/**
+	 * Export a document with all the private key material needed to recreate it on another node.
+	 * @param controller The controller of the identity who can make changes.
+	 * @param documentId The id of the document to export.
+	 * @returns The export, which contains private keys and must be protected.
+	 * @throws NotFoundError if the id can not be resolved.
+	 * @throws UnauthorizedError if the caller does not control the document.
+	 */
+	public async exportDocument(controller: string, documentId: string): Promise<IIdentityExport> {
+		Guards.stringValue(EntityStorageIdentityConnector.CLASS_NAME, nameof(controller), controller);
+		Guards.stringValue(EntityStorageIdentityConnector.CLASS_NAME, nameof(documentId), documentId);
+
+		try {
+			const identityDocument = await this.loadOwnDocument(documentId);
+			EntityStorageIdentityConnector.assertController(controller, identityDocument);
+			IdentityExportHelper.validateMethodIds(identityDocument.document);
+
+			const keyIds = [
+				EntityStorageIdentityConnector._DOCUMENT_KEY_ID,
+				...IdentityExportHelper.getMethodFragments(identityDocument.document).filter(
+					fragment => fragment !== EntityStorageIdentityConnector._DOCUMENT_KEY_ID
+				)
+			];
+
+			// Every key is required, as the import needs a key for each method this connector signs with.
+			const keys = await Promise.all(
+				keyIds.map(async keyId =>
+					this.exportKey(EntityStorageIdentityConnector.buildVaultKey(documentId, keyId), keyId)
+				)
+			);
+
+			const exported: IIdentityExport = {
+				version: IdentityExportHelper.VERSION,
+				namespace: EntityStorageIdentityConnector.NAMESPACE,
+				selfControlled: identityDocument.controller === identityDocument.id,
+				document: identityDocument.document,
+				documentSignature: identityDocument.signature,
+				keys
+			};
+
+			// Fail now, rather than on import, for an identity which could not be imported.
+			IdentityExportHelper.validate(
+				exported,
+				EntityStorageIdentityConnector.NAMESPACE,
+				EntityStorageIdentityConnector._DID_PATTERN
+			);
+
+			return exported;
+		} catch (error) {
+			throw new GeneralError(
+				EntityStorageIdentityConnector.CLASS_NAME,
+				"exportDocumentFailed",
+				{ documentId },
+				error
+			);
+		}
+	}
+
+	/**
+	 * Import a document from an export, proving the keys match the document before storing anything.
+	 * The entity-storage namespace is trust on first import: a DID is random rather than derived
+	 * from its document key, so the first node to import a DID under an unused name owns it there,
+	 * and an import never replaces a document or key which already exists.
+	 * @param controller The controller of the identity, ignored for self-controlled identities.
+	 * @param exported The export to import.
+	 * @returns The imported document.
+	 * @throws ConflictError if the identity or any of its keys already exist on this node.
+	 */
+	public async importDocument(
+		controller: string | undefined,
+		exported: IIdentityExport
+	): Promise<IDidDocument> {
+		const writtenKeys: string[] = [];
+		let documentWritten = false;
+		let did: string | undefined;
+		let lockKey: string | undefined;
+		try {
+			did = IdentityExportHelper.validate(
+				exported,
+				EntityStorageIdentityConnector.NAMESPACE,
+				EntityStorageIdentityConnector._DID_PATTERN
+			);
+			const documentId = did;
+
+			const storedController = exported.selfControlled ? documentId : controller;
+			Guards.stringValue(
+				EntityStorageIdentityConnector.CLASS_NAME,
+				nameof(controller),
+				storedController
+			);
+
+			if (!Is.undefined(exported.account)) {
+				throw new GeneralError(EntityStorageIdentityConnector.CLASS_NAME, "accountNotSupported");
+			}
+
+			const documentKey = exported.keys.find(
+				k => k.id === EntityStorageIdentityConnector._DOCUMENT_KEY_ID
+			);
+			if (Is.undefined(documentKey)) {
+				throw new GeneralError(EntityStorageIdentityConnector.CLASS_NAME, "documentKeyMissing");
+			}
+
+			const keyPairs = exported.keys.map(key => this.decodeExportKey(key));
+
+			// The stored document is self-asserted, so it must carry a valid signature from the imported document key.
+			if (!Is.stringBase64(exported.documentSignature)) {
+				throw new GeneralError(
+					EntityStorageIdentityConnector.CLASS_NAME,
+					"signatureVerificationFailed"
+				);
+			}
+			const docBytes = Converter.utf8ToBytes(JsonHelper.canonicalize(exported.document));
+			if (
+				!Ed25519.verify(
+					Converter.base64ToBytes(documentKey.publicKey),
+					docBytes,
+					Converter.base64ToBytes(exported.documentSignature)
+				)
+			) {
+				throw new GeneralError(
+					EntityStorageIdentityConnector.CLASS_NAME,
+					"signatureVerificationFailed"
+				);
+			}
+
+			// The connector signs for every method of the document with the vault key named by its
+			// fragment, so each must be supplied and match, the document key included if it is a method.
+			const methodFragments = IdentityExportHelper.getMethodFragments(exported.document);
+			IdentityExportHelper.requireMethodKeys(
+				exported.document,
+				exported.keys.map(k => k.id)
+			);
+			IdentityExportHelper.verifyMethodKeys(
+				exported.document,
+				exported.keys.filter(
+					k =>
+						k.id !== EntityStorageIdentityConnector._DOCUMENT_KEY_ID ||
+						methodFragments.includes(k.id)
+				)
+			);
+
+			// Held across the conflict checks and the writes, so concurrent imports of a DID cannot both pass.
+			const importLock = `${EntityStorageIdentityConnector.CLASS_NAME}:import:${documentId}`;
+			await Mutex.lock(importLock, { throwOnTimeout: true });
+			lockKey = importLock;
+
+			if (!Is.empty(await this._didDocumentEntityStorage.get(documentId))) {
+				throw new ConflictError(
+					EntityStorageIdentityConnector.CLASS_NAME,
+					"documentAlreadyExists",
+					documentId
+				);
+			}
+
+			// Check every name the document can sign with, not just those supplied, so an existing key
+			// is never reused or replaced.
+			const keyNames = [
+				...new Set([
+					EntityStorageIdentityConnector._DOCUMENT_KEY_ID,
+					...methodFragments,
+					...exported.keys.map(k => k.id)
+				])
+			];
+			const existing = await Promise.all(
+				keyNames.map(async keyName =>
+					this._vaultConnector.keyExists(
+						EntityStorageIdentityConnector.buildVaultKey(documentId, keyName)
+					)
+				)
+			);
+			const conflicts = keyNames.filter((keyName, index) => existing[index]);
+			if (conflicts.length > 0) {
+				throw new ConflictError(
+					EntityStorageIdentityConnector.CLASS_NAME,
+					"keyAlreadyExists",
+					documentId,
+					conflicts
+				);
+			}
+
+			for (let i = 0; i < exported.keys.length; i++) {
+				const vaultKey = EntityStorageIdentityConnector.buildVaultKey(
+					documentId,
+					exported.keys[i].id
+				);
+				// Checked again before each write, as a vault which normalises names could map two
+				// key ids to the same entry, and the first would then be overwritten.
+				if (await this._vaultConnector.keyExists(vaultKey)) {
+					throw new ConflictError(
+						EntityStorageIdentityConnector.CLASS_NAME,
+						"keyAlreadyExists",
+						documentId,
+						[exported.keys[i].id]
+					);
+				}
+				await this._vaultConnector.addKey(
+					vaultKey,
+					VaultKeyType.Ed25519,
+					keyPairs[i].privateKey,
+					keyPairs[i].publicKey
+				);
+				writtenKeys.push(vaultKey);
+			}
+
+			const document = ObjectHelper.clone(exported.document);
+			documentWritten = true;
+			await this.updateDocument(storedController, document);
+
+			return document;
+		} catch (error) {
+			await this.rollbackImport(did, documentWritten, writtenKeys);
+			throw new GeneralError(
+				EntityStorageIdentityConnector.CLASS_NAME,
+				"importDocumentFailed",
+				{ documentId: did },
+				error
+			);
+		} finally {
+			if (Is.stringValue(lockKey)) {
+				Mutex.unlock(lockKey);
+			}
 		}
 	}
 
@@ -761,6 +1015,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to add to the JWT header.
 	 * @param options.jwtPayloadFields Additional fields to add to the JWT payload.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
 	 */
@@ -774,6 +1029,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		}
 	): Promise<{
 		verifiableCredential: IDidVerifiableCredentialV1;
@@ -819,6 +1075,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				options.expirationDate
 			);
 		}
+		const credentialType = DocumentHelper.credentialTypes(options?.types);
 
 		try {
 			const idParts = DocumentHelper.parseId(verificationMethodId);
@@ -870,7 +1127,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				"@context": (JsonLdProcessor.combineContexts(DidContexts.ContextVCv1, credContext) ??
 					DidContexts.ContextVCv1) as [typeof DidContexts.ContextVCv1],
 				id,
-				type: DidTypes.VerifiableCredential,
+				type: credentialType,
 				credentialSubject: subjectClone,
 				issuer: issuerDidDocument.id,
 				issuanceDate: new Date(Date.now()).toISOString(),
@@ -1808,6 +2065,120 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			);
 		}
 		return this._vaultConnector.sign(vaultKey, data);
+	}
+
+	/**
+	 * Read a key from the vault in export format.
+	 * @param vaultKey The full name of the key in the vault.
+	 * @param keyId The name of the key relative to the DID.
+	 * @returns The exported key.
+	 * @throws GeneralError if the key is missing or is not an Ed25519 key.
+	 * @internal
+	 */
+	private async exportKey(vaultKey: string, keyId: string): Promise<IIdentityExportKey> {
+		let key;
+		try {
+			key = await this._vaultConnector.getKey(vaultKey, "both");
+		} catch (error) {
+			throw new GeneralError(
+				EntityStorageIdentityConnector.CLASS_NAME,
+				"exportKeyFailed",
+				{ keyId },
+				error
+			);
+		}
+		if (
+			key.type !== VaultKeyType.Ed25519 ||
+			Is.undefined(key.privateKey) ||
+			Is.undefined(key.publicKey)
+		) {
+			throw new GeneralError(EntityStorageIdentityConnector.CLASS_NAME, "keyTypeNotSupported", {
+				keyId
+			});
+		}
+
+		return {
+			id: keyId,
+			type: IdentityExportKeyType.Ed25519,
+			privateKey: Converter.bytesToBase64(key.privateKey),
+			publicKey: Converter.bytesToBase64(key.publicKey)
+		};
+	}
+
+	/**
+	 * Decode an exported key and prove its private key produces its public key.
+	 * @param key The exported key.
+	 * @returns The decoded key pair.
+	 * @throws GeneralError if the key pair does not match.
+	 * @internal
+	 */
+	private decodeExportKey(key: IIdentityExportKey): {
+		privateKey: Uint8Array;
+		publicKey: Uint8Array;
+	} {
+		const privateKey = Converter.base64ToBytes(key.privateKey);
+		const publicKey = Converter.base64ToBytes(key.publicKey);
+		if (
+			privateKey.length !== Ed25519.PRIVATE_KEY_SIZE ||
+			publicKey.length !== Ed25519.PUBLIC_KEY_SIZE ||
+			!ArrayHelper.matches(Ed25519.publicKeyFromPrivateKey(privateKey), publicKey)
+		) {
+			throw new GeneralError(EntityStorageIdentityConnector.CLASS_NAME, "keyPairMismatch", {
+				keyId: key.id
+			});
+		}
+		return { privateKey, publicKey };
+	}
+
+	/**
+	 * Remove everything a failed import wrote.
+	 * @param documentId The id of the imported document.
+	 * @param documentWritten Whether the document record may have been written.
+	 * @param writtenKeys The full vault names of the keys written.
+	 * @internal
+	 */
+	private async rollbackImport(
+		documentId: string | undefined,
+		documentWritten: boolean,
+		writtenKeys: string[]
+	): Promise<void> {
+		if (documentWritten && Is.stringValue(documentId)) {
+			try {
+				await this._didDocumentEntityStorage.remove(documentId);
+			} catch (error) {
+				await this.logRollbackFailure(documentId, documentId, error);
+			}
+			this._didResolutionCache?.delete(this.ownDidCacheKey(documentId));
+		}
+		for (const vaultKey of writtenKeys) {
+			try {
+				await this._vaultConnector.removeKey(vaultKey);
+			} catch (error) {
+				await this.logRollbackFailure(documentId, vaultKey, error);
+			}
+		}
+	}
+
+	/**
+	 * Log a step of a failed import which could not be undone, so it can be removed manually.
+	 * @param documentId The id of the imported document.
+	 * @param name The name of the record or vault key left behind.
+	 * @param error The error from undoing the step.
+	 * @internal
+	 */
+	private async logRollbackFailure(
+		documentId: string | undefined,
+		name: string,
+		error: unknown
+	): Promise<void> {
+		await this._loggingComponent?.log({
+			level: "warn",
+			source: EntityStorageIdentityConnector.CLASS_NAME,
+			ts: Date.now(),
+			message: "importRollbackFailed",
+			error: BaseError.fromError(error),
+			data: { documentId, name }
+		});
 	}
 
 	/**

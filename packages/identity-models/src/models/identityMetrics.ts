@@ -19,6 +19,16 @@ export const IdentityMetrics: ITelemetryMetric[] = [
 		type: MetricType.Counter
 	},
 	{
+		id: IdentityMetricIds.DidsExported,
+		label: "DIDs exported",
+		type: MetricType.Counter
+	},
+	{
+		id: IdentityMetricIds.DidsImported,
+		label: "DIDs imported",
+		type: MetricType.Counter
+	},
+	{
 		id: IdentityMetricIds.VcsCreated,
 		label: "VCs created",
 		type: MetricType.Counter

@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { GuardError } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
@@ -169,6 +170,66 @@ describe("IdentityRestClient", () => {
 			const result = await client.identityRemove(IDENTITY_URN);
 
 			expect(result).toBeUndefined();
+		});
+
+		test("sends the remove options as query parameters", async () => {
+			fetchMock.mockResolvedValueOnce(noContentResponse());
+
+			await client.identityRemove(IDENTITY_URN, { removeKeys: true, retainDocument: true });
+
+			const [url] = fetchMock.mock.calls[0];
+			const query = new URL(url as string).searchParams;
+			expect(query.get("removeKeys")).toBe("true");
+			expect(query.get("retainDocument")).toBe("true");
+			expect(query.has("removeDocumentKey")).toBe(false);
+		});
+	});
+
+	describe("identityExport", () => {
+		test("throws when identity is empty", async () => {
+			await expect(client.identityExport("")).rejects.toMatchObject({
+				name: GuardError.CLASS_NAME,
+				message: "guard.stringEmpty"
+			});
+		});
+
+		test("sends POST to /{prefix}/:identity/export and returns the export", async () => {
+			const exported = {
+				version: 1,
+				namespace: "iota",
+				selfControlled: false,
+				document: TEST_DID_DOCUMENT,
+				keys: []
+			};
+			fetchMock.mockResolvedValueOnce(jsonResponse(exported));
+
+			const result = await client.identityExport(IDENTITY_URN);
+
+			const [url, options] = fetchMock.mock.calls[0];
+			expect(url).toBe(`${ENDPOINT}/${PREFIX}/${IDENTITY_URN}/export`);
+			expect(options.method).toBe(HttpMethod.POST);
+			expect(result).toEqual(exported);
+		});
+	});
+
+	describe("identityImport", () => {
+		test("sends POST to /{prefix}/import with the export as the body", async () => {
+			const exported = {
+				version: 1,
+				namespace: "iota",
+				selfControlled: false,
+				document: TEST_DID_DOCUMENT,
+				keys: []
+			};
+			fetchMock.mockResolvedValueOnce(jsonResponse(TEST_DID_DOCUMENT));
+
+			const result = await client.identityImport(exported);
+
+			const [url, options] = fetchMock.mock.calls[0];
+			expect(url).toBe(`${ENDPOINT}/${PREFIX}/import`);
+			expect(options.method).toBe(HttpMethod.POST);
+			expect(JSON.parse(options.body)).toEqual(exported);
+			expect(result).toEqual(TEST_DID_DOCUMENT);
 		});
 	});
 

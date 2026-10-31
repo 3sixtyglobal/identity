@@ -1,4 +1,5 @@
 // Copyright 2024 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import type {
 	IRouteAuthorization,
@@ -16,6 +17,11 @@ import {
 	type IIdentityComponent,
 	type IIdentityCreateRequest,
 	type IIdentityCreateResponse,
+	type IIdentityExport,
+	type IIdentityExportRequest,
+	type IIdentityExportResponse,
+	type IIdentityImportRequest,
+	type IIdentityImportResponse,
 	type IIdentityProofCreateRequest,
 	type IIdentityProofCreateResponse,
 	type IIdentityProofVerifyRequest,
@@ -46,12 +52,17 @@ import {
 	type IDidVerifiablePresentation,
 	type IDidVerifiableCredential
 } from "@3sixty/standards-w3c-did";
-import { HttpStatusCode } from "@3sixty/web";
+import { HeaderTypes, HttpStatusCode } from "@3sixty/web";
 
 /**
  * The source used when communicating about these routes.
  */
 const ROUTES_SOURCE = "identityRoutes";
+
+/**
+ * The cache control of the exports, which are never kept by a cache.
+ */
+const NO_STORE = "no-store";
 
 /**
  * The tag to associate with the routes.
@@ -66,6 +77,56 @@ export const tagsIdentity: ITag[] = [
 const DEFAULT_AUTHORIZATION_WRITER: IRouteAuthorization = {
 	permission: "identity:write",
 	role: "identity-admin"
+};
+
+/**
+ * Export and import move private key material, so they need their own permission rather than identity:write.
+ */
+const DEFAULT_AUTHORIZATION_KEYS: IRouteAuthorization = {
+	permission: "identity:keys",
+	role: "identity-admin"
+};
+
+const EXAMPLE_DID =
+	"did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a";
+
+const EXAMPLE_EXPORT: IIdentityExport = {
+	version: 1,
+	namespace: "entity-storage",
+	selfControlled: false,
+	document: {
+		"@context": DidContexts.Context,
+		id: EXAMPLE_DID,
+		assertionMethod: [
+			{
+				id: `${EXAMPLE_DID}#my-assertion`,
+				controller: EXAMPLE_DID,
+				type: "JsonWebKey2020",
+				publicKeyJwk: {
+					kty: "OKP",
+					alg: "EdDSA",
+					kid: "f_fj3rGsZFSYvnS_xv5MgyIBlExq-lgDciu0YQ--S3s",
+					crv: "Ed25519",
+					x: "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok"
+				}
+			}
+		]
+	},
+	documentSignature: "EXAMPLE-SIGNATURE-BASE64",
+	keys: [
+		{
+			id: "did",
+			type: "Ed25519",
+			privateKey: "EXAMPLE-PRIVATE-KEY-BASE64",
+			publicKey: "EXAMPLE-PUBLIC-KEY-BASE64"
+		},
+		{
+			id: "my-assertion",
+			type: "Ed25519",
+			privateKey: "EXAMPLE-PRIVATE-KEY-BASE64",
+			publicKey: "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok="
+		}
+	]
 };
 
 /**
@@ -148,6 +209,20 @@ export function generateRestRoutesIdentity(
 								"did:iota:tst:0xe3088ba9aa8c28e1d139708a14e8c0fdff11ee8223baac4aa5bcf3321e4bfc6a"
 						}
 					}
+				},
+				{
+					id: "identityRemoveRetainDocumentRequestExample",
+					description: "Remove the keys held by this node, keeping the document on the ledger.",
+					request: {
+						pathParams: {
+							identity:
+								"did:iota:tst:0xe3088ba9aa8c28e1d139708a14e8c0fdff11ee8223baac4aa5bcf3321e4bfc6a"
+						},
+						query: {
+							removeKeys: "true",
+							retainDocument: "true"
+						}
+					}
 				}
 			]
 		},
@@ -157,6 +232,81 @@ export function generateRestRoutesIdentity(
 			}
 		],
 		defaultAuthorization: DEFAULT_AUTHORIZATION_WRITER
+	};
+
+	const identityExportRoute: IRestRoute<IIdentityExportRequest, IIdentityExportResponse> = {
+		operationId: "identityExport",
+		summary: "Export an identity including its private keys",
+		tag: tagsIdentity[0].name,
+		method: "POST",
+		path: `${baseRouteName}/:identity/export`,
+		handler: async (httpRequestContext, request) =>
+			identityExport(httpRequestContext, componentName, request),
+		requestType: {
+			type: nameof<IIdentityExportRequest>(),
+			examples: [
+				{
+					id: "identityExportRequestExample",
+					request: {
+						pathParams: {
+							identity: EXAMPLE_DID
+						}
+					}
+				}
+			]
+		},
+		responseType: [
+			{
+				type: nameof<IIdentityExportResponse>(),
+				examples: [
+					{
+						id: "identityExportResponseExample",
+						response: {
+							headers: {
+								[HeaderTypes.CacheControl]: NO_STORE
+							},
+							body: EXAMPLE_EXPORT
+						}
+					}
+				]
+			}
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_KEYS
+	};
+
+	const identityImportRoute: IRestRoute<IIdentityImportRequest, IIdentityImportResponse> = {
+		operationId: "identityImport",
+		summary: "Import an identity including its private keys",
+		tag: tagsIdentity[0].name,
+		method: "POST",
+		path: `${baseRouteName}/import`,
+		handler: async (httpRequestContext, request) =>
+			identityImport(httpRequestContext, componentName, request),
+		requestType: {
+			type: nameof<IIdentityImportRequest>(),
+			examples: [
+				{
+					id: "identityImportRequestExample",
+					request: {
+						body: EXAMPLE_EXPORT
+					}
+				}
+			]
+		},
+		responseType: [
+			{
+				type: nameof<IIdentityImportResponse>(),
+				examples: [
+					{
+						id: "identityImportResponseExample",
+						response: {
+							body: EXAMPLE_EXPORT.document
+						}
+					}
+				]
+			}
+		],
+		defaultAuthorization: DEFAULT_AUTHORIZATION_KEYS
 	};
 
 	const identityVerificationMethodCreateRoute: IRestRoute<
@@ -1030,6 +1180,8 @@ export function generateRestRoutesIdentity(
 	return [
 		identityCreateRoute,
 		identityRemoveRoute,
+		identityExportRoute,
+		identityImportRoute,
 		identityVerificationMethodCreateRoute,
 		identityVerificationMethodRemoveRoute,
 		identityServiceCreateRoute,
@@ -1113,13 +1265,74 @@ export async function identityRemove(
 		request.pathParams.identity,
 		{
 			removeKeys: Coerce.boolean(request.query?.removeKeys),
-			removeDocumentKey: Coerce.boolean(request.query?.removeDocumentKey)
+			removeDocumentKey: Coerce.boolean(request.query?.removeDocumentKey),
+			retainDocument: Coerce.boolean(request.query?.retainDocument)
 		},
 		contextIds[ContextIdKeys.Organization]
 	);
 
 	return {
 		statusCode: HttpStatusCode.noContent
+	};
+}
+
+/**
+ * Export an identity.
+ * @param httpRequestContext The request context for the API.
+ * @param componentName The name of the component to use in the routes stored in the ComponentFactory.
+ * @param request The request.
+ * @returns The response object with additional http response properties.
+ */
+export async function identityExport(
+	httpRequestContext: IHttpRequestContext,
+	componentName: string,
+	request: IIdentityExportRequest
+): Promise<IIdentityExportResponse> {
+	Guards.object<IIdentityExportRequest>(ROUTES_SOURCE, nameof(request), request);
+	Guards.object<IIdentityExportRequest["pathParams"]>(
+		ROUTES_SOURCE,
+		nameof(request.pathParams),
+		request.pathParams
+	);
+	const contextIds = await ContextIdStore.getContextIds();
+	ContextIdHelper.guard(contextIds, ContextIdKeys.Organization);
+
+	const component = ComponentFactory.get<IIdentityComponent>(componentName);
+
+	const exported = await component.identityExport(
+		request.pathParams.identity,
+		contextIds[ContextIdKeys.Organization]
+	);
+
+	return {
+		// The export holds private keys, so it is never kept by a cache.
+		headers: {
+			[HeaderTypes.CacheControl]: NO_STORE
+		},
+		body: exported
+	};
+}
+
+/**
+ * Import an identity.
+ * @param httpRequestContext The request context for the API.
+ * @param componentName The name of the component to use in the routes stored in the ComponentFactory.
+ * @param request The request.
+ * @returns The response object with additional http response properties.
+ */
+export async function identityImport(
+	httpRequestContext: IHttpRequestContext,
+	componentName: string,
+	request: IIdentityImportRequest
+): Promise<IIdentityImportResponse> {
+	// The body is not guarded with Guards.object, as a guard error would carry the key material.
+	const contextIds = await ContextIdStore.getContextIds();
+	ContextIdHelper.guard(contextIds, ContextIdKeys.Organization);
+
+	const component = ComponentFactory.get<IIdentityComponent>(componentName);
+
+	return {
+		body: await component.identityImport(request?.body, contextIds[ContextIdKeys.Organization])
 	};
 }
 
@@ -1422,7 +1635,8 @@ export async function identityVerifiableCredentialCreate(
 			revocationIndex: request.body.revocationIndex,
 			expirationDate: Coerce.dateTime(request.body.expirationDate),
 			jwtHeaderFields: request.body.jwtHeaderFields,
-			jwtPayloadFields: request.body.jwtPayloadFields
+			jwtPayloadFields: request.body.jwtPayloadFields,
+			types: request.body.types
 		},
 		contextIds[ContextIdKeys.Organization]
 	);

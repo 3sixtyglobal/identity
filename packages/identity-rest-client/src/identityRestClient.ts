@@ -13,6 +13,11 @@ import {
 	type IIdentityComponent,
 	type IIdentityCreateRequest,
 	type IIdentityCreateResponse,
+	type IIdentityExport,
+	type IIdentityExportRequest,
+	type IIdentityExportResponse,
+	type IIdentityImportRequest,
+	type IIdentityImportResponse,
 	type IIdentityProofCreateRequest,
 	type IIdentityProofCreateResponse,
 	type IIdentityProofVerifyRequest,
@@ -112,11 +117,13 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
 	 * @param options.removeDocumentKey Also remove the document key from the vault.
+	 * @param options.retainDocument Keep a document published on a ledger, only removing what the
+	 * node holds for it, so it can be imported again. Documents stored on the node are always removed.
 	 * @returns A promise that resolves when the identity has been removed.
 	 */
 	public async identityRemove(
 		identity: string,
-		options?: { removeKeys?: boolean; removeDocumentKey?: boolean }
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean; retainDocument?: boolean }
 	): Promise<void> {
 		Guards.stringValue(IdentityRestClient.CLASS_NAME, nameof(identity), identity);
 		await this.fetch<IIdentityRemoveRequest, INoContentResponse>("/:identity", HttpMethod.DELETE, {
@@ -125,9 +132,49 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 			},
 			query: {
 				removeKeys: Coerce.string(options?.removeKeys),
-				removeDocumentKey: Coerce.string(options?.removeDocumentKey)
+				removeDocumentKey: Coerce.string(options?.removeDocumentKey),
+				retainDocument: Coerce.string(options?.retainDocument)
 			}
 		});
+	}
+
+	/**
+	 * Export an identity with all the private key material needed to recreate it on another node.
+	 * The controller is resolved server-side from the session context.
+	 * @param identity The id of the document to export.
+	 * @returns The export, which contains private keys and must be protected.
+	 */
+	public async identityExport(identity: string): Promise<IIdentityExport> {
+		Guards.stringValue(IdentityRestClient.CLASS_NAME, nameof(identity), identity);
+		const response = await this.fetch<IIdentityExportRequest, IIdentityExportResponse>(
+			"/:identity/export",
+			HttpMethod.POST,
+			{
+				pathParams: {
+					identity
+				}
+			}
+		);
+
+		return response.body;
+	}
+
+	/**
+	 * Import an identity from an export.
+	 * The controller is resolved server-side from the session context.
+	 * @param exported The export to import.
+	 * @returns The imported identity document.
+	 */
+	public async identityImport(exported: IIdentityExport): Promise<IDidDocument> {
+		const response = await this.fetch<IIdentityImportRequest, IIdentityImportResponse>(
+			"/import",
+			HttpMethod.POST,
+			{
+				body: exported
+			}
+		);
+
+		return response.body;
 	}
 
 	/**
@@ -337,6 +384,7 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to include in the JWT header when creating the verifiable credential in jwt format.
 	 * @param options.jwtPayloadFields Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
 	 */
@@ -349,6 +397,7 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		}
 	): Promise<{
 		verifiableCredential: IDidVerifiableCredential;
@@ -384,7 +433,8 @@ export class IdentityRestClient extends BaseRestClient implements IIdentityCompo
 				revocationIndex: options?.revocationIndex,
 				expirationDate: options?.expirationDate?.toISOString(),
 				jwtHeaderFields: options?.jwtHeaderFields,
-				jwtPayloadFields: options?.jwtPayloadFields
+				jwtPayloadFields: options?.jwtPayloadFields,
+				types: options?.types
 			}
 		});
 

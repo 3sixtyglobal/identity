@@ -36,10 +36,12 @@
 	"dependencies": {
 		"@3sixty/api-models": "next",
 		"@3sixty/core": "next",
+		"@3sixty/crypto": "next",
 		"@3sixty/data-json-ld": "next",
 		"@3sixty/dlt-account": "next",
 		"@3sixty/dlt-iota": "next",
 		"@3sixty/identity-models": "0.20.0-next.3",
+		"@3sixty/logging-models": "next",
 		"@3sixty/nameof": "next",
 		"@3sixty/standards-w3c-did": "next",
 		"@3sixty/vault-models": "next",
@@ -48,7 +50,6 @@
 		"@iota/iota-interaction-ts": "0.14.0"
 	},
 	"devDependencies": {
-		"@3sixty/crypto": "next",
 		"@3sixty/entity-storage-connector-memory": "next",
 		"@3sixty/entity-storage-models": "next",
 		"@3sixty/nameof-transformer": "next",

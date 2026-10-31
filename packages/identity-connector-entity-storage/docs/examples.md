@@ -24,6 +24,30 @@ console.log(vaultKey); // did:entity-storage:.../did
 
 ```typescript
 import { EntityStorageIdentityConnector } from '@3sixty/identity-connector-entity-storage';
+
+const connector = new EntityStorageIdentityConnector();
+
+const createdDocument = await connector.createDocument('controller-1');
+
+// The export holds private keys, protect it like any other secret
+const exported = await connector.exportDocument('controller-1', createdDocument.id);
+
+await connector.removeDocument('controller-1', createdDocument.id, {
+  removeKeys: true,
+  removeDocumentKey: true
+});
+
+// The keys must match the document and its signature, every verification method needs its key,
+// and neither the DID nor any of its keys may already exist. The DID is not derived from its keys,
+// so the namespace is trust on first import: the first node to import a DID owns it there.
+const importedDocument = await connector.importDocument('controller-1', exported);
+
+console.log(exported.keys.map(key => key.id)); // ['did']
+console.log(importedDocument.id === createdDocument.id); // true
+```
+
+```typescript
+import { EntityStorageIdentityConnector } from '@3sixty/identity-connector-entity-storage';
 import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const connector = new EntityStorageIdentityConnector({

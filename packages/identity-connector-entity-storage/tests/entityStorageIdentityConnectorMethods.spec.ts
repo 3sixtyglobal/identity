@@ -215,6 +215,45 @@ describe("EntityStorageIdentityConnector - verification method removal", () => {
 		});
 	});
 
+	test("a credential carries the types given after VerifiableCredential, and only that by default", async () => {
+		const subject = { "@context": "https://schema.org", "@type": "Person", name: "Test Subject" };
+		const typed = await identityConnector.createVerifiableCredential(
+			TEST_CONTROLLER,
+			`${documentId}#as-1`,
+			"https://example.com/credentials/typed",
+			subject,
+			{ types: ["OrganizationMembershipCredential"] }
+		);
+		const plain = await identityConnector.createVerifiableCredential(
+			TEST_CONTROLLER,
+			`${documentId}#as-1`,
+			"https://example.com/credentials/plain",
+			subject
+		);
+
+		expect(typed.verifiableCredential.type).toEqual([
+			"VerifiableCredential",
+			"OrganizationMembershipCredential"
+		]);
+		// The type is signed into the token, so it survives verification.
+		const checked = await identityConnector.checkVerifiableCredential(typed.jwt);
+		expect(checked.verifiableCredential?.type).toEqual([
+			"VerifiableCredential",
+			"OrganizationMembershipCredential"
+		]);
+		expect(plain.verifiableCredential.type).toBe("VerifiableCredential");
+
+		await expect(
+			identityConnector.createVerifiableCredential(
+				TEST_CONTROLLER,
+				`${documentId}#as-1`,
+				undefined,
+				subject,
+				{ types: [""] }
+			)
+		).rejects.toMatchObject({ name: "GuardError" });
+	});
+
 	test("the highest in range revocation index is still accepted and revocable", async () => {
 		const revocationIndex = REVOCATION_BITS_SIZE - 1;
 

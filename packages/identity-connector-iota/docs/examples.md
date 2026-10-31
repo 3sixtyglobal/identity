@@ -29,6 +29,37 @@ console.log(createdDocument.id); // did:iota:tst:0x...
 
 ```typescript
 import { IotaIdentityConnector } from '@3sixty/identity-connector-iota';
+
+const connector = new IotaIdentityConnector({
+  config: {
+    clientOptions: {
+      nodes: ['https://api.testnet.iota.org']
+    },
+    network: 'testnet'
+  }
+});
+
+const createdDocument = await connector.createDocument('controller-1');
+
+// The export holds the verification method keys, and the account mnemonic for self-controlled DIDs
+const exported = await connector.exportDocument('controller-1', createdDocument.id);
+
+// Remove the keys from this node only, the document stays on-chain. The controller must still
+// hold the controller token, which is the identity itself when it is self-controlled.
+await connector.removeDocument('controller-1', createdDocument.id, {
+  removeKeys: true,
+  retainDocument: true
+});
+
+// The keys are checked against the on-chain document and the controller must hold the
+// controller token for the identity, both before anything is written to the vault
+const importedDocument = await connector.importDocument('controller-1', exported);
+
+console.log(importedDocument.id === createdDocument.id); // true
+```
+
+```typescript
+import { IotaIdentityConnector } from '@3sixty/identity-connector-iota';
 import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const connector = new IotaIdentityConnector({

@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 /**
  * Tests for read only identity client reuse and timeout bounding in IotaIdentityConnector.
@@ -16,7 +17,7 @@
 import { BaseError } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import { ProofTypes, type IProof } from "@3sixty/standards-w3c-did";
-import { IdentityClient, IdentityClientReadOnly } from "@iota/identity-wasm/node/index.js";
+import { IdentityClientReadOnly } from "@iota/identity-wasm/node/index.js";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,
@@ -64,7 +65,7 @@ describe("IotaIdentityConnector - identity client reuse and timeouts (live, spy-
 
 	/**
 	 * Run a verifyProof which is expected to fail on a missing method, purely to exercise
-	 * getIdentityClient without spending gas.
+	 * resolution without spending gas.
 	 * @param connector The connector to exercise.
 	 */
 	async function verifyMissingMethod(connector: IotaIdentityConnector): Promise<void> {
@@ -113,10 +114,12 @@ describe("IotaIdentityConnector - identity client reuse and timeouts (live, spy-
 	});
 
 	test("checkVerifiableCredential builds the read only client once and reuses it", async () => {
+		// A fresh connector, as creating the credential above already built the shared one's client.
+		const freshConnector = createConnector();
 		const createSpy = vi.spyOn(IdentityClientReadOnly, "create");
 
-		const first = await identityConnector.checkVerifiableCredential(testCredentialJwt);
-		const second = await identityConnector.checkVerifiableCredential(testCredentialJwt);
+		const first = await freshConnector.checkVerifiableCredential(testCredentialJwt);
+		const second = await freshConnector.checkVerifiableCredential(testCredentialJwt);
 
 		expect(first.revoked).toEqual(false);
 		expect(second.revoked).toEqual(false);
@@ -193,7 +196,7 @@ describe("IotaIdentityConnector - identity client reuse and timeouts (live, spy-
 	test("a resolution which never settles is abandoned by the timeout", async () => {
 		const freshConnector = createConnector({ didResolutionTimeoutMs: TIMEOUT_MS });
 
-		vi.spyOn(IdentityClient.prototype, "resolveDid").mockImplementation(neverSettles);
+		vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid").mockImplementation(neverSettles);
 
 		const document: IJsonLdNodeObject = { "@context": "https://schema.org", "@type": "Thing" };
 		const proof = {
@@ -221,12 +224,25 @@ describe("IotaIdentityConnector - identity client reuse and timeouts (live, spy-
 
 		const createSpy = vi.spyOn(IdentityClientReadOnly, "create");
 
-		// verifyProof goes through getIdentityClient, whose IdentityClient.create consumes the
-		// read only client it is handed (a wasm-bindgen move). Sharing the memoised instance here
-		// would pass an already destroyed handle into wasm on the second call.
+		// exportDocument goes through getIdentityClient for the controller, whose
+		// IdentityClient.create consumes the read only client it is handed (a wasm-bindgen move).
+		// Sharing the memoised instance here would pass an already destroyed handle into wasm on
+		// the second call. Each export builds one client for the controller, and the first also
+		// builds the memoised one it resolves the document with.
+		await freshConnector.exportDocument(TEST_USER_IDENTITY, testDocumentId);
+		await freshConnector.exportDocument(TEST_USER_IDENTITY, testDocumentId);
+
+		expect(createSpy).toHaveBeenCalledTimes(3);
+	});
+
+	test("resolution paths reuse the memoised read only client", async () => {
+		const freshConnector = createConnector();
+
+		const createSpy = vi.spyOn(IdentityClientReadOnly, "create");
+
 		await verifyMissingMethod(freshConnector);
 		await verifyMissingMethod(freshConnector);
 
-		expect(createSpy).toHaveBeenCalledTimes(2);
+		expect(createSpy).toHaveBeenCalledTimes(1);
 	});
 });

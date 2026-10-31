@@ -21,6 +21,7 @@ import {
 	IdentityResolverConnectorFactory,
 	type IIdentityComponent,
 	type IIdentityConnector,
+	type IIdentityExport,
 	type IIdentityResolverConnector
 } from "@3sixty/identity-models";
 import { nameof } from "@3sixty/nameof";
@@ -271,12 +272,14 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
 	 * @param options.removeDocumentKey Also remove the document key from the vault.
+	 * @param options.retainDocument Keep a document published on a ledger, only removing what this
+	 * node holds for it, so it can be imported again. Documents stored on the node are always removed.
 	 * @param controller The controller of the identity who can make changes.
 	 * @returns A promise that resolves when the identity has been removed.
 	 */
 	public async identityRemove(
 		identity: string,
-		options?: { removeKeys?: boolean; removeDocumentKey?: boolean },
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean; retainDocument?: boolean },
 		controller?: string
 	): Promise<void> {
 		Guards.stringValue(IdentityService.CLASS_NAME, nameof(identity), identity);
@@ -285,13 +288,79 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 		try {
 			const identityConnector = this.getConnectorByUri(identity);
 			const result = await identityConnector.removeDocument(controller, identity, options);
-			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsRemoved);
+			// A retained document is still published, so it is not counted as a removed DID.
+			if (!(options?.retainDocument ?? false)) {
+				await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsRemoved);
+			}
 			return result;
 		} catch (error) {
 			throw new GeneralError(
 				IdentityService.CLASS_NAME,
 				"identityRemoveFailed",
 				{ identity },
+				error
+			);
+		}
+	}
+
+	/**
+	 * Export an identity with all the private key material needed to recreate it on another node.
+	 * @param identity The id of the document to export.
+	 * @param controller The controller of the identity who can make changes.
+	 * @returns The export, which contains private keys and must be protected.
+	 */
+	public async identityExport(identity: string, controller?: string): Promise<IIdentityExport> {
+		Guards.stringValue(IdentityService.CLASS_NAME, nameof(identity), identity);
+		Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+
+		try {
+			const identityConnector = this.getConnectorByUri(identity);
+			const result = await identityConnector.exportDocument(controller, identity);
+			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsExported, {
+				namespace: result.namespace
+			});
+			return result;
+		} catch (error) {
+			throw new GeneralError(
+				IdentityService.CLASS_NAME,
+				"identityExportFailed",
+				{ identity },
+				error
+			);
+		}
+	}
+
+	/**
+	 * Import an identity from an export.
+	 * @param exported The export to import.
+	 * @param controller The controller of the identity, not needed for self-controlled identities.
+	 * @returns The imported identity document.
+	 */
+	public async identityImport(
+		exported: IIdentityExport,
+		controller?: string
+	): Promise<IDidDocument> {
+		// Not guarded with Guards.object, as a guard error would carry the value and so the key material.
+		if (!Is.object<IIdentityExport>(exported)) {
+			throw new GeneralError(IdentityService.CLASS_NAME, "invalidExport");
+		}
+		Guards.stringValue(IdentityService.CLASS_NAME, nameof(exported.namespace), exported.namespace);
+		if (!(exported.selfControlled ?? false)) {
+			Guards.stringValue(IdentityService.CLASS_NAME, nameof(controller), controller);
+		}
+
+		try {
+			const identityConnector = this.getConnectorByNamespace(exported.namespace);
+			const result = await identityConnector.importDocument(controller, exported);
+			await MetricHelper.metricIncrement(this._telemetryComponent, IdentityMetricIds.DidsImported, {
+				namespace: exported.namespace
+			});
+			return result;
+		} catch (error) {
+			throw new GeneralError(
+				IdentityService.CLASS_NAME,
+				"identityImportFailed",
+				{ namespace: exported.namespace },
 				error
 			);
 		}
@@ -542,6 +611,7 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to include in the JWT header when creating the verifiable credential in jwt format.
 	 * @param options.jwtPayloadFields Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @param controller The controller of the identity who can make changes.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
@@ -555,6 +625,7 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		},
 		controller?: string
 	): Promise<{

@@ -31,9 +31,22 @@ const basePublicProfile: IJsonLdDocument = {
 	name: "Jane Doe"
 };
 
+/**
+ * The account id of a test user, roles are held by the account.
+ * @param user The DID of the user.
+ * @returns The account id.
+ */
+function accountOf(user: string): string {
+	return `account-${user}`;
+}
+
 const asUser = async <T>(user: string, method: () => Promise<T>, roles?: string): Promise<T> => {
-	callerRoles[user] = roles?.split(",") ?? [];
-	return ContextIdStore.run({ [ContextIdKeys.User]: user }, method);
+	// Roles are held by the account, not the DID.
+	callerRoles[accountOf(user)] = roles?.split(",") ?? [];
+	return ContextIdStore.run(
+		{ [ContextIdKeys.User]: user, [ContextIdKeys.Account]: accountOf(user) },
+		method
+	);
 };
 
 describe("IdentityProfileService", () => {
@@ -335,12 +348,12 @@ describe("IdentityProfileService", () => {
 
 		expect(mockAuthorizationComponent.hasRoleForSubject).toHaveBeenCalledWith(
 			"custom-model",
-			TEST_ADMIN,
+			accountOf(TEST_ADMIN),
 			IdentityProfileService.DEFAULT_ESCALATED_PRIVILEGE_ROLE
 		);
 		expect(mockAuthorizationComponent.check).toHaveBeenCalledWith(
 			"custom-model",
-			TEST_ADMIN,
+			accountOf(TEST_ADMIN),
 			IdentityProfileService.ADMIN_UPDATE_OPERATION_ID,
 			"execute"
 		);
@@ -362,6 +375,22 @@ describe("IdentityProfileService", () => {
 			...basePublicProfile,
 			roles: ["auditor"]
 		});
+	});
+
+	test("Can not modify denied properties when the escalated role is held by the DID not the account", async () => {
+		const service = new IdentityProfileService(DENIED_CONFIG);
+		await service.create(basePublicProfile, undefined, TEST_ADMIN);
+		callerRoles[TEST_ADMIN] = ["global-admin"];
+
+		await expect(
+			ContextIdStore.run({ [ContextIdKeys.User]: TEST_ADMIN }, async () =>
+				service.update({ ...basePublicProfile, roles: ["auditor"] }, undefined, TEST_ADMIN)
+			)
+		).rejects.toMatchObject({
+			name: "UnauthorizedError",
+			message: "identityProfileService.selfUpdateDenied"
+		});
+		expect(mockAuthorizationComponent.hasRoleForSubject).not.toHaveBeenCalled();
 	});
 
 	test("Can configure the escalated privilege role", async () => {

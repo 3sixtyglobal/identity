@@ -17,6 +17,16 @@ export const IdentityMetricIds = {
 	DidsRemoved: "identity_dids_removed",
 
 	/**
+	 * Number of DIDs exported.
+	 */
+	DidsExported: "identity_dids_exported",
+
+	/**
+	 * Number of DIDs imported.
+	 */
+	DidsImported: "identity_dids_imported",
+
+	/**
 	 * Number of verifiable credentials created.
 	 */
 	VcsCreated: "identity_vcs_created",

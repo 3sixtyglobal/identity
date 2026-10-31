@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 import { AlreadyExistsError, ComponentFactory, Is, RandomHelper } from "@3sixty/core";
 import { Bip39 } from "@3sixty/crypto";
@@ -134,14 +135,14 @@ describe("IdentityService - metrics", () => {
 		await vaultSecretStorage.teardown();
 	});
 
-	test("start() registers all 10 counters with type Counter", async () => {
+	test("start() registers all 12 counters with type Counter", async () => {
 		const { component, created } = makeMockTelemetry();
 		ComponentFactory.register("test-telemetry", () => component);
 
 		const service = new IdentityService({ telemetryComponentType: "test-telemetry" });
 		await service.start();
 
-		expect(created).toHaveLength(10);
+		expect(created).toHaveLength(12);
 		for (const m of created) {
 			expect(m.type).toBe(MetricType.Counter);
 		}
@@ -149,6 +150,8 @@ describe("IdentityService - metrics", () => {
 		const ids = created.map(m => m.id);
 		expect(ids).toContain("identity_dids_created");
 		expect(ids).toContain("identity_dids_removed");
+		expect(ids).toContain("identity_dids_exported");
+		expect(ids).toContain("identity_dids_imported");
 		expect(ids).toContain("identity_vcs_created");
 		expect(ids).toContain("identity_vcs_verified");
 		expect(ids).toContain("identity_vcs_verification_failed");
@@ -202,6 +205,41 @@ describe("IdentityService - metrics", () => {
 		const removed = values.filter(v => v.id === "identity_dids_removed");
 		expect(removed).toHaveLength(1);
 		expect(removed[0].value).toBe("inc");
+	});
+
+	test("identityRemove() with retainDocument does not emit identity_dids_removed", async () => {
+		const { component, values } = makeMockTelemetry();
+		ComponentFactory.register("test-telemetry", () => component);
+
+		const service = new IdentityService({ telemetryComponentType: "test-telemetry" });
+
+		const identity = await service.identityCreate(undefined, TEST_CONTROLLER);
+		await service.identityRemove(identity.id, { retainDocument: true }, TEST_CONTROLLER);
+
+		expect(values.filter(v => v.id === "identity_dids_removed")).toHaveLength(0);
+	});
+
+	test("identityExport() and identityImport() emit identity_dids_exported and identity_dids_imported", async () => {
+		const { component, values } = makeMockTelemetry();
+		ComponentFactory.register("test-telemetry", () => component);
+
+		const service = new IdentityService({ telemetryComponentType: "test-telemetry" });
+
+		const identity = await service.identityCreate(undefined, TEST_CONTROLLER);
+		const exported = await service.identityExport(identity.id, TEST_CONTROLLER);
+		await service.identityRemove(
+			identity.id,
+			{ removeKeys: true, removeDocumentKey: true },
+			TEST_CONTROLLER
+		);
+		await service.identityImport(exported, TEST_CONTROLLER);
+
+		const exportedValues = values.filter(v => v.id === "identity_dids_exported");
+		expect(exportedValues).toHaveLength(1);
+		expect(exportedValues[0].customData?.namespace).toBe("entity-storage");
+		const importedValues = values.filter(v => v.id === "identity_dids_imported");
+		expect(importedValues).toHaveLength(1);
+		expect(importedValues[0].customData?.namespace).toBe("entity-storage");
 	});
 
 	test("verifiableCredentialCreate() emits identity_vcs_created with hasRevocation and hasExpiration flags", async () => {
