@@ -138,6 +138,13 @@ Also remove any associated private keys from the vault.
 
 Also remove the document key from the vault.
 
+###### retainDocument?
+
+`boolean`
+
+Keep a document published on a ledger, only removing what the
+node holds for it, so it can be imported again. Documents stored on the node are always removed.
+
 #### Returns
 
 `Promise`\<`void`\>
@@ -147,6 +154,60 @@ A promise that resolves when the identity has been removed.
 #### Implementation of
 
 `IIdentityComponent.identityRemove`
+
+***
+
+### identityExport() {#identityexport}
+
+> **identityExport**(`identity`): `Promise`\<`IIdentityExport`\>
+
+Export an identity with all the private key material needed to recreate it on another node.
+The controller is resolved server-side from the session context.
+
+#### Parameters
+
+##### identity
+
+`string`
+
+The id of the document to export.
+
+#### Returns
+
+`Promise`\<`IIdentityExport`\>
+
+The export, which contains private keys and must be protected.
+
+#### Implementation of
+
+`IIdentityComponent.identityExport`
+
+***
+
+### identityImport() {#identityimport}
+
+> **identityImport**(`exported`): `Promise`\<`IDidDocument`\>
+
+Import an identity from an export.
+The controller is resolved server-side from the session context.
+
+#### Parameters
+
+##### exported
+
+`IIdentityExport`
+
+The export to import.
+
+#### Returns
+
+`Promise`\<`IDidDocument`\>
+
+The imported identity document.
+
+#### Implementation of
+
+`IIdentityComponent.identityImport`
 
 ***
 
@@ -459,6 +520,12 @@ Additional fields to include in the JWT header when creating the verifiable cred
 \{\[`id`: `string`\]: `string`; \}
 
 Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+
+###### types?
+
+`string`[]
+
+The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 
 #### Returns
 

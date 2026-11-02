@@ -5,12 +5,17 @@
 - [DidContextIdHandler](classes/DidContextIdHandler.md)
 - [Did](classes/Did.md)
 - [DocumentHelper](classes/DocumentHelper.md)
+- [IdentityExportHelper](classes/IdentityExportHelper.md)
 - [VerificationHelper](classes/VerificationHelper.md)
 
 ## Interfaces
 
 - [IIdentityComponent](interfaces/IIdentityComponent.md)
 - [IIdentityConnector](interfaces/IIdentityConnector.md)
+- [IIdentityExport](interfaces/IIdentityExport.md)
+- [IIdentityExportAccount](interfaces/IIdentityExportAccount.md)
+- [IIdentityExportKey](interfaces/IIdentityExportKey.md)
+- [IIdentityExportLimits](interfaces/IIdentityExportLimits.md)
 - [IIdentityProfileComponent](interfaces/IIdentityProfileComponent.md)
 - [IIdentityProfileConnector](interfaces/IIdentityProfileConnector.md)
 - [IIdentityResolverComponent](interfaces/IIdentityResolverComponent.md)
@@ -19,6 +24,10 @@
 - [IIdentityAlsoKnownAsRemoveRequest](interfaces/IIdentityAlsoKnownAsRemoveRequest.md)
 - [IIdentityCreateRequest](interfaces/IIdentityCreateRequest.md)
 - [IIdentityCreateResponse](interfaces/IIdentityCreateResponse.md)
+- [IIdentityExportRequest](interfaces/IIdentityExportRequest.md)
+- [IIdentityExportResponse](interfaces/IIdentityExportResponse.md)
+- [IIdentityImportRequest](interfaces/IIdentityImportRequest.md)
+- [IIdentityImportResponse](interfaces/IIdentityImportResponse.md)
 - [IIdentityProofCreateRequest](interfaces/IIdentityProofCreateRequest.md)
 - [IIdentityProofCreateResponse](interfaces/IIdentityProofCreateResponse.md)
 - [IIdentityProofVerifyRequest](interfaces/IIdentityProofVerifyRequest.md)
@@ -60,6 +69,7 @@
 
 ## Type Aliases
 
+- [IdentityExportKeyType](type-aliases/IdentityExportKeyType.md)
 - [IdentityMetricIds](type-aliases/IdentityMetricIds.md)
 
 ## Variables
@@ -67,5 +77,6 @@
 - [IdentityConnectorFactory](variables/IdentityConnectorFactory.md)
 - [IdentityProfileConnectorFactory](variables/IdentityProfileConnectorFactory.md)
 - [IdentityResolverConnectorFactory](variables/IdentityResolverConnectorFactory.md)
+- [IdentityExportKeyType](variables/IdentityExportKeyType.md)
 - [IdentityMetricIds](variables/IdentityMetricIds.md)
 - [IdentityMetrics](variables/IdentityMetrics.md)

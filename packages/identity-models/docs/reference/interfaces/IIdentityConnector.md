@@ -76,11 +76,95 @@ Also remove any associated private keys from the vault.
 
 Also remove the document key from the vault.
 
+###### retainDocument?
+
+`boolean`
+
+Keep a document published on a ledger, only removing what this
+node holds for it, so it can be imported again. Connectors that store documents on the node
+ignore it and always remove the document.
+
 #### Returns
 
 `Promise`\<`void`\>
 
 A promise that resolves when the document has been removed.
+
+***
+
+### exportDocument() {#exportdocument}
+
+> **exportDocument**(`controller`, `documentId`): `Promise`\<[`IIdentityExport`](IIdentityExport.md)\>
+
+Export a document with all the private key material needed to recreate it on another node.
+
+#### Parameters
+
+##### controller
+
+`string`
+
+The controller of the identity who can make changes.
+
+##### documentId
+
+`string`
+
+The id of the document to export.
+
+#### Returns
+
+`Promise`\<[`IIdentityExport`](IIdentityExport.md)\>
+
+The export, which contains private keys and must be protected.
+
+#### Throws
+
+NotFoundError if the id can not be resolved.
+
+#### Throws
+
+UnauthorizedError if the caller does not control the document.
+
+#### Throws
+
+NotSupportedError if the platform does not support exporting.
+
+***
+
+### importDocument() {#importdocument}
+
+> **importDocument**(`controller`, `exported`): `Promise`\<`IDidDocument`\>
+
+Import a document from an export, proving the keys match the document before storing anything.
+
+#### Parameters
+
+##### controller
+
+`string` \| `undefined`
+
+The controller of the identity, ignored for self-controlled identities.
+
+##### exported
+
+[`IIdentityExport`](IIdentityExport.md)
+
+The export to import.
+
+#### Returns
+
+`Promise`\<`IDidDocument`\>
+
+The imported document.
+
+#### Throws
+
+ConflictError if the identity or any of its keys already exist on this node.
+
+#### Throws
+
+NotSupportedError if the platform does not support importing.
 
 ***
 
@@ -405,6 +489,12 @@ Additional fields to include in the JWT header when creating the verifiable cred
 \{\[`id`: `string`\]: `string`; \}
 
 Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+
+###### types?
+
+`string`[]
+
+The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 
 #### Returns
 

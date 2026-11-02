@@ -18,6 +18,14 @@ vault
 
 ***
 
+### loggingComponentType? {#loggingcomponenttype}
+
+> `optional` **loggingComponentType?**: `string`
+
+The type of logging component to use.
+
+***
+
 ### config {#config}
 
 > **config**: [`IIotaIdentityConnectorConfig`](IIotaIdentityConnectorConfig.md)

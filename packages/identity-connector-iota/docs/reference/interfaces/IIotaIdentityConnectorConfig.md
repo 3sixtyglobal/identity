@@ -160,3 +160,17 @@ Delay in milliseconds between each resolveDid retry.
 ```ts
 500
 ```
+
+***
+
+### exportLimits? {#exportlimits}
+
+> `optional` **exportLimits?**: `IIdentityExportLimits`
+
+The most keys accepted when an identity is imported.
+
+#### Default
+
+```ts
+{ maxKeys: 64 }
+```

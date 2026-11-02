@@ -8,6 +8,14 @@ Options for the entity storage identity connector constructor.
 
 ## Properties
 
+### loggingComponentType? {#loggingcomponenttype}
+
+> `optional` **loggingComponentType?**: `string`
+
+The type of logging component to use.
+
+***
+
 ### config? {#config}
 
 > `optional` **config?**: [`IEntityStorageIdentityConnectorConfig`](IEntityStorageIdentityConnectorConfig.md)

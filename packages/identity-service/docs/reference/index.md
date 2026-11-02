@@ -40,6 +40,8 @@
 - [generateRestRoutesIdentity](functions/generateRestRoutesIdentity.md)
 - [identityCreate](functions/identityCreate.md)
 - [identityRemove](functions/identityRemove.md)
+- [identityExport](functions/identityExport.md)
+- [identityImport](functions/identityImport.md)
 - [identityVerificationMethodCreate](functions/identityVerificationMethodCreate.md)
 - [identityVerificationMethodRemove](functions/identityVerificationMethodRemove.md)
 - [identityServiceCreate](functions/identityServiceCreate.md)

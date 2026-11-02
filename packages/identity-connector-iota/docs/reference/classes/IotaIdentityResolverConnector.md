@@ -114,6 +114,8 @@ The health status of the component.
 
 Resolve a document from its id, cached for didResolutionCacheTtlMs
 (0 disables caching and resolves fresh every call).
+The TTL is absolute rather than reset on each read, as the resolver is not told when a
+document is removed or changed, so a frequently read document must still be reloaded.
 
 #### Parameters
 

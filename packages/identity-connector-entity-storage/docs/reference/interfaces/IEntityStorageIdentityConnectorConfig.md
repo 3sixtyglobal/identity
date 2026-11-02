@@ -44,3 +44,17 @@ Only used when didResolutionCacheTtlMs > 0.
 
 Maximum time in milliseconds to wait for own-DID cache getOrSet mutex acquisition.
 Only used when didResolutionCacheTtlMs > 0.
+
+***
+
+### exportLimits? {#exportlimits}
+
+> `optional` **exportLimits?**: `IIdentityExportLimits`
+
+The most keys accepted when an identity is imported.
+
+#### Default
+
+```ts
+{ maxKeys: 64 }
+```

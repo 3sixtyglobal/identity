@@ -35,3 +35,10 @@ Also remove any associated private keys from the vault.
 > `optional` **removeDocumentKey?**: `string`
 
 Also remove the document key from the vault.
+
+#### retainDocument?
+
+> `optional` **retainDocument?**: `string`
+
+Keep a document published on a ledger, only removing what this node holds for it,
+so it can be imported again.
