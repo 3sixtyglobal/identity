@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.20.0-next.4](https://github.com/3sixtyglobal/identity/compare/identity-service-v0.20.0-next.3...identity-service-v0.20.0-next.4) (2026-11-02)
+
+
+### Features
+
+* identity export and import ([#58](https://github.com/3sixtyglobal/identity/issues/58)) ([fdc94c0](https://github.com/3sixtyglobal/identity/commit/fdc94c0c90d62d149e0b61248d79114ba5a3c41a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/identity-models bumped from 0.20.0-next.3 to 0.20.0-next.4
+  * devDependencies
+    * @3sixty/identity-connector-entity-storage bumped from 0.20.0-next.3 to 0.20.0-next.4
+
 ## [0.20.0-next.3](https://github.com/3sixtyglobal/identity/compare/identity-service-v0.20.0-next.2...identity-service-v0.20.0-next.3) (2026-10-26)
 
 

@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.20.0-next.4](https://github.com/3sixtyglobal/identity/compare/identity-cli-v0.20.0-next.3...identity-cli-v0.20.0-next.4) (2026-11-02)
+
+
+### Miscellaneous Chores
+
+* **identity-cli:** Synchronize repo versions
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @3sixty/identity-connector-iota bumped from 0.20.0-next.3 to 0.20.0-next.4
+    * @3sixty/identity-models bumped from 0.20.0-next.3 to 0.20.0-next.4
+
 ## [0.20.0-next.3](https://github.com/3sixtyglobal/identity/compare/identity-cli-v0.20.0-next.2...identity-cli-v0.20.0-next.3) (2026-10-26)
 
 
