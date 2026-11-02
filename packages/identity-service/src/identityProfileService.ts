@@ -403,16 +403,17 @@ export class IdentityProfileService<
 	 * @internal
 	 */
 	private async callerHasAdminPermission(): Promise<boolean> {
+		// Roles are held by account ids, so the DID of the caller grants no privilege.
 		const contextIds = await ContextIdStore.getContextIds();
-		const callerIdentity = contextIds?.[ContextIdKeys.User];
-		if (!Is.stringValue(callerIdentity)) {
+		const callerAccountId = contextIds?.[ContextIdKeys.Account];
+		if (!Is.stringValue(callerAccountId)) {
 			return false;
 		}
 
 		if (
 			await this._authorizationComponent.hasRoleForSubject(
 				this._authorizationModelId,
-				callerIdentity,
+				callerAccountId,
 				this._escalatedPrivilegeRole
 			)
 		) {
@@ -421,7 +422,7 @@ export class IdentityProfileService<
 
 		return this._authorizationComponent.check(
 			this._authorizationModelId,
-			callerIdentity,
+			callerAccountId,
 			IdentityProfileService.ADMIN_UPDATE_OPERATION_ID,
 			"execute"
 		);

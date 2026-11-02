@@ -13,6 +13,7 @@ import type {
 	IDidVerifiablePresentation,
 	ProofTypes
 } from "@3sixty/standards-w3c-did";
+import type { IIdentityExport } from "./IIdentityExport.js";
 
 /**
  * Interface describing a contract which provides identity operations.
@@ -38,14 +39,32 @@ export interface IIdentityComponent extends IComponent {
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
 	 * @param options.removeDocumentKey Also remove the document key from the vault.
+	 * @param options.retainDocument Keep a document published on a ledger, only removing what this
+	 * node holds for it, so it can be imported again. Documents stored on the node are always removed.
 	 * @param controller The controller of the identity who can make changes.
 	 * @returns A promise that resolves when the identity has been removed.
 	 */
 	identityRemove(
 		identity: string,
-		options?: { removeKeys?: boolean; removeDocumentKey?: boolean },
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean; retainDocument?: boolean },
 		controller?: string
 	): Promise<void>;
+
+	/**
+	 * Export an identity with all the private key material needed to recreate it on another node.
+	 * @param identity The id of the document to export.
+	 * @param controller The controller of the identity who can make changes.
+	 * @returns The export, which contains private keys and must be protected.
+	 */
+	identityExport(identity: string, controller?: string): Promise<IIdentityExport>;
+
+	/**
+	 * Import an identity from an export.
+	 * @param exported The export to import.
+	 * @param controller The controller of the identity, not needed for self-controlled identities.
+	 * @returns The imported identity document.
+	 */
+	identityImport(exported: IIdentityExport, controller?: string): Promise<IDidDocument>;
 
 	/**
 	 * Add a verification method to the document in JSON Web key Format.
@@ -141,6 +160,7 @@ export interface IIdentityComponent extends IComponent {
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to include in the JWT header when creating the verifiable credential in jwt format.
 	 * @param options.jwtPayloadFields Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @param controller The controller of the identity who can make changes.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
@@ -154,6 +174,7 @@ export interface IIdentityComponent extends IComponent {
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		},
 		controller?: string
 	): Promise<{

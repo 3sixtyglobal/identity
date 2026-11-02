@@ -12,19 +12,24 @@ import {
 	ArrayHelper,
 	BaseError,
 	Coerce,
+	ComponentFactory,
+	ConflictError,
 	Converter,
 	GeneralError,
 	Guards,
 	Is,
 	LruCache,
+	Mutex,
 	NotFoundError,
 	NotSupportedError,
 	ObjectHelper,
 	RandomHelper,
 	TimeoutHelper,
+	UnauthorizedError,
 	Url,
 	Urn
 } from "@3sixty/core";
+import { Bip39, Bip44, Ed25519, KeyType } from "@3sixty/crypto";
 import {
 	JsonLdHelper,
 	JsonLdProcessor,
@@ -36,9 +41,15 @@ import { Iota, VaultJwtSigner, type IIotaClient } from "@3sixty/dlt-iota";
 import {
 	Did,
 	DocumentHelper,
+	IdentityExportHelper,
+	IdentityExportKeyType,
 	VerificationHelper,
-	type IIdentityConnector
+	type IIdentityConnector,
+	type IIdentityExport,
+	type IIdentityExportAccount,
+	type IIdentityExportKey
 } from "@3sixty/identity-models";
+import type { ILoggingComponent } from "@3sixty/logging-models";
 import { nameof } from "@3sixty/nameof";
 import {
 	DidContexts,
@@ -124,10 +135,22 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	public static readonly CLASS_NAME: string = nameof<IotaIdentityConnector>();
 
 	/**
+	 * The exact format of the DIDs created by the connector, with an optional network.
+	 * @internal
+	 */
+	private static readonly _DID_PATTERN: RegExp = /^did:iota:(?:[\da-z]{1,32}:)?0x[\da-f]{64}$/;
+
+	/**
 	 * The vault for the keys.
 	 * @internal
 	 */
 	private readonly _vaultConnector: IVaultConnector;
+
+	/**
+	 * The logging component.
+	 * @internal
+	 */
+	private readonly _loggingComponent?: ILoggingComponent;
 
 	/**
 	 * The configuration to use for IOTA operations.
@@ -237,6 +260,9 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			options.config.clientOptions
 		);
 		this._vaultConnector = VaultConnectorFactory.get(options.vaultConnectorType ?? "vault");
+		this._loggingComponent = ComponentFactory.getIfExists<ILoggingComponent>(
+			options.loggingComponentType
+		);
 
 		this._config = options.config;
 
@@ -423,15 +449,25 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @param documentId The id of the document to remove.
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
+	 * @param options.retainDocument Keep the document on-chain, with removeKeys only removing the
+	 * keys and the wallet account secrets of a self-controlled identity from the vault, so an export
+	 * of it can be imported again. The controller, which is the identity itself when self-controlled,
+	 * must still hold the controller token.
 	 * @returns A promise that resolves when the document has been removed.
+	 * @throws UnauthorizedError if the controller does not hold the controller token for the identity.
 	 */
 	public async removeDocument(
 		controller: string,
 		documentId: string,
-		options?: { removeKeys?: boolean }
+		options?: { removeKeys?: boolean; retainDocument?: boolean }
 	): Promise<void> {
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), controller);
 		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(documentId), documentId);
+
+		if (options?.retainDocument ?? false) {
+			await this.removeHeldKeys(controller, documentId, options?.removeKeys ?? false);
+			return;
+		}
 
 		try {
 			const identityClient = await this.getIdentityClient(controller);
@@ -483,6 +519,240 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				undefined,
 				error
 			);
+		}
+	}
+
+	/**
+	 * Export a document with all the private key material needed to restore it on another node.
+	 * The document itself lives on-chain, so the export holds the resolved document for reference,
+	 * the verification method keys and, for self-controlled identities, the wallet account secrets.
+	 * @param controller The controller of the identity who can make changes.
+	 * @param documentId The id of the document to export.
+	 * @returns The export, which contains private keys and must be protected.
+	 * @throws NotFoundError if the id can not be resolved.
+	 * @throws UnauthorizedError if the controller does not hold the controller token for the identity.
+	 */
+	public async exportDocument(controller: string, documentId: string): Promise<IIdentityExport> {
+		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), controller);
+		Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(documentId), documentId);
+
+		try {
+			const identityClient = await this.getIdentityClient(controller);
+			await this.assertControllerToken(identityClient, documentId);
+
+			const document = this.toDidDocumentJson(
+				await this.clientResolveDid(await this.getIdentityClientReadOnly(), documentId)
+			);
+			IdentityExportHelper.validateMethodIds(document);
+
+			// Method keys held elsewhere are left out, the on-chain document stays authoritative.
+			const keys = (
+				await Promise.all(
+					IdentityExportHelper.getMethodFragments(document).map(async fragment =>
+						this.exportKeyIfExists(documentId, fragment)
+					)
+				)
+			).filter(key => !Is.undefined(key));
+
+			// The identity controls itself when its own wallet holds the controller token, which the
+			// check above proved for the controller, and only then does the export need the wallet.
+			const selfControlled = controller === documentId;
+			let account: IIdentityExportAccount | undefined;
+			if (selfControlled) {
+				const [mnemonic, seed] = await Promise.all([
+					this._vaultConnector.getSecret<string>(
+						AccountHelper.buildMnemonicKey(documentId, this._config.vaultMnemonicId)
+					),
+					this.getSecretIfExists(AccountHelper.buildSeedKey(documentId, this._config.vaultSeedId))
+				]);
+				account = { mnemonic, seed };
+			}
+
+			const exported: IIdentityExport = {
+				version: IdentityExportHelper.VERSION,
+				namespace: IotaIdentityConnector.NAMESPACE,
+				selfControlled,
+				document,
+				keys,
+				account
+			};
+
+			// Fail now, rather than on import, for an identity which could not be imported.
+			IdentityExportHelper.validate(
+				exported,
+				IotaIdentityConnector.NAMESPACE,
+				IotaIdentityConnector._DID_PATTERN,
+				this._config.exportLimits
+			);
+
+			return exported;
+		} catch (error) {
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"exportDocumentFailed",
+				{ documentId },
+				Iota.extractPayloadError(error)
+			);
+		}
+	}
+
+	/**
+	 * Import a document from an export, restoring its keys to the vault.
+	 * The document is resolved on-chain, every key must match its on-chain verification method,
+	 * and the controller, or the identity itself when self-controlled, must hold its controller
+	 * token, all proved before anything is written.
+	 * @param controller The controller of the identity, ignored for self-controlled identities.
+	 * @param exported The export to import.
+	 * @returns The on-chain document.
+	 * @throws ConflictError if any of the keys or account secrets already exist on this node.
+	 */
+	public async importDocument(
+		controller: string | undefined,
+		exported: IIdentityExport
+	): Promise<IDidDocument> {
+		const createdKeys: string[] = [];
+		const createdSecrets: string[] = [];
+		let did: string | undefined;
+		let lockKey: string | undefined;
+		try {
+			did = IdentityExportHelper.validate(
+				exported,
+				IotaIdentityConnector.NAMESPACE,
+				IotaIdentityConnector._DID_PATTERN,
+				this._config.exportLimits
+			);
+			const documentId = did;
+
+			if (exported.selfControlled !== !Is.undefined(exported.account)) {
+				throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "accountMismatch");
+			}
+			const tokenHolder = exported.selfControlled ? documentId : controller;
+			Guards.stringValue(IotaIdentityConnector.CLASS_NAME, nameof(controller), tokenHolder);
+
+			const keyPairs = exported.keys.map(key => this.decodeExportKey(key));
+
+			let accountSeed: Uint8Array | undefined;
+			if (!Is.undefined(exported.account)) {
+				const mnemonic = exported.account.mnemonic;
+				if (!Bip39.validateMnemonic(mnemonic, mnemonic.split(/\s+/).length)) {
+					throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "invalidMnemonic");
+				}
+				accountSeed = Bip39.mnemonicToSeed(mnemonic);
+				if (
+					!Is.undefined(exported.account.seed) &&
+					Converter.bytesToBase64(accountSeed) !== exported.account.seed
+				) {
+					throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "accountSeedMismatch");
+				}
+			}
+
+			// The on-chain document is authoritative, the exported copy is only for reference.
+			const document = this.toDidDocumentJson(
+				await this.clientResolveDid(await this.getIdentityClientReadOnly(), documentId)
+			);
+			IdentityExportHelper.validateMethodIds(document);
+			IdentityExportHelper.verifyMethodKeys(document, exported.keys);
+
+			// Prove control before anything is written: the wallet derived in memory from the
+			// imported mnemonic for a self-controlled identity, otherwise the named controller.
+			await this.assertControllerToken(
+				Is.undefined(accountSeed)
+					? await this.getIdentityClient(tokenHolder)
+					: await this.getIdentityClientForSeed(accountSeed),
+				documentId
+			);
+
+			// Held across the conflict checks and the writes, so concurrent imports of a DID cannot both pass.
+			const importLock = `${IotaIdentityConnector.CLASS_NAME}:import:${documentId}`;
+			await Mutex.lock(importLock, { throwOnTimeout: true });
+			lockKey = importLock;
+
+			// Check every name the document can sign with, not just those supplied, so an existing key
+			// is never reused or replaced, including one a vault which normalises names maps to the same entry.
+			const keyNames = [
+				...new Set([
+					...IdentityExportHelper.getMethodFragments(document),
+					...exported.keys.map(k => k.id)
+				])
+			];
+			const accountSecrets = Is.undefined(exported.account)
+				? []
+				: this.accountSecretNames(documentId);
+			const accountKeys = Is.undefined(exported.account) ? [] : this.accountKeyNames(documentId);
+			const [keyExists, secretExists, accountKeyExists] = await Promise.all([
+				Promise.all(
+					keyNames.map(async keyName =>
+						this._vaultConnector.keyExists(VaultConnectorHelper.buildKeyName(documentId, keyName))
+					)
+				),
+				Promise.all(accountSecrets.map(async name => this._vaultConnector.secretExists(name))),
+				Promise.all(accountKeys.map(async name => this._vaultConnector.keyExists(name)))
+			]);
+			const conflicts = [
+				...keyNames.filter((keyName, index) => keyExists[index]),
+				...accountSecrets
+					.filter((name, index) => secretExists[index])
+					.map(name => name.slice(documentId.length + 1)),
+				...(accountKeyExists.includes(true) ? ["account"] : [])
+			];
+			if (conflicts.length > 0) {
+				throw new ConflictError(
+					IotaIdentityConnector.CLASS_NAME,
+					"keyAlreadyExists",
+					documentId,
+					conflicts
+				);
+			}
+
+			for (let i = 0; i < exported.keys.length; i++) {
+				const vaultKey = VaultConnectorHelper.buildKeyName(documentId, exported.keys[i].id);
+				// Checked again before each write, as a vault which normalises names could map two
+				// key ids to the same entry, and the first would then be overwritten.
+				if (await this._vaultConnector.keyExists(vaultKey)) {
+					throw new ConflictError(
+						IotaIdentityConnector.CLASS_NAME,
+						"keyAlreadyExists",
+						documentId,
+						[exported.keys[i].id]
+					);
+				}
+				await this._vaultConnector.addKey(
+					vaultKey,
+					VaultKeyType.Ed25519,
+					keyPairs[i].privateKey,
+					keyPairs[i].publicKey
+				);
+				createdKeys.push(vaultKey);
+			}
+
+			if (!Is.undefined(exported.account)) {
+				// None of these existed when checked under the lock, so all are created by this call.
+				createdSecrets.push(...accountSecrets);
+				createdKeys.push(...accountKeys);
+				await AccountHelper.createAccountKeys(
+					this._config,
+					this._vaultConnector,
+					documentId,
+					exported.account.mnemonic,
+					this._walletAccountIndex
+				);
+			}
+
+			this._didResolutionCache?.delete(this.ownDidCacheKey(documentId));
+
+			return document;
+		} catch (error) {
+			await this.rollbackImport(did, createdKeys, createdSecrets);
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"importDocumentFailed",
+				{ documentId: did },
+				Iota.extractPayloadError(error)
+			);
+		} finally {
+			if (Is.stringValue(lockKey)) {
+				Mutex.unlock(lockKey);
+			}
 		}
 	}
 
@@ -976,6 +1246,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to include in the JWT header.
 	 * @param options.jwtPayloadFields Additional fields to include in the JWT payload.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
 	 * @throws GeneralError if the signing operation fails.
@@ -990,6 +1261,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		}
 	): Promise<{
 		verifiableCredential: IDidVerifiableCredential;
@@ -1009,6 +1281,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				options.revocationIndex
 			);
 		}
+		const credentialType = DocumentHelper.credentialTypes(options?.types);
 
 		try {
 			const idParts = DocumentHelper.parseId(verificationMethodId);
@@ -1020,7 +1293,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				);
 			}
 
-			const identityClient = await this.getIdentityClient();
+			const identityClient = await this.getIdentityClientReadOnly();
 			const issuerDocument = await this.resolveOwnDidCached(identityClient, idParts.id);
 
 			const methods = issuerDocument.methods();
@@ -1061,7 +1334,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			const credentialData: IDidVerifiableCredentialV1 = {
 				"@context": (JsonLdProcessor.combineContexts(DidContexts.ContextVCv1, credContext) ??
 					DidContexts.ContextVCv1) as [typeof DidContexts.ContextVCv1],
-				type: DidTypes.VerifiableCredential,
+				type: credentialType,
 				credentialSubject: subjectClone
 			};
 
@@ -1478,7 +1751,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				);
 			}
 
-			const identityClient = await this.getIdentityClient();
+			const identityClient = await this.getIdentityClientReadOnly();
 			const holderDocument = await this.resolveOwnDidCached(identityClient, idParts.id);
 
 			const methods = holderDocument.methods();
@@ -1828,7 +2101,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				);
 			}
 
-			const identityClient = await this.getIdentityClient();
+			const identityClient = await this.getIdentityClientReadOnly();
 			const document = await this.resolveOwnDidCached(identityClient, idParts.id);
 
 			return await this.buildProof(document, verificationMethodId, proofType, unsecureDocument);
@@ -1868,7 +2141,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				);
 			}
 
-			const identityClient = await this.getIdentityClient();
+			const identityClient = await this.getIdentityClientReadOnly();
 			const resolvedDocument = await this.withResolutionTimeout(
 				identityClient.resolveDid(IotaDID.parse(idParts.id)),
 				idParts.id
@@ -1924,7 +2197,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "missingDid", verificationMethodId);
 		}
 
-		const identityClient = await this.getIdentityClient();
+		const identityClient = await this.getIdentityClientReadOnly();
 		const resolvedDocument = await this.withResolutionTimeout(
 			identityClient.resolveDid(IotaDID.parse(idParts.id)),
 			idParts.id
@@ -1991,7 +2264,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @internal
 	 */
 	private async waitForDocument(
-		identityClient: IdentityClient,
+		identityClient: IdentityClient | IdentityClientReadOnly,
 		did: IotaDID,
 		preMutationUpdated?: string
 	): Promise<IotaDocument | undefined> {
@@ -2036,7 +2309,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @internal
 	 */
 	private async waitForDocumentDeletion(
-		identityClient: IdentityClient,
+		identityClient: IdentityClient | IdentityClientReadOnly,
 		did: IotaDID
 	): Promise<void> {
 		for (let attempt = 0; attempt <= this._didResolutionRetries; attempt++) {
@@ -2269,7 +2542,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @internal
 	 */
 	private async resolveOwnDidCached(
-		identityClient: IdentityClient,
+		identityClient: IdentityClient | IdentityClientReadOnly,
 		did: string
 	): Promise<IotaDocument> {
 		if (Is.undefined(this._didResolutionCache)) {
@@ -2290,7 +2563,7 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	 * @internal
 	 */
 	private async clientResolveDid(
-		identityClient: IdentityClient,
+		identityClient: IdentityClient | IdentityClientReadOnly,
 		did: string
 	): Promise<IotaDocument> {
 		const document = await this.withResolutionTimeout(
@@ -2441,7 +2714,12 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		try {
 			document = await this.createDocument(tempIdentity);
 		} catch (error) {
-			await AccountHelper.removeAccountKeys(this._config, this._vaultConnector, tempIdentity);
+			await AccountHelper.removeAccountKeys(
+				this._config,
+				this._vaultConnector,
+				tempIdentity,
+				this._walletAccountIndex
+			);
 			throw error;
 		}
 
@@ -2450,7 +2728,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			this._config,
 			this._vaultConnector,
 			tempIdentity,
-			document.id
+			document.id,
+			this._walletAccountIndex
 		);
 
 		return document;
@@ -2562,6 +2841,281 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 	}
 
 	/**
+	 * Confirm the signer of an identity client holds the controller token for a document.
+	 * @param identityClient The identity client for the controller.
+	 * @param documentId The id of the document.
+	 * @throws NotFoundError if the identity does not exist on-chain.
+	 * @throws UnauthorizedError if the signer does not hold the controller token.
+	 * @internal
+	 */
+	private async assertControllerToken(
+		identityClient: IdentityClient,
+		documentId: string
+	): Promise<void> {
+		const identity = await identityClient.getIdentity(Did.parse(documentId).id);
+		const identityOnChain = identity.toFullFledged();
+		if (Is.undefined(identityOnChain)) {
+			throw new NotFoundError(IotaIdentityConnector.CLASS_NAME, "documentNotFound", documentId);
+		}
+
+		const controllerToken = await identityOnChain.getControllerToken(identityClient);
+		if (Is.undefined(controllerToken)) {
+			throw new UnauthorizedError(IotaIdentityConnector.CLASS_NAME, "notController", {
+				documentId
+			});
+		}
+	}
+
+	/**
+	 * Read a verification method key from the vault in export format.
+	 * @param documentId The id of the document.
+	 * @param fragment The fragment of the verification method.
+	 * @returns The exported key, or undefined if the vault does not hold it.
+	 * @throws GeneralError if the key is not an Ed25519 key.
+	 * @internal
+	 */
+	private async exportKeyIfExists(
+		documentId: string,
+		fragment: string
+	): Promise<IIdentityExportKey | undefined> {
+		let key;
+		try {
+			key = await this._vaultConnector.getKey(
+				VaultConnectorHelper.buildKeyName(documentId, fragment),
+				"both"
+			);
+		} catch (error) {
+			if (BaseError.someErrorName(error, NotFoundError.CLASS_NAME)) {
+				return undefined;
+			}
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"exportKeyFailed",
+				{ keyId: fragment },
+				error
+			);
+		}
+		if (
+			key.type !== VaultKeyType.Ed25519 ||
+			Is.undefined(key.privateKey) ||
+			Is.undefined(key.publicKey)
+		) {
+			throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "keyTypeNotSupported", {
+				keyId: fragment
+			});
+		}
+		return {
+			id: fragment,
+			type: IdentityExportKeyType.Ed25519,
+			privateKey: Converter.bytesToBase64(key.privateKey),
+			publicKey: Converter.bytesToBase64(key.publicKey)
+		};
+	}
+
+	/**
+	 * Read a secret from the vault.
+	 * @param name The name of the secret.
+	 * @returns The secret, or undefined if the vault does not hold it.
+	 * @internal
+	 */
+	private async getSecretIfExists(name: string): Promise<string | undefined> {
+		try {
+			return await this._vaultConnector.getSecret<string>(name);
+		} catch (error) {
+			if (BaseError.someErrorName(error, NotFoundError.CLASS_NAME)) {
+				return undefined;
+			}
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"exportSecretFailed",
+				undefined,
+				error
+			);
+		}
+	}
+
+	/**
+	 * Decode an exported key and prove its private key produces its public key.
+	 * @param key The exported key.
+	 * @returns The decoded key pair.
+	 * @throws GeneralError if the key pair does not match.
+	 * @internal
+	 */
+	private decodeExportKey(key: IIdentityExportKey): {
+		privateKey: Uint8Array;
+		publicKey: Uint8Array;
+	} {
+		const privateKey = Converter.base64ToBytes(key.privateKey);
+		const publicKey = Converter.base64ToBytes(key.publicKey);
+		if (
+			privateKey.length !== Ed25519.PRIVATE_KEY_SIZE ||
+			publicKey.length !== Ed25519.PUBLIC_KEY_SIZE ||
+			!ArrayHelper.matches(Ed25519.publicKeyFromPrivateKey(privateKey), publicKey)
+		) {
+			throw new GeneralError(IotaIdentityConnector.CLASS_NAME, "keyPairMismatch", {
+				keyId: key.id
+			});
+		}
+		return { privateKey, publicKey };
+	}
+
+	/**
+	 * Remove what the node holds for an identity whose document stays on-chain.
+	 * @param controller The controller of the identity, the identity itself when self-controlled.
+	 * @param documentId The id of the document.
+	 * @param removeKeys Remove the verification method keys and the wallet account secrets.
+	 * @returns A promise that resolves when the keys have been removed.
+	 * @throws UnauthorizedError if the controller does not hold the controller token for the identity.
+	 * @internal
+	 */
+	private async removeHeldKeys(
+		controller: string,
+		documentId: string,
+		removeKeys: boolean
+	): Promise<void> {
+		try {
+			// Nothing is removed unless the caller controls the identity on-chain.
+			await this.assertControllerToken(await this.getIdentityClient(controller), documentId);
+
+			if (removeKeys) {
+				const document = this.toDidDocumentJson(
+					await this.clientResolveDid(await this.getIdentityClientReadOnly(), documentId)
+				);
+				await Promise.all(
+					IdentityExportHelper.getMethodFragments(document).map(async fragment => {
+						const vaultKey = VaultConnectorHelper.buildKeyName(documentId, fragment);
+						if (await this._vaultConnector.keyExists(vaultKey)) {
+							await this._vaultConnector.removeKey(vaultKey);
+						}
+					})
+				);
+				// The wallet account of a self-controlled identity holds its controller token.
+				await AccountHelper.removeAccountKeys(
+					this._config,
+					this._vaultConnector,
+					documentId,
+					this._walletAccountIndex
+				);
+			}
+			this._didResolutionCache?.delete(this.ownDidCacheKey(documentId));
+		} catch (error) {
+			throw new GeneralError(
+				IotaIdentityConnector.CLASS_NAME,
+				"removeDocumentFailed",
+				undefined,
+				Iota.extractPayloadError(error)
+			);
+		}
+	}
+
+	/**
+	 * Remove everything a failed import created, and nothing else.
+	 * @param documentId The id of the imported document.
+	 * @param createdKeys The full vault names of the keys the import created or may have created.
+	 * @param createdSecrets The full vault names of the secrets the import may have created.
+	 * @internal
+	 */
+	private async rollbackImport(
+		documentId: string | undefined,
+		createdKeys: string[],
+		createdSecrets: string[]
+	): Promise<void> {
+		await Promise.all([
+			...createdKeys.map(async vaultKey => {
+				try {
+					await this._vaultConnector.removeKey(vaultKey);
+				} catch (error) {
+					await this.logRollbackFailure(documentId, vaultKey, error);
+				}
+			}),
+			...createdSecrets.map(async secret => {
+				try {
+					await this._vaultConnector.removeSecret(secret);
+				} catch (error) {
+					await this.logRollbackFailure(documentId, secret, error);
+				}
+			})
+		]);
+	}
+
+	/**
+	 * Log a step of a failed import which could not be undone, so it can be removed manually.
+	 * @param documentId The id of the imported document.
+	 * @param name The name of the vault key or secret left behind.
+	 * @param error The error from undoing the step.
+	 * @internal
+	 */
+	private async logRollbackFailure(
+		documentId: string | undefined,
+		name: string,
+		error: unknown
+	): Promise<void> {
+		await this._loggingComponent?.log({
+			level: "warn",
+			source: IotaIdentityConnector.CLASS_NAME,
+			ts: Date.now(),
+			message: "importRollbackFailed",
+			error: BaseError.fromError(error),
+			data: { documentId, name }
+		});
+	}
+
+	/**
+	 * Get the vault names of the wallet account secrets of an identity.
+	 * @param identity The identity owning the wallet.
+	 * @returns The full vault names of the mnemonic and seed secrets.
+	 * @internal
+	 */
+	private accountSecretNames(identity: string): string[] {
+		return [
+			AccountHelper.buildMnemonicKey(identity, this._config.vaultMnemonicId),
+			AccountHelper.buildSeedKey(identity, this._config.vaultSeedId)
+		];
+	}
+
+	/**
+	 * Get the vault names of the wallet keys created with the account of an identity.
+	 * @param identity The identity owning the wallet.
+	 * @returns The full vault names of the first chunk of address keys for the wallet account index.
+	 * @internal
+	 */
+	private accountKeyNames(identity: string): string[] {
+		return Array.from({ length: AccountHelper.DEFAULT_CALC_CHUNK_SIZE }, (value, addressIndex) =>
+			AccountHelper.buildAddressKeyName(identity, this._walletAccountIndex, false, addressIndex)
+		);
+	}
+
+	/**
+	 * Get an identity client for the wallet derived from a seed, without storing anything.
+	 * The client can only be used to check what the wallet holds, as it has no private key to sign with.
+	 * @param seed The wallet seed.
+	 * @returns The identity client.
+	 * @internal
+	 */
+	private async getIdentityClientForSeed(seed: Uint8Array): Promise<IdentityClient> {
+		const keyPair = Bip44.keyPair(
+			seed,
+			KeyType.Ed25519,
+			this._config.coinType ?? AccountHelper.DEFAULT_COIN_TYPE,
+			this._walletAccountIndex,
+			false,
+			this._walletAddressIndex
+		);
+		const publicJwk = new Jwk({
+			kty: JwkType.Okp,
+			crv: "Ed25519",
+			alg: JwsAlgorithm.EdDSA,
+			x: Converter.bytesToBase64Url(keyPair.publicKey)
+		});
+		const signer = new StorageSigner(
+			new Storage(new JwkMemStore(), new KeyIdMemStore()),
+			"",
+			publicJwk
+		);
+		return IdentityClient.create(await this.createIdentityClientReadOnly(), signer);
+	}
+
+	/**
 	 * Execute document update transaction with conditional gas station support.
 	 * @param controller The controller identity.
 	 * @param identityOnChain The on-chain identity to update.
@@ -2610,14 +3164,15 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		// Both branches are captured into `result` (instead of returning directly) so the cache
 		// update runs after either one succeeds, and a throw from either skips it automatically.
 		let result;
-		let resolverClient: IdentityClient;
+		let resolverClient: IdentityClient | IdentityClientReadOnly;
 		if (Is.object(this._config.gasStation)) {
 			result = await this.executeGasStationTransaction(controller, buildUpdate, "update");
-			resolverClient = await this.getIdentityClient();
+			resolverClient = await this.getIdentityClientReadOnly();
 		} else {
-			resolverClient = await this.getIdentityClient(controller);
+			const controllerClient = await this.getIdentityClient(controller);
+			resolverClient = controllerClient;
 			result = await Iota.executeWithReservationRetry(this._config, async () =>
-				(await buildUpdate()).buildAndExecute(resolverClient)
+				(await buildUpdate()).buildAndExecute(controllerClient)
 			);
 		}
 

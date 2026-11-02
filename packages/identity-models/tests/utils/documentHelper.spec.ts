@@ -4,6 +4,25 @@ import type { IDidDocument } from "@3sixty/standards-w3c-did";
 import { DocumentHelper } from "../../src/utils/documentHelper.js";
 
 describe("DocumentHelper", () => {
+	test("Can build the types of a credential, VerifiableCredential first and each type once", () => {
+		expect(DocumentHelper.credentialTypes()).toBe("VerifiableCredential");
+		expect(DocumentHelper.credentialTypes([])).toBe("VerifiableCredential");
+		expect(DocumentHelper.credentialTypes(["VerifiableCredential"])).toBe("VerifiableCredential");
+		expect(
+			DocumentHelper.credentialTypes([
+				"OrganizationMembershipCredential",
+				"VerifiableCredential",
+				"OrganizationMembershipCredential"
+			])
+		).toEqual(["VerifiableCredential", "OrganizationMembershipCredential"]);
+		expect(() => DocumentHelper.credentialTypes([""])).toThrow(
+			expect.objectContaining({ name: "GuardError" })
+		);
+		expect(() => DocumentHelper.credentialTypes("x" as never)).toThrow(
+			expect.objectContaining({ name: "GuardError" })
+		);
+	});
+
 	test("Can fail when a document has no verification method", () => {
 		const document: IDidDocument = {
 			"@context": "https://www.w3.org/ns/did/v1",

@@ -5,6 +5,7 @@
 			"resolveDocumentFailed": "Resolving the document failed"
 		},
 		"entityStorageIdentityConnector": {
+			"accountNotSupported": "Account secrets can not be imported for this namespace",
 			"addAlsoKnownAsFailed": "Adding to the alsoKnownAs property failed",
 			"addServiceFailed": "Adding the service failed",
 			"addVerificationMethodFailed": "Adding the verification method failed",
@@ -15,11 +16,19 @@
 			"createProofFailed": "Creating the signature for the data failed",
 			"createVerifiableCredentialFailed": "Creating the verifiable credential failed",
 			"createVerifiablePresentationFailed": "Creating the verifiable presentation failed",
+			"documentAlreadyExists": "The document already exists \"{conflictId}\"",
+			"documentKeyMissing": "The export does not contain the document key",
 			"documentNotFound": "The document could not be found \"{notFoundId}\"",
+			"exportDocumentFailed": "Exporting the document failed \"{documentId}\"",
+			"exportKeyFailed": "Reading the key \"{keyId}\" from the vault for the export failed",
 			"holderMismatch": "The presentation holder \"{holder}\" does not match the DID of the proof verification method \"{method}\"",
+			"importDocumentFailed": "Importing the document failed \"{documentId}\"",
 			"invalidAlias": "The alias is invalid it must be a Url or Urn, it is \"{alias}\"",
 			"issuerMismatch": "The credential issuer \"{issuer}\" does not match the DID of the proof verification method \"{method}\"",
 			"jwkSignatureFailed": "The signature on the JWK failed verification",
+			"keyAlreadyExists": "A key for the document already exists \"{conflictId}\"",
+			"keyPairMismatch": "The private key does not match the public key for key \"{keyId}\"",
+			"keyTypeNotSupported": "The key type is not supported for key \"{keyId}\"",
 			"methodMissing": "The verification method specified does not exist \"{method}\"",
 			"missingDid": "The full id including DID is required",
 			"notController": "Only the controller of the document can perform this action \"{documentId}\"",
@@ -46,6 +55,11 @@
 			"notFound": "The identity profile failed \"{notFoundId}\"",
 			"removeFailed": "Removing the identity profile failed \"{identity}\"",
 			"listFailed": "Failed listing identities"
+		}
+	},
+	"warn": {
+		"entityStorageIdentityConnector": {
+			"importRollbackFailed": "Undoing a step of a failed import of the document \"{documentId}\" failed, \"{name}\" may need removing manually"
 		}
 	}
 }

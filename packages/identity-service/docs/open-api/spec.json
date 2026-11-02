@@ -170,6 +170,15 @@
 						"schema": {
 							"type": "string"
 						}
+					},
+					{
+						"name": "retainDocument",
+						"description": "Keep a document published on a ledger, only removing what this node holds for it,\nso it can be imported again.",
+						"in": "query",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
 					}
 				],
 				"security": [
@@ -289,6 +298,310 @@
 													"id": "did:iota:tst:0xe3088ba9aa8c28e1d139708a14e8c0fdff11ee8223baac4aa5bcf3321e4bfc6a#revocation",
 													"type": "RevocationBitmap2022",
 													"serviceEndpoint": "data:application/octet-stream;base64,eJyzMmAAAwABr"
+												}
+											]
+										}
+									}
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "The server cannot process the request, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "GeneralError",
+											"message": "errorMessage",
+											"properties": {
+												"foo": "bar"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "You are not authorized to use the API or no credentials were supplied, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "UnauthorizedError",
+											"message": "errorMessage"
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "The server has encountered a situation it does not know how to handle, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "InternalServerError",
+											"message": "errorMessage"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/identity/{identity}/export": {
+			"post": {
+				"operationId": "identityExport",
+				"summary": "Export an identity including its private keys",
+				"tags": [
+					"Identity"
+				],
+				"parameters": [
+					{
+						"name": "identity",
+						"description": "The identity to export.",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						},
+						"style": "simple",
+						"example": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a"
+					}
+				],
+				"security": [
+					{
+						"jwtBearerAuthScheme": []
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "Response to exporting an identity.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/IdentityExport"
+								},
+								"examples": {
+									"identityExportResponseExample": {
+										"value": {
+											"version": 1,
+											"namespace": "entity-storage",
+											"selfControlled": false,
+											"document": {
+												"@context": "https://www.w3.org/ns/did/v1",
+												"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+												"assertionMethod": [
+													{
+														"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a#my-assertion",
+														"controller": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+														"type": "JsonWebKey2020",
+														"publicKeyJwk": {
+															"kty": "OKP",
+															"alg": "EdDSA",
+															"kid": "f_fj3rGsZFSYvnS_xv5MgyIBlExq-lgDciu0YQ--S3s",
+															"crv": "Ed25519",
+															"x": "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok"
+														}
+													}
+												]
+											},
+											"documentSignature": "EXAMPLE-SIGNATURE-BASE64",
+											"keys": [
+												{
+													"id": "did",
+													"type": "Ed25519",
+													"privateKey": "EXAMPLE-PRIVATE-KEY-BASE64",
+													"publicKey": "EXAMPLE-PUBLIC-KEY-BASE64"
+												},
+												{
+													"id": "my-assertion",
+													"type": "Ed25519",
+													"privateKey": "EXAMPLE-PRIVATE-KEY-BASE64",
+													"publicKey": "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok="
+												}
+											]
+										}
+									}
+								}
+							}
+						},
+						"headers": {
+							"cache-control": {
+								"schema": {
+									"type": "string"
+								},
+								"description": "e.g. no-store"
+							}
+						}
+					},
+					"400": {
+						"description": "The server cannot process the request, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "GeneralError",
+											"message": "errorMessage",
+											"properties": {
+												"foo": "bar"
+											}
+										}
+									}
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "You are not authorized to use the API or no credentials were supplied, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "UnauthorizedError",
+											"message": "errorMessage"
+										}
+									}
+								}
+							}
+						}
+					},
+					"500": {
+						"description": "The server has encountered a situation it does not know how to handle, see the content for more details.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Error"
+								},
+								"examples": {
+									"exampleResponse": {
+										"value": {
+											"name": "InternalServerError",
+											"message": "errorMessage"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/identity/import": {
+			"post": {
+				"operationId": "identityImport",
+				"summary": "Import an identity including its private keys",
+				"tags": [
+					"Identity"
+				],
+				"security": [
+					{
+						"jwtBearerAuthScheme": []
+					}
+				],
+				"requestBody": {
+					"description": "Request to import an identity.",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/IdentityExport"
+							},
+							"examples": {
+								"identityImportRequestExample": {
+									"value": {
+										"version": 1,
+										"namespace": "entity-storage",
+										"selfControlled": false,
+										"document": {
+											"@context": "https://www.w3.org/ns/did/v1",
+											"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+											"assertionMethod": [
+												{
+													"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a#my-assertion",
+													"controller": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+													"type": "JsonWebKey2020",
+													"publicKeyJwk": {
+														"kty": "OKP",
+														"alg": "EdDSA",
+														"kid": "f_fj3rGsZFSYvnS_xv5MgyIBlExq-lgDciu0YQ--S3s",
+														"crv": "Ed25519",
+														"x": "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok"
+													}
+												}
+											]
+										},
+										"documentSignature": "EXAMPLE-SIGNATURE-BASE64",
+										"keys": [
+											{
+												"id": "did",
+												"type": "Ed25519",
+												"privateKey": "EXAMPLE-PRIVATE-KEY-BASE64",
+												"publicKey": "EXAMPLE-PUBLIC-KEY-BASE64"
+											},
+											{
+												"id": "my-assertion",
+												"type": "Ed25519",
+												"privateKey": "EXAMPLE-PRIVATE-KEY-BASE64",
+												"publicKey": "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok="
+											}
+										]
+									}
+								}
+							}
+						}
+					}
+				},
+				"responses": {
+					"200": {
+						"description": "Response to importing an identity.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "https://schema.3sixty.global/w3c-did/DidDocument"
+								},
+								"examples": {
+									"identityImportResponseExample": {
+										"value": {
+											"@context": "https://www.w3.org/ns/did/v1",
+											"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+											"assertionMethod": [
+												{
+													"id": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a#my-assertion",
+													"controller": "did:entity-storage:0xda2df3ebc91ee0d5229d6532ffd0f4426952a94f34988b0ca906694dfd366a6a",
+													"type": "JsonWebKey2020",
+													"publicKeyJwk": {
+														"kty": "OKP",
+														"alg": "EdDSA",
+														"kid": "f_fj3rGsZFSYvnS_xv5MgyIBlExq-lgDciu0YQ--S3s",
+														"crv": "Ed25519",
+														"x": "SFm32z7y9C17olpaTeocG25WV2CNTUl5MhM679Z4bok"
+													}
 												}
 											]
 										}
@@ -3828,6 +4141,96 @@
 				},
 				"description": "The data for the request."
 			},
+			"IdentityExport": {
+				"description": "Everything needed to recreate an identity on another node, including private key material.",
+				"type": "object",
+				"properties": {
+					"version": {
+						"type": "number",
+						"description": "The version of the export format."
+					},
+					"namespace": {
+						"type": "string",
+						"description": "The namespace of the connector which holds the identity, e.g. entity-storage or iota."
+					},
+					"selfControlled": {
+						"type": "boolean",
+						"description": "Is the identity controlled by its own DID."
+					},
+					"document": {
+						"$ref": "https://schema.3sixty.global/w3c-did/DidDocument"
+					},
+					"documentSignature": {
+						"type": "string",
+						"description": "The signature of the canonical document made with the document key in base64 format,\nonly for connectors which sign their stored documents."
+					},
+					"keys": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/IdentityExportKey"
+						},
+						"description": "The private keys for the identity."
+					},
+					"account": {
+						"$ref": "#/components/schemas/IdentityExportAccount"
+					}
+				},
+				"required": [
+					"version",
+					"namespace",
+					"selfControlled",
+					"document",
+					"keys"
+				]
+			},
+			"IdentityExportAccount": {
+				"description": "The wallet account secrets of a self-controlled identity held in an identity export.",
+				"type": "object",
+				"properties": {
+					"mnemonic": {
+						"type": "string",
+						"description": "The mnemonic for the account."
+					},
+					"seed": {
+						"type": "string",
+						"description": "The seed derived from the mnemonic in base64 format."
+					}
+				},
+				"required": [
+					"mnemonic"
+				]
+			},
+			"IdentityExportKey": {
+				"description": "A private key held in an identity export.",
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "The name of the key relative to the DID, the verification method fragment or \"did\" for the document key."
+					},
+					"type": {
+						"$ref": "#/components/schemas/IdentityExportKeyType"
+					},
+					"privateKey": {
+						"type": "string",
+						"description": "The private key in base64 format."
+					},
+					"publicKey": {
+						"type": "string",
+						"description": "The public key in base64 format."
+					}
+				},
+				"required": [
+					"id",
+					"type",
+					"privateKey",
+					"publicKey"
+				]
+			},
+			"IdentityExportKeyType": {
+				"description": "Ed25519 signing key.",
+				"const": "Ed25519"
+			},
 			"IdentityProfileAdminListResponse": {
 				"type": "object",
 				"properties": {
@@ -4054,6 +4457,13 @@
 							"type": "string"
 						},
 						"description": "Additional fields to include in the JWT payload when creating the verifiable credential in jwt format."
+					},
+					"types": {
+						"type": "array",
+						"items": {
+							"type": "string"
+						},
+						"description": "The types of the credential after VerifiableCredential, such as\nOrganizationMembershipCredential, only VerifiableCredential when omitted."
 					}
 				},
 				"required": [

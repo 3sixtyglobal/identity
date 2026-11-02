@@ -1,8 +1,9 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { GeneralError, Is } from "@3sixty/core";
+import { GeneralError, Guards, Is } from "@3sixty/core";
 import { nameof } from "@3sixty/nameof";
 import {
+	DidTypes,
 	DidVerificationMethodType,
 	type IDidDocumentVerificationMethod,
 	type IDidDocument
@@ -40,6 +41,27 @@ export class DocumentHelper {
 			id: fragmentIndex === -1 ? documentId : documentId.slice(0, fragmentIndex),
 			fragment: fragmentIndex === -1 ? undefined : documentId.slice(fragmentIndex + 1)
 		};
+	}
+
+	/**
+	 * Get the types of a verifiable credential, VerifiableCredential first then the types given, so a
+	 * credential can say what it is for, such as OrganizationMembershipCredential.
+	 * @param types The types after VerifiableCredential.
+	 * @returns VerifiableCredential alone when no other type is given, otherwise every type once.
+	 * @throws GuardError when a type is not a string with a value.
+	 */
+	public static credentialTypes(types?: string[]): string | string[] {
+		if (Is.undefined(types)) {
+			return DidTypes.VerifiableCredential;
+		}
+		Guards.array<string>(DocumentHelper.CLASS_NAME, nameof(types), types);
+		for (const type of types) {
+			Guards.stringValue(DocumentHelper.CLASS_NAME, nameof(types), type);
+		}
+		const extra = [...new Set(types)].filter(type => type !== DidTypes.VerifiableCredential);
+		return extra.length > 0
+			? [DidTypes.VerifiableCredential, ...extra]
+			: DidTypes.VerifiableCredential;
 	}
 
 	/**

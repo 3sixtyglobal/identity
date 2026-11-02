@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 /**
  * Tests for DID resolution caching in EntityStorageIdentityResolverConnector.
@@ -189,6 +190,24 @@ describe("EntityStorageIdentityResolverConnector - resolution cache TTL expiry (
 		const resolved = await resolverConnector.resolveDocument(testDocumentId);
 
 		expect(resolved.id).toEqual(testDocumentId);
+		expect(getSpy).toHaveBeenCalledTimes(1);
+	});
+
+	test("resolves fresh after the TTL even when read throughout it", async () => {
+		const resolverConnector = new EntityStorageIdentityResolverConnector({
+			config: { didResolutionCacheTtlMs: SHORT_TTL_MS }
+		});
+
+		await resolverConnector.resolveDocument(testDocumentId);
+
+		const getSpy = vi.spyOn(didDocumentEntityStorage, "get");
+
+		// Reads inside the TTL must not extend it, or a removed document would be served forever.
+		for (let i = 0; i < 6; i++) {
+			await new Promise(resolve => setTimeout(resolve, SHORT_TTL_MS / 4));
+			await resolverConnector.resolveDocument(testDocumentId);
+		}
+
 		expect(getSpy).toHaveBeenCalledTimes(1);
 	});
 });

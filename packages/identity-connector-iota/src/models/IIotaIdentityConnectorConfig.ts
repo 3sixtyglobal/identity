@@ -1,6 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import type { IIotaConfig } from "@3sixty/dlt-iota";
+import type { IIdentityExportLimits } from "@3sixty/identity-models";
 
 /**
  * Configuration for the IOTA Identity Connector.
@@ -82,4 +83,10 @@ export interface IIotaIdentityConnectorConfig extends IIotaConfig {
 	 * @default 500
 	 */
 	didResolutionRetryDelayMs?: number;
+
+	/**
+	 * The most keys accepted when an identity is imported.
+	 * @default { maxKeys: 64 }
+	 */
+	exportLimits?: IIdentityExportLimits;
 }

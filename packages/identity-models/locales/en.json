@@ -11,6 +11,22 @@
 			"verificationMethodNotFound": "The verification method \"{methodName}\" of type \"{methodType}\" could not be found",
 			"verificationMethodJwkNotFound": "The verification method \"{methodName}\" of type \"{methodType}\" is missing the JWK"
 		},
+		"identityExportHelper": {
+			"invalidExport": "The identity export is not valid",
+			"unsupportedVersion": "The identity export version \"{version}\" is not supported, it must be \"{supportedVersion}\"",
+			"namespaceMismatch": "The identity export is not for the namespace \"{namespace}\"",
+			"invalidDocument": "The identity export does not contain a valid DID document",
+			"didNamespaceMismatch": "The DID \"{did}\" is not a valid DID for the namespace \"{namespace}\"",
+			"invalidKey": "The identity export contains an invalid key \"{keyId}\"",
+			"unsupportedKeyType": "The identity export contains the key \"{keyId}\" with an unsupported type",
+			"invalidAccount": "The identity export contains invalid account secrets",
+			"methodNotFound": "The key \"{keyId}\" does not match a verification method in the DID document",
+			"methodKeyMismatch": "The key \"{keyId}\" does not match the public key of its verification method",
+			"methodKeyMissing": "There is no key for the verification method \"{keyId}\"",
+			"invalidDidFormat": "The DID \"{did}\" is not in the format created for the namespace \"{namespace}\"",
+			"invalidMethodId": "The verification method id \"{methodId}\" must have a fragment of letters, digits, underscores, hyphens, full stops or tildes, starting and ending with a letter or digit and not reserved for the wallet account",
+			"tooManyKeys": "The identity export contains more than the maximum of {maxKeys} keys"
+		},
 		"guard": {
 			"didPartsTooFew": "The DID \"{value}\" is invalid: expected at least 3 parts but got fewer",
 			"didInvalidStart": "The DID \"{value}\" is invalid: expected to start with 'did'"

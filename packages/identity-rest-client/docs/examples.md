@@ -29,6 +29,24 @@ console.log(selfControlledDocument.id); // did:iota:tst:0x...
 
 ```typescript
 import { IdentityRestClient } from '@3sixty/identity-rest-client';
+
+const client = new IdentityRestClient({
+  endpoint: 'http://localhost:8080'
+});
+
+// Requires the identity:keys permission, the export holds private keys
+const exported = await client.identityExport('did:iota:tst:0x123');
+
+// Remove the keys held by the node, keeping the document on the ledger
+await client.identityRemove('did:iota:tst:0x123', { removeKeys: true, retainDocument: true });
+
+const importedDocument = await client.identityImport(exported);
+
+console.log(importedDocument.id); // did:iota:tst:0x123
+```
+
+```typescript
+import { IdentityRestClient } from '@3sixty/identity-rest-client';
 import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const client = new IdentityRestClient({

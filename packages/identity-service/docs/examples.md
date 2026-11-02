@@ -24,6 +24,34 @@ console.log(didDocument.id); // did:iota:tst:0x...
 
 ```typescript
 import { IdentityService } from '@3sixty/identity-service';
+
+const identityService = new IdentityService();
+
+const didDocument = await identityService.identityCreate('entity-storage', 'controller-1');
+
+// The export holds private keys, protect it like any other secret
+const exported = await identityService.identityExport(didDocument.id, 'controller-1');
+
+await identityService.identityRemove(
+  didDocument.id,
+  { removeKeys: true, removeDocumentKey: true },
+  'controller-1'
+);
+
+const importedDocument = await identityService.identityImport(exported, 'controller-1');
+
+// For a ledger namespace, retainDocument only removes the keys this node holds
+await identityService.identityRemove(
+  'did:iota:tst:0x123',
+  { removeKeys: true, retainDocument: true },
+  'controller-1'
+);
+
+console.log(importedDocument.id === didDocument.id); // true
+```
+
+```typescript
+import { IdentityService } from '@3sixty/identity-service';
 import { DidVerificationMethodType, ProofTypes } from '@3sixty/standards-w3c-did';
 
 const identityService = new IdentityService({

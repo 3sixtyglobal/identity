@@ -13,6 +13,7 @@ import type {
 	IDidVerifiablePresentation,
 	ProofTypes
 } from "@3sixty/standards-w3c-did";
+import type { IIdentityExport } from "./IIdentityExport.js";
 
 /**
  * Interface describing an identity connector.
@@ -37,13 +38,37 @@ export interface IIdentityConnector extends IComponent {
 	 * @param options Optional settings.
 	 * @param options.removeKeys Also remove any associated private keys from the vault.
 	 * @param options.removeDocumentKey Also remove the document key from the vault.
+	 * @param options.retainDocument Keep a document published on a ledger, only removing what this
+	 * node holds for it, so it can be imported again. Connectors that store documents on the node
+	 * ignore it and always remove the document.
 	 * @returns A promise that resolves when the document has been removed.
 	 */
 	removeDocument(
 		controller: string,
 		documentId: string,
-		options?: { removeKeys?: boolean; removeDocumentKey?: boolean }
+		options?: { removeKeys?: boolean; removeDocumentKey?: boolean; retainDocument?: boolean }
 	): Promise<void>;
+
+	/**
+	 * Export a document with all the private key material needed to recreate it on another node.
+	 * @param controller The controller of the identity who can make changes.
+	 * @param documentId The id of the document to export.
+	 * @returns The export, which contains private keys and must be protected.
+	 * @throws NotFoundError if the id can not be resolved.
+	 * @throws UnauthorizedError if the caller does not control the document.
+	 * @throws NotSupportedError if the platform does not support exporting.
+	 */
+	exportDocument(controller: string, documentId: string): Promise<IIdentityExport>;
+
+	/**
+	 * Import a document from an export, proving the keys match the document before storing anything.
+	 * @param controller The controller of the identity, ignored for self-controlled identities.
+	 * @param exported The export to import.
+	 * @returns The imported document.
+	 * @throws ConflictError if the identity or any of its keys already exist on this node.
+	 * @throws NotSupportedError if the platform does not support importing.
+	 */
+	importDocument(controller: string | undefined, exported: IIdentityExport): Promise<IDidDocument>;
 
 	/**
 	 * Add a verification method to the document in JSON Web key Format.
@@ -140,6 +165,7 @@ export interface IIdentityConnector extends IComponent {
 	 * @param options.expirationDate The date the verifiable credential is valid until.
 	 * @param options.jwtHeaderFields Additional fields to include in the JWT header when creating the verifiable credential in jwt format.
 	 * @param options.jwtPayloadFields	Additional fields to include in the JWT payload when creating the verifiable credential in jwt format.
+	 * @param options.types The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 	 * @returns The created verifiable credential and its token.
 	 * @throws NotFoundError if the id can not be resolved.
 	 */
@@ -153,6 +179,7 @@ export interface IIdentityConnector extends IComponent {
 			expirationDate?: Date;
 			jwtHeaderFields?: { [id: string]: string };
 			jwtPayloadFields?: { [id: string]: string };
+			types?: string[];
 		}
 	): Promise<{
 		verifiableCredential: IDidVerifiableCredential;

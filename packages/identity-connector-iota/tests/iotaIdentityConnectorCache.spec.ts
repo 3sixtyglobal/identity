@@ -1,4 +1,5 @@
 // Copyright 2026 IOTA Stiftung.
+// Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
 /**
  * Tests for DID resolution caching in IotaIdentityConnector.
@@ -20,7 +21,11 @@ import { LruCache } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import { Iota } from "@3sixty/dlt-iota";
 import { ProofTypes, type IProof } from "@3sixty/standards-w3c-did";
-import { IdentityClient, type IotaDocument } from "@iota/identity-wasm/node/index.js";
+import {
+	IdentityClient,
+	IdentityClientReadOnly,
+	type IotaDocument
+} from "@iota/identity-wasm/node/index.js";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,
@@ -93,8 +98,9 @@ describe("LruCache dependency contract (offline, not connector-specific)", () =>
 // to 1 call after memoization. That memoization was reverted - IdentityClient.create()
 // calls client.__destroy_into_raw() on the read-only client it's given (a wasm-bindgen move, not
 // a borrow), so reusing the same instance across calls passed an already-destroyed handle into
-// WASM on the second use ("null pointer passed to rust"). Rebuilding the client on every call is
-// therefore permanent, correct behavior, not a temporary baseline.
+// WASM on the second use ("null pointer passed to rust"). Rebuilding the client for every
+// IdentityClient is therefore permanent, correct behavior; calls which only resolve use the
+// memoised read only client directly and never hand it to IdentityClient.create.
 describe("IotaIdentityConnector - identity client construction (live, spy-only)", () => {
 	let identityConnector: IotaIdentityConnector;
 	let testDocumentId: string;
@@ -117,12 +123,20 @@ describe("IotaIdentityConnector - identity client construction (live, spy-only)"
 		vi.restoreAllMocks();
 	});
 
-	test("each resolve-triggering call rebuilds the identity client (must never be memoized)", async () => {
+	test("resolve-only calls reuse the memoised read only client rather than building an identity client", async () => {
+		const freshConnector = new IotaIdentityConnector({
+			config: {
+				clientOptions: TEST_CLIENT_OPTIONS,
+				vaultMnemonicId: TEST_MNEMONIC_NAME,
+				network: TEST_NETWORK,
+				gasBudget: TEST_GAS_BUDGET
+			}
+		});
 		const createClientSpy = vi.spyOn(Iota, "createClient");
 
-		// A bogus fragment is enough: getIdentityClient()/Iota.createClient() runs before the
-		// "verification method missing" check, so this counts client construction without
-		// needing a real, successful proof or any gas-costing transaction.
+		// A bogus fragment is enough: resolution runs before the "verification method missing"
+		// check, so this counts client construction without needing a real, successful proof or
+		// any gas-costing transaction.
 		const bogusProof = {
 			type: ProofTypes.DataIntegrityProof,
 			verificationMethod: `${testDocumentId}#doesNotExist`,
@@ -131,12 +145,12 @@ describe("IotaIdentityConnector - identity client construction (live, spy-only)"
 		} as unknown as IProof;
 		const document: IJsonLdNodeObject = { "@context": "https://schema.org", "@type": "Thing" };
 
-		await expect(identityConnector.verifyProof(document, bogusProof)).rejects.toThrow();
-		await expect(identityConnector.verifyProof(document, bogusProof)).rejects.toThrow();
+		await expect(freshConnector.verifyProof(document, bogusProof)).rejects.toThrow();
+		await expect(freshConnector.verifyProof(document, bogusProof)).rejects.toThrow();
 
-		// Permanent behavior (see the describe-block comment above): the client must be rebuilt
-		// on every resolve-triggering call, not memoized.
-		expect(createClientSpy).toHaveBeenCalledTimes(2);
+		// Resolution never builds an IdentityClient, so it can share the memoised read only client
+		// (see the describe-block comment above for why an IdentityClient must not).
+		expect(createClientSpy).toHaveBeenCalledTimes(1);
 	});
 });
 
@@ -172,7 +186,7 @@ describe("IotaIdentityConnector - resolveDid call count (live, spy-only)", () =>
 	});
 
 	test("createVerifiableCredential resolves the issuer DID once, not once per internal use", async () => {
-		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const resolveDidSpy = vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid");
 
 		const result = await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
@@ -244,7 +258,7 @@ describe("IotaIdentityConnector - resolveOwnDidCached rejects instead of hanging
 		});
 
 		const resolveDidSpy = vi
-			.spyOn(IdentityClient.prototype, "resolveDid")
+			.spyOn(IdentityClientReadOnly.prototype, "resolveDid")
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 			.mockResolvedValueOnce(undefined as unknown as IotaDocument);
 
@@ -326,7 +340,7 @@ describe("IotaIdentityConnector - role-1 cache hit + eviction (live, spy-only)",
 			{ "@context": "https://schema.org", "@type": "Thing", id: "did:example:cache-spec-ttl-hit-1" }
 		);
 
-		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const resolveDidSpy = vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid");
 
 		await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
@@ -361,7 +375,7 @@ describe("IotaIdentityConnector - role-1 cache hit + eviction (live, spy-only)",
 			"evictTestMethod"
 		);
 
-		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const resolveDidSpy = vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid");
 
 		await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
@@ -431,7 +445,7 @@ describe("IotaIdentityConnector - role-1 cache TTL expiry (live, spy-only)", () 
 
 		await new Promise(resolve => setTimeout(resolve, TTL_MS + 500));
 
-		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const resolveDidSpy = vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid");
 
 		await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
@@ -498,7 +512,7 @@ describe("IotaIdentityConnector - didResolutionCacheTtlMs: 0 disables caching en
 
 		// Spy only during the second call so any invocation proves a fresh resolve attempt.
 		// We avoid strict call counts because the SDK may retry internally on transient network behaviour.
-		const resolveDidSpy = vi.spyOn(IdentityClient.prototype, "resolveDid");
+		const resolveDidSpy = vi.spyOn(IdentityClientReadOnly.prototype, "resolveDid");
 
 		await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
