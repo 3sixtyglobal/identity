@@ -42,7 +42,8 @@ import {
 	VerificationHelper,
 	type IIdentityConnector,
 	type IIdentityExport,
-	type IIdentityExportKey
+	type IIdentityExportKey,
+	type IIdentityExportLimits
 } from "@3sixty/identity-models";
 import type { ILoggingComponent } from "@3sixty/logging-models";
 import { nameof } from "@3sixty/nameof";
