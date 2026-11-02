@@ -1,5 +1,6 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import type { IIdentityExportLimits } from "@3sixty/identity-models";
 
 /**
  * Configuration for the Entity Storage Identity Connector.
@@ -28,4 +29,10 @@ export interface IEntityStorageIdentityConnectorConfig {
 	 * Only used when didResolutionCacheTtlMs > 0.
 	 */
 	didResolutionCacheMutexTimeoutMs?: number;
+
+	/**
+	 * The most keys accepted when an identity is imported.
+	 * @default { maxKeys: 64 }
+	 */
+	exportLimits?: IIdentityExportLimits;
 }

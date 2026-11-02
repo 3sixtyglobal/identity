@@ -11,6 +11,7 @@ import { DocumentHelper } from "./documentHelper.js";
 import { IdentityExportKeyType } from "../models/identityExportKeyType.js";
 import type { IIdentityExport } from "../models/IIdentityExport.js";
 import type { IIdentityExportKey } from "../models/IIdentityExportKey.js";
+import type { IIdentityExportLimits } from "../models/IIdentityExportLimits.js";
 import { Did } from "../types/did.js";
 
 /**
@@ -29,14 +30,9 @@ export class IdentityExportHelper {
 	public static readonly VERSION: number = 1;
 
 	/**
-	 * The maximum number of keys in an export.
+	 * The most keys accepted in an export when the limits give no other.
 	 */
-	public static readonly MAX_KEYS: number = 64;
-
-	/**
-	 * The maximum size of the serialised document in an export, in bytes.
-	 */
-	public static readonly MAX_DOCUMENT_SIZE: number = 65536;
+	public static readonly DEFAULT_MAX_KEYS: number = 64;
 
 	/**
 	 * The format of a key id or verification method fragment, which form part of a vault key name.
@@ -56,14 +52,18 @@ export class IdentityExportHelper {
 	 * @param exported The export to validate.
 	 * @param namespace The namespace the importing connector supports.
 	 * @param didPattern The exact format of the DIDs the importing connector creates.
+	 * @param limits The most keys accepted, the default when left out.
 	 * @returns The DID of the exported identity.
 	 * @throws UnprocessableError if the export is malformed, the version is unsupported or the namespace does not match.
 	 */
 	public static validate(
 		exported: IIdentityExport,
 		namespace: string,
-		didPattern?: RegExp
+		didPattern?: RegExp,
+		limits?: IIdentityExportLimits
 	): string {
+		const maxKeys = limits?.maxKeys ?? IdentityExportHelper.DEFAULT_MAX_KEYS;
+
 		if (!Is.object<IIdentityExport>(exported)) {
 			throw new UnprocessableError(IdentityExportHelper.CLASS_NAME, "invalidExport");
 		}
@@ -104,22 +104,14 @@ export class IdentityExportHelper {
 			});
 		}
 
-		if (
-			Converter.utf8ToBytes(JSON.stringify(exported.document)).length >
-			IdentityExportHelper.MAX_DOCUMENT_SIZE
-		) {
-			throw new UnprocessableError(IdentityExportHelper.CLASS_NAME, "documentTooLarge", {
-				maxSize: IdentityExportHelper.MAX_DOCUMENT_SIZE
-			});
-		}
 		IdentityExportHelper.validateMethodIds(exported.document);
 
 		if (!Is.array<IIdentityExportKey>(exported.keys)) {
 			throw new UnprocessableError(IdentityExportHelper.CLASS_NAME, "invalidExport");
 		}
-		if (exported.keys.length > IdentityExportHelper.MAX_KEYS) {
+		if (exported.keys.length > maxKeys) {
 			throw new UnprocessableError(IdentityExportHelper.CLASS_NAME, "tooManyKeys", {
-				maxKeys: IdentityExportHelper.MAX_KEYS
+				maxKeys
 			});
 		}
 

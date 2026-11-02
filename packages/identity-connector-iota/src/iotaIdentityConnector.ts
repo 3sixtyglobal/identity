@@ -581,7 +581,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			IdentityExportHelper.validate(
 				exported,
 				IotaIdentityConnector.NAMESPACE,
-				IotaIdentityConnector._DID_PATTERN
+				IotaIdentityConnector._DID_PATTERN,
+				this._config.exportLimits
 			);
 
 			return exported;
@@ -617,7 +618,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			did = IdentityExportHelper.validate(
 				exported,
 				IotaIdentityConnector.NAMESPACE,
-				IotaIdentityConnector._DID_PATTERN
+				IotaIdentityConnector._DID_PATTERN,
+				this._config.exportLimits
 			);
 			const documentId = did;
 

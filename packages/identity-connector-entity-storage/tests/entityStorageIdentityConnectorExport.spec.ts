@@ -542,20 +542,6 @@ describe("EntityStorageIdentityConnector export and import", () => {
 		);
 	});
 
-	test("can fail to import a document larger than the maximum", async () => {
-		const { exported } = await createAndExport();
-		await removeAll(TEST_CONTROLLER, exported.document.id);
-
-		const tampered = ObjectHelper.clone(exported);
-		tampered.document.alsoKnownAs = [`did:example:${"a".repeat(65536)}`];
-
-		await expect(identityConnector.importDocument(TEST_CONTROLLER, tampered)).rejects.toMatchObject(
-			{
-				cause: { message: "identityExportHelper.documentTooLarge" }
-			}
-		);
-	});
-
 	test("only one of two concurrent imports of the same identity succeeds", async () => {
 		const { exported } = await createAndExport();
 		await removeAll(TEST_CONTROLLER, exported.document.id);

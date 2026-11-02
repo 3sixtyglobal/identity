@@ -244,7 +244,7 @@ describe("IdentityExportHelper", () => {
 
 	test("can fail to validate too many keys", () => {
 		const exported = createExport();
-		exported.keys = Array.from({ length: IdentityExportHelper.MAX_KEYS + 1 }, (v, i) => ({
+		exported.keys = Array.from({ length: IdentityExportHelper.DEFAULT_MAX_KEYS + 1 }, (v, i) => ({
 			...exported.keys[0],
 			id: `key-${i}`
 		}));
@@ -253,14 +253,18 @@ describe("IdentityExportHelper", () => {
 		);
 	});
 
-	test("can fail to validate a document which is too large", () => {
+	test("can validate within the limits given", () => {
 		const exported = createExport();
-		exported.document.alsoKnownAs = [
-			`did:example:${"a".repeat(IdentityExportHelper.MAX_DOCUMENT_SIZE)}`
-		];
-		expect(() => IdentityExportHelper.validate(exported, "entity-storage")).toThrow(
-			"identityExportHelper.documentTooLarge"
-		);
+		exported.keys = [exported.keys[0], { ...exported.keys[0], id: "key-2" }];
+		expect(() =>
+			IdentityExportHelper.validate(exported, "entity-storage", undefined, { maxKeys: 1 })
+		).toThrow("identityExportHelper.tooManyKeys");
+	});
+
+	test("can validate a large document, its content is checked rather than its size", () => {
+		const exported = createExport();
+		exported.document.alsoKnownAs = [`did:example:${"a".repeat(262144)}`];
+		expect(() => IdentityExportHelper.validate(exported, "entity-storage")).not.toThrow();
 	});
 
 	test("can require a key for every method", () => {

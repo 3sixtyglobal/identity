@@ -118,6 +118,12 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 	protected readonly _vaultConnector: IVaultConnector;
 
 	/**
+	 * The limits an identity is imported within.
+	 * @internal
+	 */
+	private readonly _exportLimits?: IIdentityExportLimits;
+
+	/**
 	 * TTL in ms for caching DID documents resolved for this connector's own sign/mutate
 	 * operations. 0 disables caching (see resolveOwnDocumentCached). Never applied to proof or
 	 * credential verification of third-party claims.
@@ -162,6 +168,7 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			options?.loggingComponentType
 		);
 
+		this._exportLimits = options?.config?.exportLimits;
 		this._didResolutionCacheTtlMs = options?.config?.didResolutionCacheTtlMs ?? 30_000;
 		this._didResolutionCacheCapacity = options?.config?.didResolutionCacheCapacity ?? 1000;
 		this._didResolutionCacheMutexTimeoutMs = options?.config?.didResolutionCacheMutexTimeoutMs;
@@ -410,7 +417,8 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			IdentityExportHelper.validate(
 				exported,
 				EntityStorageIdentityConnector.NAMESPACE,
-				EntityStorageIdentityConnector._DID_PATTERN
+				EntityStorageIdentityConnector._DID_PATTERN,
+				this._exportLimits
 			);
 
 			return exported;
@@ -446,7 +454,8 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			did = IdentityExportHelper.validate(
 				exported,
 				EntityStorageIdentityConnector.NAMESPACE,
-				EntityStorageIdentityConnector._DID_PATTERN
+				EntityStorageIdentityConnector._DID_PATTERN,
+				this._exportLimits
 			);
 			const documentId = did;
 

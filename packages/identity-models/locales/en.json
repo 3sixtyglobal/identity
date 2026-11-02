@@ -25,7 +25,6 @@
 			"methodKeyMissing": "There is no key for the verification method \"{keyId}\"",
 			"invalidDidFormat": "The DID \"{did}\" is not in the format created for the namespace \"{namespace}\"",
 			"invalidMethodId": "The verification method id \"{methodId}\" must have a fragment of letters, digits, underscores, hyphens, full stops or tildes, starting and ending with a letter or digit and not reserved for the wallet account",
-			"documentTooLarge": "The DID document in the identity export is larger than the maximum of {maxSize} bytes",
 			"tooManyKeys": "The identity export contains more than the maximum of {maxKeys} keys"
 		},
 		"guard": {

@@ -55,6 +55,7 @@ export * from "./models/IIdentityConnector.js";
 export * from "./models/IIdentityExport.js";
 export * from "./models/IIdentityExportAccount.js";
 export * from "./models/IIdentityExportKey.js";
+export * from "./models/IIdentityExportLimits.js";
 export * from "./models/IIdentityProfileComponent.js";
 export * from "./models/IIdentityProfileConnector.js";
 export * from "./models/IIdentityResolverComponent.js";
