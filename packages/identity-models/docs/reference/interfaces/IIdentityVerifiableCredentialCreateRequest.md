@@ -73,3 +73,10 @@ Additional fields to include in the JWT payload when creating the verifiable cre
 ##### Index Signature
 
 \[`id`: `string`\]: `string`
+
+#### types?
+
+> `optional` **types?**: `string`[]
+
+The types of the credential after VerifiableCredential, such as
+OrganizationMembershipCredential, only VerifiableCredential when omitted.

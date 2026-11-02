@@ -173,6 +173,85 @@ A promise that resolves when the document has been removed.
 
 ***
 
+### exportDocument() {#exportdocument}
+
+> **exportDocument**(`controller`, `documentId`): `Promise`\<`IIdentityExport`\>
+
+Export a document with all the private key material needed to recreate it on another node.
+
+#### Parameters
+
+##### controller
+
+`string`
+
+The controller of the identity who can make changes.
+
+##### documentId
+
+`string`
+
+The id of the document to export.
+
+#### Returns
+
+`Promise`\<`IIdentityExport`\>
+
+The export, which contains private keys and must be protected.
+
+#### Throws
+
+NotFoundError if the id can not be resolved.
+
+#### Throws
+
+UnauthorizedError if the caller does not control the document.
+
+#### Implementation of
+
+`IIdentityConnector.exportDocument`
+
+***
+
+### importDocument() {#importdocument}
+
+> **importDocument**(`controller`, `exported`): `Promise`\<`IDidDocument`\>
+
+Import a document from an export, proving the keys match the document before storing anything.
+The entity-storage namespace is trust on first import: a DID is random rather than derived
+from its document key, so the first node to import a DID under an unused name owns it there,
+and an import never replaces a document or key which already exists.
+
+#### Parameters
+
+##### controller
+
+`string` \| `undefined`
+
+The controller of the identity, ignored for self-controlled identities.
+
+##### exported
+
+`IIdentityExport`
+
+The export to import.
+
+#### Returns
+
+`Promise`\<`IDidDocument`\>
+
+The imported document.
+
+#### Throws
+
+ConflictError if the identity or any of its keys already exist on this node.
+
+#### Implementation of
+
+`IIdentityConnector.importDocument`
+
+***
+
 ### addVerificationMethod() {#addverificationmethod}
 
 > **addVerificationMethod**(`controller`, `documentId`, `verificationMethodType`, `verificationMethodId?`): `Promise`\<`IDidDocumentVerificationMethod`\>
@@ -518,6 +597,12 @@ Additional fields to add to the JWT header.
 \{\[`id`: `string`\]: `string`; \}
 
 Additional fields to add to the JWT payload.
+
+###### types?
+
+`string`[]
+
+The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 
 #### Returns
 

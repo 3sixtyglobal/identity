@@ -52,6 +52,33 @@ The parsed document id.
 
 ***
 
+### credentialTypes() {#credentialtypes}
+
+> `static` **credentialTypes**(`types?`): `string` \| `string`[]
+
+Get the types of a verifiable credential, VerifiableCredential first then the types given, so a
+credential can say what it is for, such as OrganizationMembershipCredential.
+
+#### Parameters
+
+##### types?
+
+`string`[]
+
+The types after VerifiableCredential.
+
+#### Returns
+
+`string` \| `string`[]
+
+VerifiableCredential alone when no other type is given, otherwise every type once.
+
+#### Throws
+
+GuardError when a type is not a string with a value.
+
+***
+
 ### joinId() {#joinid}
 
 > `static` **joinId**(`documentId`, `fragment?`): `string`

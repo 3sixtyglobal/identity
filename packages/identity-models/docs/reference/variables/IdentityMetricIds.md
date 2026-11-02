@@ -18,6 +18,18 @@ Number of DIDs created.
 
 Number of DIDs removed.
 
+### DidsExported {#didsexported}
+
+> `readonly` **DidsExported**: `"identity_dids_exported"` = `"identity_dids_exported"`
+
+Number of DIDs exported.
+
+### DidsImported {#didsimported}
+
+> `readonly` **DidsImported**: `"identity_dids_imported"` = `"identity_dids_imported"`
+
+Number of DIDs imported.
+
 ### VcsCreated {#vcscreated}
 
 > `readonly` **VcsCreated**: `"identity_vcs_created"` = `"identity_vcs_created"`

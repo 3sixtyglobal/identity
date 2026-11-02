@@ -203,15 +203,109 @@ Optional settings.
 
 Also remove any associated private keys from the vault.
 
+###### retainDocument?
+
+`boolean`
+
+Keep the document on-chain, with removeKeys only removing the
+keys and the wallet account secrets of a self-controlled identity from the vault, so an export
+of it can be imported again. The controller, which is the identity itself when self-controlled,
+must still hold the controller token.
+
 #### Returns
 
 `Promise`\<`void`\>
 
 A promise that resolves when the document has been removed.
 
+#### Throws
+
+UnauthorizedError if the controller does not hold the controller token for the identity.
+
 #### Implementation of
 
 `IIdentityConnector.removeDocument`
+
+***
+
+### exportDocument() {#exportdocument}
+
+> **exportDocument**(`controller`, `documentId`): `Promise`\<`IIdentityExport`\>
+
+Export a document with all the private key material needed to restore it on another node.
+The document itself lives on-chain, so the export holds the resolved document for reference,
+the verification method keys and, for self-controlled identities, the wallet account secrets.
+
+#### Parameters
+
+##### controller
+
+`string`
+
+The controller of the identity who can make changes.
+
+##### documentId
+
+`string`
+
+The id of the document to export.
+
+#### Returns
+
+`Promise`\<`IIdentityExport`\>
+
+The export, which contains private keys and must be protected.
+
+#### Throws
+
+NotFoundError if the id can not be resolved.
+
+#### Throws
+
+UnauthorizedError if the controller does not hold the controller token for the identity.
+
+#### Implementation of
+
+`IIdentityConnector.exportDocument`
+
+***
+
+### importDocument() {#importdocument}
+
+> **importDocument**(`controller`, `exported`): `Promise`\<`IDidDocument`\>
+
+Import a document from an export, restoring its keys to the vault.
+The document is resolved on-chain, every key must match its on-chain verification method,
+and the controller, or the identity itself when self-controlled, must hold its controller
+token, all proved before anything is written.
+
+#### Parameters
+
+##### controller
+
+`string` \| `undefined`
+
+The controller of the identity, ignored for self-controlled identities.
+
+##### exported
+
+`IIdentityExport`
+
+The export to import.
+
+#### Returns
+
+`Promise`\<`IDidDocument`\>
+
+The on-chain document.
+
+#### Throws
+
+ConflictError if any of the keys or account secrets already exist on this node.
+
+#### Implementation of
+
+`IIdentityConnector.importDocument`
 
 ***
 
@@ -560,6 +654,12 @@ Additional fields to include in the JWT header.
 \{\[`id`: `string`\]: `string`; \}
 
 Additional fields to include in the JWT payload.
+
+###### types?
+
+`string`[]
+
+The types of the credential after VerifiableCredential, such as OrganizationMembershipCredential, only VerifiableCredential when omitted.
 
 #### Returns
 
