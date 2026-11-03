@@ -14,6 +14,7 @@
  * A separate file from `entityStorageIdentityConnector.spec.ts` on purpose: that suite freezes
  * Date.now for the whole file, which would stop the LruCache's idle clock from ever advancing.
  */
+import { DurationConstants } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
@@ -69,7 +70,7 @@ describe("EntityStorageIdentityConnector - role-1 cache hit + refresh (fast, no 
 	beforeAll(async () => {
 		didDocumentEntityStorage = setupFactories();
 		identityConnector = new EntityStorageIdentityConnector({
-			config: { didResolutionCacheTtlMs: 60_000 }
+			config: { didResolutionCacheTtlMs: DurationConstants.MsPerMinute }
 		});
 
 		const document = await identityConnector.createDocument(TEST_USER_IDENTITY);
@@ -327,7 +328,7 @@ describe("EntityStorageIdentityConnector - cached entities are cloned (fast, no 
 	beforeAll(async () => {
 		setupFactories();
 		identityConnector = new EntityStorageIdentityConnector({
-			config: { didResolutionCacheTtlMs: 60_000 }
+			config: { didResolutionCacheTtlMs: DurationConstants.MsPerMinute }
 		});
 
 		const document = await identityConnector.createDocument(TEST_USER_IDENTITY);
@@ -380,7 +381,7 @@ describe("EntityStorageIdentityConnector - removeDocument evicts the cache (fast
 	beforeAll(() => {
 		setupFactories();
 		identityConnector = new EntityStorageIdentityConnector({
-			config: { didResolutionCacheTtlMs: 60_000 }
+			config: { didResolutionCacheTtlMs: DurationConstants.MsPerMinute }
 		});
 	});
 
@@ -420,7 +421,7 @@ describe("EntityStorageIdentityConnector - stop() lifecycle (fast, no network)",
 	test("destroys the cache without error", async () => {
 		setupFactories();
 		const identityConnector = new EntityStorageIdentityConnector({
-			config: { didResolutionCacheTtlMs: 60_000 }
+			config: { didResolutionCacheTtlMs: DurationConstants.MsPerMinute }
 		});
 
 		const document = await identityConnector.createDocument(TEST_USER_IDENTITY);

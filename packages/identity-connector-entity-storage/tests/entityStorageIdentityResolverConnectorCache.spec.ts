@@ -14,6 +14,7 @@
  * Unlike the identity connector, this connector caches third-party DIDs, so a non-zero TTL
  * means changes written to storage out-of-band are only observed once the entry expires.
  */
+import { DurationConstants } from "@3sixty/core";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 import { nameof } from "@3sixty/nameof";
@@ -30,7 +31,7 @@ import { EntityStorageIdentityResolverConnector } from "../src/entityStorageIden
 import { initSchema as initSchemaIdentity } from "../src/schema.js";
 
 const TEST_USER_IDENTITY = "test-identity";
-const TTL_MS = 60_000;
+const TTL_MS = DurationConstants.MsPerMinute;
 
 function setupFactories(): MemoryEntityStorageConnector<IdentityDocument> {
 	initSchemaVault();

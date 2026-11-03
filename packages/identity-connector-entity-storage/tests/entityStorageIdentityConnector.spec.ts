@@ -1,6 +1,6 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
-import { Is, RandomHelper, StringHelper } from "@3sixty/core";
+import { DurationConstants, Is, RandomHelper, StringHelper } from "@3sixty/core";
 import { Bip39 } from "@3sixty/crypto";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
@@ -975,7 +975,7 @@ describe("EntityStorageIdentityConnector", () => {
 			type: DidTypes.VerifiableCredential,
 			credentialSubject: { id: testDocumentId, name: "Numeric Revocation Index Test" },
 			issuer: testDocumentId,
-			issuanceDate: new Date(Date.now() - 60000).toISOString(),
+			issuanceDate: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString(),
 			credentialStatus: {
 				id: `${testDocumentId}#revocation`,
 				type: CREDENTIAL_STATUS_TYPE,

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0.
 import { HealthStatus, type IHealth, type IHealthProviderComponent } from "@3sixty/api-models";
 import {
+	DurationConstants,
 	GeneralError,
 	Guards,
 	Is,
@@ -109,7 +110,8 @@ export class IotaIdentityResolverConnector
 
 		this._config = options.config;
 
-		this._didResolutionCacheTtlMs = this._config.didResolutionCacheTtlMs ?? 30_000;
+		this._didResolutionCacheTtlMs =
+			this._config.didResolutionCacheTtlMs ?? 30 * DurationConstants.MsPerSecond;
 		this._didResolutionCacheCapacity = this._config.didResolutionCacheCapacity ?? 1000;
 		this._didResolutionCacheMutexTimeoutMs = this._config.didResolutionCacheMutexTimeoutMs;
 		this._didResolutionCache =
@@ -120,8 +122,10 @@ export class IotaIdentityResolverConnector
 						mutexTimeoutMs: this._didResolutionCacheMutexTimeoutMs
 					})
 				: undefined;
-		this._clientCreationTimeoutMs = this._config.clientCreationTimeoutMs ?? 3_000;
-		this._didResolutionTimeoutMs = this._config.didResolutionTimeoutMs ?? 5_000;
+		this._clientCreationTimeoutMs =
+			this._config.clientCreationTimeoutMs ?? 3 * DurationConstants.MsPerSecond;
+		this._didResolutionTimeoutMs =
+			this._config.didResolutionTimeoutMs ?? 5 * DurationConstants.MsPerSecond;
 	}
 
 	/**

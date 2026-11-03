@@ -17,7 +17,7 @@
  * `resolveDid` and `Iota.createClient` are confirmed genuine, spy-able prototype/static methods,
  * not WASM opaque internals.
  */
-import { LruCache } from "@3sixty/core";
+import { DurationConstants, LruCache } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import { Iota } from "@3sixty/dlt-iota";
 import { ProofTypes, type IProof } from "@3sixty/standards-w3c-did";
@@ -44,7 +44,7 @@ const CACHE_KEY_PREFIX = "identityConnectorCacheSpec:";
 // end-to-end" block below for connector-level coverage of the bypass behavior.
 describe("LruCache dependency contract (offline, not connector-specific)", () => {
 	test("returns a cached value within the TTI window without re-invoking the factory", async () => {
-		const cache = new LruCache<string>({ ttiMs: 30_000 });
+		const cache = new LruCache<string>({ ttiMs: 30 * DurationConstants.MsPerSecond });
 		const factory = vi.fn().mockResolvedValue("resolved-document");
 		const key = `${CACHE_KEY_PREFIX}own:testnet:did:iota:testnet:0xabc`;
 
@@ -59,7 +59,7 @@ describe("LruCache dependency contract (offline, not connector-specific)", () =>
 	test("re-invokes the factory after the TTI expires", async () => {
 		vi.useFakeTimers();
 		try {
-			const cache = new LruCache<string>({ ttiMs: 1000 });
+			const cache = new LruCache<string>({ ttiMs: DurationConstants.MsPerSecond });
 			const factory = vi.fn().mockResolvedValueOnce("first").mockResolvedValueOnce("second");
 			const key = `${CACHE_KEY_PREFIX}own:testnet:did:iota:testnet:0xdef`;
 
@@ -76,7 +76,7 @@ describe("LruCache dependency contract (offline, not connector-specific)", () =>
 	});
 
 	test("delete forces the next call to re-invoke the factory", async () => {
-		const cache = new LruCache<string>({ ttiMs: 30_000 });
+		const cache = new LruCache<string>({ ttiMs: 30 * DurationConstants.MsPerSecond });
 		const factory = vi.fn().mockResolvedValueOnce("first").mockResolvedValueOnce("second");
 		const key = `${CACHE_KEY_PREFIX}own:testnet:did:iota:testnet:0xghi`;
 
@@ -298,7 +298,7 @@ describe("IotaIdentityConnector - resolveOwnDidCached rejects instead of hanging
 // effect they're observing (a cache hit, an explicit eviction) becomes indistinguishable from
 // ordinary TTL expiry.
 describe("IotaIdentityConnector - role-1 cache hit + eviction (live, spy-only)", () => {
-	const TTL_MS = 60_000;
+	const TTL_MS = DurationConstants.MsPerMinute;
 
 	let identityConnector: IotaIdentityConnector;
 	let testDocumentId: string;
@@ -399,7 +399,7 @@ describe("IotaIdentityConnector - role-1 cache hit + eviction (live, spy-only)",
 // connector instance rather than sharing one with the hit/eviction tests, which need a TTL long
 // enough to never elapse by accident. Real timers, live testnet.
 describe("IotaIdentityConnector - role-1 cache TTL expiry (live, spy-only)", () => {
-	const TTL_MS = 3000;
+	const TTL_MS = 3 * DurationConstants.MsPerSecond;
 
 	let identityConnector: IotaIdentityConnector;
 	let testVerificationMethodId: string;
@@ -608,7 +608,7 @@ describe("IotaIdentityConnector - mutation does not cache an older document from
 				vaultMnemonicId: TEST_MNEMONIC_NAME,
 				network: TEST_NETWORK,
 				gasBudget: TEST_GAS_BUDGET,
-				didResolutionCacheTtlMs: 60_000
+				didResolutionCacheTtlMs: DurationConstants.MsPerMinute
 			}
 		});
 

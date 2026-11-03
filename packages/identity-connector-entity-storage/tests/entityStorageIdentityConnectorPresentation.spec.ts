@@ -7,7 +7,7 @@
  * iss, and the object form has to bind holder to the DID that owns the proof verification method.
  * Embedded credentials are checked whether they arrive as tokens or as objects.
  */
-import { Converter } from "@3sixty/core";
+import { Converter, DurationConstants } from "@3sixty/core";
 import { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
 import { nameof } from "@3sixty/nameof";
@@ -62,7 +62,7 @@ async function encodePresentationJwt(
 		{ kid, typ: "JWT", alg: JwsAlgorithms.EdDSA },
 		{
 			iss,
-			nbf: Math.floor(Date.now() / 1000),
+			nbf: Math.floor(Date.now() / DurationConstants.MsPerSecond),
 			vp: {
 				"@context": DidContexts.ContextVCv1,
 				type: ["VerifiablePresentation"],

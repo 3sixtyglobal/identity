@@ -18,6 +18,7 @@
  * entry expires. The long TTLs below are deliberate: they keep an entry alive across real
  * network calls so a cache hit cannot be confused with ordinary TTL expiry.
  */
+import { DurationConstants } from "@3sixty/core";
 import { Resolver } from "@iota/identity-wasm/node/index.js";
 import {
 	setupTestEnv,
@@ -29,7 +30,7 @@ import {
 import { IotaIdentityConnector } from "../src/iotaIdentityConnector.js";
 import { IotaIdentityResolverConnector } from "../src/iotaIdentityResolverConnector.js";
 
-const TTL_MS = 60_000;
+const TTL_MS = DurationConstants.MsPerMinute;
 
 describe("IotaIdentityResolverConnector - resolution cache (live, spy-only)", () => {
 	let testDocumentId: string;

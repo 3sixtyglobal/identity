@@ -1,7 +1,15 @@
 // Copyright 2024 IOTA Stiftung.
 // Copyright 2026 3Sixty Trade Ltd.
 // SPDX-License-Identifier: Apache-2.0.
-import { GeneralError, Guards, Is, LruCache, NotFoundError, ObjectHelper } from "@3sixty/core";
+import {
+	DurationConstants,
+	GeneralError,
+	Guards,
+	Is,
+	LruCache,
+	NotFoundError,
+	ObjectHelper
+} from "@3sixty/core";
 import {
 	EntityStorageConnectorFactory,
 	type IEntityStorageConnector
@@ -75,7 +83,8 @@ export class EntityStorageIdentityResolverConnector implements IIdentityResolver
 		);
 		this._vaultConnector = VaultConnectorFactory.get(options?.vaultConnectorType ?? "vault");
 
-		this._didResolutionCacheTtlMs = options?.config?.didResolutionCacheTtlMs ?? 30_000;
+		this._didResolutionCacheTtlMs =
+			options?.config?.didResolutionCacheTtlMs ?? 30 * DurationConstants.MsPerSecond;
 		this._didResolutionCacheCapacity = options?.config?.didResolutionCacheCapacity ?? 1000;
 		this._didResolutionCacheMutexTimeoutMs = options?.config?.didResolutionCacheMutexTimeoutMs;
 		this._didResolutionCache =

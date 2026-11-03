@@ -1,7 +1,10 @@
 // Copyright 2026 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
+import { DurationConstants } from "@3sixty/core";
 import { DidContexts, type IDidVerifiableCredential } from "@3sixty/standards-w3c-did";
 import { VerificationHelper } from "../../src/utils/verificationHelper.js";
+
+const TWO_MINUTES_MS = 2 * DurationConstants.MsPerMinute;
 
 describe("VerificationHelper", () => {
 	describe("checkValidityPeriod", () => {
@@ -18,8 +21,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv1,
 				type: "VerifiableCredential",
-				issuanceDate: new Date(Date.now() - 60000).toISOString(),
-				expirationDate: new Date(Date.now() + 60000).toISOString()
+				issuanceDate: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString(),
+				expirationDate: new Date(Date.now() + DurationConstants.MsPerMinute).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).not.toThrow();
@@ -29,8 +32,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv2,
 				type: "VerifiableCredential",
-				validFrom: new Date(Date.now() - 60000).toISOString(),
-				validUntil: new Date(Date.now() + 60000).toISOString()
+				validFrom: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString(),
+				validUntil: new Date(Date.now() + DurationConstants.MsPerMinute).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).not.toThrow();
@@ -40,8 +43,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv1,
 				type: "VerifiableCredential",
-				issuanceDate: new Date(Date.now() - 120000).toISOString(),
-				expirationDate: new Date(Date.now() - 60000).toISOString()
+				issuanceDate: new Date(Date.now() - TWO_MINUTES_MS).toISOString(),
+				expirationDate: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).toThrowError(
@@ -53,8 +56,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv2,
 				type: "VerifiableCredential",
-				validFrom: new Date(Date.now() - 120000).toISOString(),
-				validUntil: new Date(Date.now() - 60000).toISOString()
+				validFrom: new Date(Date.now() - TWO_MINUTES_MS).toISOString(),
+				validUntil: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).toThrowError(
@@ -66,8 +69,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv1,
 				type: "VerifiableCredential",
-				issuanceDate: new Date(Date.now() + 60000).toISOString(),
-				expirationDate: new Date(Date.now() + 120000).toISOString()
+				issuanceDate: new Date(Date.now() + DurationConstants.MsPerMinute).toISOString(),
+				expirationDate: new Date(Date.now() + TWO_MINUTES_MS).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).toThrowError(
@@ -79,8 +82,8 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv2,
 				type: "VerifiableCredential",
-				validFrom: new Date(Date.now() + 60000).toISOString(),
-				validUntil: new Date(Date.now() + 120000).toISOString()
+				validFrom: new Date(Date.now() + DurationConstants.MsPerMinute).toISOString(),
+				validUntil: new Date(Date.now() + TWO_MINUTES_MS).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).toThrowError(
@@ -93,7 +96,7 @@ describe("VerificationHelper", () => {
 				"@context": DidContexts.ContextVCv1,
 				type: "VerifiableCredential",
 				issuanceDate: "not-a-date",
-				expirationDate: new Date(Date.now() + 60000).toISOString()
+				expirationDate: new Date(Date.now() + DurationConstants.MsPerMinute).toISOString()
 			};
 
 			expect(() => VerificationHelper.checkValidityPeriod(credential)).toThrowError(
@@ -105,7 +108,7 @@ describe("VerificationHelper", () => {
 			const credential: IDidVerifiableCredential = {
 				"@context": DidContexts.ContextVCv2,
 				type: "VerifiableCredential",
-				validFrom: new Date(Date.now() - 60000).toISOString(),
+				validFrom: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString(),
 				validUntil: "2030-13-45T99:99:99Z"
 			};
 

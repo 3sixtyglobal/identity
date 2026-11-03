@@ -15,6 +15,7 @@ import {
 	ComponentFactory,
 	ConflictError,
 	Converter,
+	DurationConstants,
 	GeneralError,
 	Guards,
 	Is,
@@ -270,7 +271,8 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 		this._walletAccountIndex = options.config.walletAccountIndex ?? 0;
 		this._walletAddressIndex = options.config.walletAddressIndex ?? 0;
 		this._standardGasPrice = BigInt(this._config.standardGasPrice ?? 1000);
-		this._didResolutionCacheTtlMs = this._config.didResolutionCacheTtlMs ?? 30_000;
+		this._didResolutionCacheTtlMs =
+			this._config.didResolutionCacheTtlMs ?? 30 * DurationConstants.MsPerSecond;
 		this._didResolutionCacheCapacity = this._config.didResolutionCacheCapacity ?? 1000;
 		this._didResolutionCacheMutexTimeoutMs = this._config.didResolutionCacheMutexTimeoutMs;
 		this._didResolutionCache =
@@ -283,8 +285,10 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 				: undefined;
 		this._didResolutionRetries = Math.max(this._config.didResolutionRetries ?? 10, 1);
 		this._didResolutionRetryDelayMs = this._config.didResolutionRetryDelayMs ?? 500;
-		this._clientCreationTimeoutMs = this._config.clientCreationTimeoutMs ?? 3_000;
-		this._didResolutionTimeoutMs = this._config.didResolutionTimeoutMs ?? 5_000;
+		this._clientCreationTimeoutMs =
+			this._config.clientCreationTimeoutMs ?? 3 * DurationConstants.MsPerSecond;
+		this._didResolutionTimeoutMs =
+			this._config.didResolutionTimeoutMs ?? 5 * DurationConstants.MsPerSecond;
 
 		Iota.populateConfig(this._config);
 	}
@@ -1358,14 +1362,16 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			const jwtPayload: IJwtPayload = {
 				...options?.jwtPayloadFields,
 				iss: idParts.id,
-				nbf: Math.floor(Date.now() / 1000),
+				nbf: Math.floor(Date.now() / DurationConstants.MsPerSecond),
 				jti: id,
 				sub: Is.stringValue(subjectId) ? subjectId : undefined,
 				vc: credentialData
 			};
 
 			if (Is.date(options?.expirationDate)) {
-				jwtPayload.exp = Math.floor(options.expirationDate.getTime() / 1000);
+				jwtPayload.exp = Math.floor(
+					options.expirationDate.getTime() / DurationConstants.MsPerSecond
+				);
 			}
 
 			// Sign using vault connector - private key never leaves the vault
@@ -1830,11 +1836,13 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 			const jwtPayload: IJwtPayload = {
 				...options?.jwtPayloadFields,
 				iss: verifiablePresentation.holder,
-				nbf: Math.floor(Date.now() / 1000),
+				nbf: Math.floor(Date.now() / DurationConstants.MsPerSecond),
 				vp: jwtVp
 			};
 			if (Is.date(options?.expirationDate)) {
-				jwtPayload.exp = Math.floor(options.expirationDate.getTime() / 1000);
+				jwtPayload.exp = Math.floor(
+					options.expirationDate.getTime() / DurationConstants.MsPerSecond
+				);
 			}
 
 			// Sign using vault connector - private key never leaves the vault

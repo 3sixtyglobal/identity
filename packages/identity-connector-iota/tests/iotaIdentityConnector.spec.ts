@@ -1,7 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 // Note: IOTA connector is the primary source for shared test bodies.
-import { Is, StringHelper, Urn } from "@3sixty/core";
+import { DurationConstants, Is, StringHelper, Urn } from "@3sixty/core";
 import type { IJsonLdNodeObject } from "@3sixty/data-json-ld";
 import type { MemoryEntityStorageConnector } from "@3sixty/entity-storage-connector-memory";
 import { EntityStorageConnectorFactory } from "@3sixty/entity-storage-models";
@@ -28,6 +28,8 @@ import {
 } from "./setupTestEnv.js";
 import { IotaIdentityConnector } from "../src/iotaIdentityConnector.js";
 import { IotaIdentityResolverConnector } from "../src/iotaIdentityResolverConnector.js";
+
+const FOUR_HOURS_MS = 4 * DurationConstants.MsPerHour;
 
 const DID_PREFIX = "did:iota";
 
@@ -930,7 +932,9 @@ describe("IotaIdentityConnector", () => {
 		// The jwt exp claim is stored with second precision and identity.rs treats a credential as
 		// valid for the whole of its expiry second (checkExpiresOnOrAfter is inclusive), so anchor
 		// the expiry to a second boundary rather than relying on sub-second timing.
-		const expirationDate = new Date((Math.floor(Date.now() / 1000) + 2) * 1000);
+		const expirationDate = new Date(
+			(Math.floor(Date.now() / DurationConstants.MsPerSecond) + 2) * DurationConstants.MsPerSecond
+		);
 
 		const result = await identityConnector.createVerifiableCredential(
 			TEST_USER_IDENTITY,
@@ -978,7 +982,7 @@ describe("IotaIdentityConnector", () => {
 			type: DidTypes.VerifiableCredential,
 			credentialSubject: { id: testDocumentId, name: "Numeric Revocation Index Test" },
 			issuer: testDocumentId,
-			issuanceDate: new Date(Date.now() - 60000).toISOString(),
+			issuanceDate: new Date(Date.now() - DurationConstants.MsPerMinute).toISOString(),
 			credentialStatus: {
 				id: `${testDocumentId}#revocation`,
 				type: CREDENTIAL_STATUS_TYPE,
@@ -1133,7 +1137,7 @@ describe("IotaIdentityConnector", () => {
 			DidContexts.ContextVCv1,
 			["Person"],
 			[credentialResult.jwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: new Date(Date.now() + FOUR_HOURS_MS) }
 		);
 
 		await identityConnector.revokeVerifiableCredentials(TEST_USER_IDENTITY, testDocumentId, [
@@ -1158,7 +1162,7 @@ describe("IotaIdentityConnector", () => {
 				"https://schema.org",
 				["Person"],
 				[testVcJwt],
-				{ expirationDate: new Date(Date.now() + 14400000) }
+				{ expirationDate: new Date(Date.now() + FOUR_HOURS_MS) }
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -1179,7 +1183,7 @@ describe("IotaIdentityConnector", () => {
 				"https://schema.org",
 				["Person"],
 				[],
-				{ expirationDate: new Date(Date.now() + 14400000) }
+				{ expirationDate: new Date(Date.now() + FOUR_HOURS_MS) }
 			)
 		).rejects.toMatchObject({
 			name: "GuardError",
@@ -1214,7 +1218,7 @@ describe("IotaIdentityConnector", () => {
 			DidContexts.ContextVCv1,
 			["Person"],
 			[testVcJwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: new Date(Date.now() + FOUR_HOURS_MS) }
 		);
 
 		expect(result.verifiablePresentation["@context"]).toContain(DidContexts.ContextVCv1);
@@ -1235,7 +1239,7 @@ describe("IotaIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: new Date(Date.now() + FOUR_HOURS_MS),
 				jwtHeaderFields: { "x-custom": "header-value" }
 			}
 		);
@@ -1259,7 +1263,7 @@ describe("IotaIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: new Date(Date.now() + FOUR_HOURS_MS),
 				jwtPayloadFields: { "x-custom": "payload-value" }
 			}
 		);
@@ -1285,7 +1289,7 @@ describe("IotaIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: new Date(Date.now() + FOUR_HOURS_MS),
 				jwtHeaderFields: { alg: "RS256", typ: "at+JWT", kid: "evil-kid" }
 			}
 		);
@@ -1309,7 +1313,7 @@ describe("IotaIdentityConnector", () => {
 			["Person"],
 			[testVcJwt],
 			{
-				expirationDate: new Date(Date.now() + 14400000),
+				expirationDate: new Date(Date.now() + FOUR_HOURS_MS),
 				jwtPayloadFields: { iss: "evil-issuer" }
 			}
 		);
@@ -1341,7 +1345,7 @@ describe("IotaIdentityConnector", () => {
 			"https://schema.org",
 			["Person"],
 			[testVcJwt],
-			{ expirationDate: new Date(Date.now() + 14400000) }
+			{ expirationDate: new Date(Date.now() + FOUR_HOURS_MS) }
 		);
 
 		const vpJwt = createResult.jwt;

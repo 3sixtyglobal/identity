@@ -6,11 +6,12 @@ import {
 	BaseError,
 	BitString,
 	Coerce,
-	Compression,
 	ComponentFactory,
+	Compression,
 	CompressionType,
 	ConflictError,
 	Converter,
+	DurationConstants,
 	GeneralError,
 	Guards,
 	Is,
@@ -170,7 +171,8 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 		);
 
 		this._exportLimits = options?.config?.exportLimits;
-		this._didResolutionCacheTtlMs = options?.config?.didResolutionCacheTtlMs ?? 30_000;
+		this._didResolutionCacheTtlMs =
+			options?.config?.didResolutionCacheTtlMs ?? 30 * DurationConstants.MsPerSecond;
 		this._didResolutionCacheCapacity = options?.config?.didResolutionCacheCapacity ?? 1000;
 		this._didResolutionCacheMutexTimeoutMs = options?.config?.didResolutionCacheMutexTimeoutMs;
 		this._didResolutionCache =
@@ -1201,14 +1203,16 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			const jwtPayload: IJwtPayload = {
 				...options?.jwtPayloadFields,
 				iss: idParts.id,
-				nbf: Math.floor(Date.now() / 1000),
+				nbf: Math.floor(Date.now() / DurationConstants.MsPerSecond),
 				jti: verifiableCredential.id,
 				sub: credId,
 				vc: jwtVc
 			};
 
 			if (Is.date(options?.expirationDate)) {
-				jwtPayload.exp = Math.floor(options.expirationDate.getTime() / 1000);
+				jwtPayload.exp = Math.floor(
+					options.expirationDate.getTime() / DurationConstants.MsPerSecond
+				);
 			}
 
 			const signature = await Jwt.encodeWithSigner(jwtHeader, jwtPayload, async (header, payload) =>
@@ -1357,10 +1361,14 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				}
 				verifiableCredential.issuer = issuerDocumentId;
 				if (Is.number(jwtPayload.nbf)) {
-					verifiableCredential.issuanceDate = new Date(jwtPayload.nbf * 1000).toISOString();
+					verifiableCredential.issuanceDate = new Date(
+						jwtPayload.nbf * DurationConstants.MsPerSecond
+					).toISOString();
 				}
 				if (Is.number(jwtPayload.exp)) {
-					verifiableCredential.expirationDate = new Date(jwtPayload.exp * 1000).toISOString();
+					verifiableCredential.expirationDate = new Date(
+						jwtPayload.exp * DurationConstants.MsPerSecond
+					).toISOString();
 				}
 				if (Is.array(verifiableCredential.credentialSubject)) {
 					verifiableCredential.credentialSubject = verifiableCredential.credentialSubject.map(c => {
@@ -1668,12 +1676,14 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 			const jwtPayload: IJwtPayload = {
 				...options?.jwtPayloadFields,
 				iss: verifiablePresentation.holder,
-				nbf: Math.floor(Date.now() / 1000),
+				nbf: Math.floor(Date.now() / DurationConstants.MsPerSecond),
 				vp: jwtVp
 			};
 
 			if (Is.date(options?.expirationDate)) {
-				jwtPayload.exp = Math.floor(options.expirationDate.getTime() / 1000);
+				jwtPayload.exp = Math.floor(
+					options.expirationDate.getTime() / DurationConstants.MsPerSecond
+				);
 			}
 
 			const signature = await Jwt.encodeWithSigner(jwtHeader, jwtPayload, async (header, payload) =>
