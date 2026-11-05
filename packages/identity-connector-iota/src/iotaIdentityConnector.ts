@@ -810,7 +810,9 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 						"public"
 					);
 					methodKeyPublic = existingKey.publicKey;
-				} catch {}
+				} catch {
+					// The key does not exist yet, so it is created.
+				}
 			}
 
 			if (Is.empty(methodKeyPublic)) {
@@ -888,7 +890,9 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 					await this._vaultConnector.removeKey(
 						VaultConnectorHelper.buildKeyName(documentId, tempKeyId)
 					);
-				} catch {}
+				} catch {
+					// The temporary key may already have been removed.
+				}
 			}
 		}
 	}
@@ -970,7 +974,9 @@ export class IotaIdentityConnector implements IIdentityConnector, IHealthProvide
 					await this._vaultConnector.removeKey(
 						VaultConnectorHelper.buildKeyName(idParts.id, idParts.fragment)
 					);
-				} catch {}
+				} catch {
+					// The key may not exist, so there is nothing to remove.
+				}
 			}
 		} catch (error) {
 			throw new GeneralError(

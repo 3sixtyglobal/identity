@@ -6,7 +6,6 @@ import type { IIdentityProfileConnector } from "../models/IIdentityProfileConnec
 /**
  * Factory for creating identity profile connectors.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const IdentityProfileConnectorFactory = Factory.createFactory<IIdentityProfileConnector>(
 	"identity-profile-connector"
 );

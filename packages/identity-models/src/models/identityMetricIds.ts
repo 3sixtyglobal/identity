@@ -4,7 +4,6 @@
 /**
  * Metric IDs for the identity service.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const IdentityMetricIds = {
 	/**
 	 * Number of DIDs created.

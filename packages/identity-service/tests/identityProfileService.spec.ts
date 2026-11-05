@@ -450,7 +450,7 @@ describe("IdentityProfileService", () => {
 
 		const changeCases: {
 			label: string;
-			stored: IJsonLdDocument | undefined;
+			stored?: IJsonLdDocument;
 			updated: IJsonLdDocument;
 			isDeniedChange: boolean;
 		}[] = [

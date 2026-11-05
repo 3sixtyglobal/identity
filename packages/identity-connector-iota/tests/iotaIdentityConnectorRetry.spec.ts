@@ -1,6 +1,7 @@
 // Copyright 2024 IOTA Stiftung.
 // SPDX-License-Identifier: Apache-2.0.
 import { Is } from "@3sixty/core";
+import { MimeTypes } from "@3sixty/web";
 import {
 	setupTestEnv,
 	TEST_CLIENT_OPTIONS,
@@ -49,7 +50,7 @@ function failExecutions(
 						id: request.id,
 						error: { code: -32002, message: errorMessage }
 					}),
-					{ status: 200, headers: { "Content-Type": "application/json" } }
+					{ status: 200, headers: { "Content-Type": MimeTypes.Json } }
 				);
 			}
 		}

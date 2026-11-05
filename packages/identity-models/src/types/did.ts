@@ -20,7 +20,7 @@ export class Did {
 	 */
 	public static parse(id: string): {
 		method: string;
-		network?: string | undefined;
+		network?: string;
 		id: string;
 	} {
 		Did.guard(Did.CLASS_NAME, nameof(id), id);

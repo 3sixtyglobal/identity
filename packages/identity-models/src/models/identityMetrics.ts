@@ -6,7 +6,6 @@ import { IdentityMetricIds } from "./identityMetricIds.js";
 /**
  * Metrics registered by the identity service.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const IdentityMetrics: ITelemetryMetric[] = [
 	{
 		id: IdentityMetricIds.DidsCreated,

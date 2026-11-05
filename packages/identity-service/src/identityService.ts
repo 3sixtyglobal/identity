@@ -141,7 +141,9 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 
 			// Replace the updated contextIds with the new document id for the health check.
 			contextIds[ContextIdKeys.Organization] = doc.id;
-		} catch {}
+		} catch {
+			// The health document could not be created, the health check reports it.
+		}
 	}
 
 	/**
@@ -233,7 +235,9 @@ export class IdentityService implements IIdentityComponent, IHealthProviderCompo
 				}
 			);
 			await connector.removeDocument(healthDocument.controller, healthDocument.documentId);
-		} catch {}
+		} catch {
+			// The health document may already have been removed.
+		}
 	}
 
 	/**

@@ -26,7 +26,7 @@ export class DocumentHelper {
 	 */
 	public static parseId(documentId: string): {
 		id: string;
-		fragment: string | undefined;
+		fragment?: string;
 	} {
 		if (!Is.stringValue(documentId)) {
 			return {

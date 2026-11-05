@@ -4,7 +4,6 @@
 /**
  * The key types which can be held in an identity export.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const IdentityExportKeyType = {
 	/**
 	 * Ed25519 signing key.

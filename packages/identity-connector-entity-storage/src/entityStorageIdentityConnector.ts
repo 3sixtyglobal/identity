@@ -645,7 +645,9 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 						"public"
 					);
 					methodKeyPublic = existingKey.publicKey;
-				} catch {}
+				} catch {
+					// The key does not exist yet, so it is created.
+				}
 			}
 
 			if (Is.empty(methodKeyPublic)) {
@@ -707,7 +709,9 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 				// If we created a temporary key and it is still in use, we will remove it from the vault.
 				try {
 					await this._vaultConnector.removeKey(tempKeyId);
-				} catch {}
+				} catch {
+					// The temporary key may already have been removed.
+				}
 			}
 		}
 	}
@@ -765,7 +769,9 @@ export class EntityStorageIdentityConnector implements IIdentityConnector {
 					await this._vaultConnector.removeKey(
 						EntityStorageIdentityConnector.buildVaultKey(idParts.id, idParts.fragment)
 					);
-				} catch {}
+				} catch {
+					// The key may not exist, so there is nothing to remove.
+				}
 			}
 		} catch (error) {
 			throw new GeneralError(

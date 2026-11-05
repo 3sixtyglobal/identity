@@ -4,7 +4,6 @@
 /**
  * The identity connector types.
  */
-// eslint-disable-next-line @typescript-eslint/naming-convention
 export const IdentityConnectorTypes = {
 	/**
 	 * IOTA.
