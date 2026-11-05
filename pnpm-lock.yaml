@@ -431,10 +431,10 @@ importers:
         version: 0.20.0-next.5
       '@3sixty/dlt-account':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/dlt-iota':
         specifier: next
-        version: 0.20.0-next.3(typescript@6.0.3)
+        version: 0.20.0-next.4(typescript@6.0.3)
       '@3sixty/identity-models':
         specifier: 0.20.0-next.4
         version: link:../identity-models
@@ -702,7 +702,7 @@ importers:
         version: 0.20.0-next.5
       '@3sixty/dlt-account':
         specifier: next
-        version: 0.20.0-next.3
+        version: 0.20.0-next.4
       '@3sixty/identity-models':
         specifier: 0.20.0-next.4
         version: link:../identity-models
@@ -831,12 +831,12 @@ packages:
     resolution: {integrity: sha512-wawpAkLBSv5pbcSruieHVsf40mz6hAr7iMs87KRnwHVGMnPwTcfikaifMitRQ9j1kHTX1wzR/cG3uL1Aa+YkQw==}
     engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/dlt-account@0.20.0-next.3':
-    resolution: {integrity: sha512-LU2c94n8m/W6ml93Hd1Pk8+bkR0Sf9W4WD9p8F6u6cGfyBIUuJ1yWhPP5Z/rEo59D7HkIvEFV6ha/LxiHmcrdA==}
+  '@3sixty/dlt-account@0.20.0-next.4':
+    resolution: {integrity: sha512-da8zT9o4fTePWOQvRuIqRBu3OaHnhmGWVKH/TlzytjbnVMv795sNbmRf4d5P7grX9E3Vw5q/tLUran2ByuJ4+A==}
     engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
-  '@3sixty/dlt-iota@0.20.0-next.3':
-    resolution: {integrity: sha512-7YmMVl9M3KyL+YRK8P/NYClfnAkdfza1C4S0zUKkX3qLW7uVqMJOhfNoGVWQExaXJ9Xq5i0KkF/CXWmIDgmx0Q==}
+  '@3sixty/dlt-iota@0.20.0-next.4':
+    resolution: {integrity: sha512-SPjankNNayRgJ2u9H0otvOt7RB0dSHUBe2KtkFGzQcDUHe5h3QTUvLNjj6UvXyvK6zv2oLGcGz3naPuneFAagw==}
     engines: {bun: '>=1.4.4', node: '>=24.0.0'}
 
   '@3sixty/entity-storage-connector-memory@0.20.0-next.4':
@@ -4431,18 +4431,18 @@ snapshots:
       '@types/jsonld': 1.5.15
       jsonld: 9.0.0
 
-  '@3sixty/dlt-account@0.20.0-next.3':
+  '@3sixty/dlt-account@0.20.0-next.4':
     dependencies:
       '@3sixty/core': 0.20.0-next.11
       '@3sixty/crypto': 0.20.0-next.11
       '@3sixty/nameof': 0.20.0-next.11
       '@3sixty/vault-models': 0.20.0-next.2
 
-  '@3sixty/dlt-iota@0.20.0-next.3(typescript@6.0.3)':
+  '@3sixty/dlt-iota@0.20.0-next.4(typescript@6.0.3)':
     dependencies:
       '@3sixty/core': 0.20.0-next.11
       '@3sixty/crypto': 0.20.0-next.11
-      '@3sixty/dlt-account': 0.20.0-next.3
+      '@3sixty/dlt-account': 0.20.0-next.4
       '@3sixty/logging-models': 0.20.0-next.2
       '@3sixty/nameof': 0.20.0-next.11
       '@3sixty/vault-models': 0.20.0-next.2
@@ -4631,8 +4631,8 @@ snapshots:
       '@3sixty/api-models': 0.20.0-next.9
       '@3sixty/context': 0.20.0-next.11
       '@3sixty/core': 0.20.0-next.11
-      '@3sixty/dlt-account': 0.20.0-next.3
-      '@3sixty/dlt-iota': 0.20.0-next.3(typescript@6.0.3)
+      '@3sixty/dlt-account': 0.20.0-next.4
+      '@3sixty/dlt-iota': 0.20.0-next.4(typescript@6.0.3)
       '@3sixty/nameof': 0.20.0-next.11
       '@3sixty/vault-models': 0.20.0-next.2
       '@3sixty/wallet-models': 0.20.0-next.2
